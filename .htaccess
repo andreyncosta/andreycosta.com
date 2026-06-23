@@ -1,4 +1,23 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
+
+  # Block WordPress scan attempts
   RewriteRule ^wp-admin(/.*)?$ - [F,L]
+
+  # Serve existing files and directories directly
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Clean URLs: /curriculum -> /curriculum/index.html
+  RewriteRule ^([a-z0-9-]+)/?$ /$1/index.html [L]
+
 </IfModule>
+
+# UTF-8 everywhere
+AddDefaultCharset UTF-8
+
+# Proper MIME types
+AddType text/html .html
+AddType text/css .css
+AddType application/javascript .js
