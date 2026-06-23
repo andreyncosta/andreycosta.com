@@ -253,7 +253,8 @@
       cursor: pointer;
     }
 
-    .project-card:last-child { border-right: none; }
+    .project-card:nth-child(3n), .project-card:last-child { border-right: none; }
+    .project-card:nth-child(-n+3) { border-bottom: 0.5px solid var(--rule); }
     .project-card:hover { background: rgba(139,46,15,0.04); }
     .project-card:hover .project-arrow { transform: translateX(3px); }
 
@@ -489,8 +490,10 @@
     /* ─── responsive ─── */
     @media (max-width: 900px) {
       .projects { grid-template-columns: 1fr 1fr; }
-      .project-card:nth-child(2) { border-right: none; }
-      .project-card:nth-child(3) { border-top: 0.5px solid var(--rule); border-right: none; grid-column: 1 / -1; }
+      .project-card:nth-child(3n) { border-right: unset; }
+      .project-card:nth-child(-n+3) { border-bottom: unset; }
+      .project-card:nth-child(2n) { border-right: none; }
+      .project-card:nth-child(-n+4) { border-bottom: 0.5px solid var(--rule); }
     }
 
     @media (max-width: 780px) {
@@ -620,9 +623,29 @@
     <a class="project-card" href="/emendas-parlamentares" target="_blank">
       <div class="project-tag">03 —— Public Policy</div>
       <div class="project-title">Emendas<br><em>Parlamentares</em></div>
-      <p class="project-desc">Interactive analytical dashboard for parliamentary budget amendments (emendas). Tracks allocation by party, author, and recipient — with anomaly detection and full execution breakdown. Built entirely in-browser.</p>
+      <p class="project-desc">Interactive report on Brazilian parliamentary budget amendments (individuais, bancada, relator). Per-capita allocation maps by state, party &amp; author execution rates, beneficiary concentration, and thematic classification — generated from Portal da Transparência open data by a pure-Python pipeline.</p>
       <div class="project-footer">
-        <span class="project-stack">Chart.js · Vanilla JS · Open Data</span>
+        <span class="project-stack">Python · SVG Maps · Portal da Transparência</span>
+        <span class="project-arrow">→</span>
+      </div>
+    </a>
+
+    <a class="project-card" href="https://github.com/andreyncosta/copom-credit-transmission" target="_blank" rel="noopener">
+      <div class="project-tag">04 —— Econometrics</div>
+      <div class="project-title">COPOM Credit<br><em>Transmission</em></div>
+      <p class="project-desc">Estimates the differential pass-through of SELIC rate shocks to household vs. corporate credit using an IV/2SLS strategy — the surprise component of each COPOM decision isolates the exogenous policy variation. Wu-Hausman endogeneity tests validate the IV. Results served via a FastAPI endpoint.</p>
+      <div class="project-footer">
+        <span class="project-stack">Python · IV/2SLS · FastAPI · dbt · BCB/SGS</span>
+        <span class="project-arrow">→</span>
+      </div>
+    </a>
+
+    <a class="project-card" href="https://github.com/andreyncosta/kaldor-growth-diagnostics" target="_blank" rel="noopener">
+      <div class="project-tag">05 —— Macro</div>
+      <div class="project-title">Kaldor Growth<br><em>Diagnostics</em></div>
+      <p class="project-desc">Empirical replication of Kaldor's stylized growth facts for Brazil against East Asian comparators (Japan, South Korea, China) and Latin American peers (Mexico, Chile). Tracks GDP per worker, TFP, capital deepening, and capital-output ratio across the Penn World Tables 10.0 from 1950 to 2019.</p>
+      <div class="project-footer">
+        <span class="project-stack">Python · pandas · PWT 10.0 · Growth Theory</span>
         <span class="project-arrow">→</span>
       </div>
     </a>
@@ -693,7 +716,7 @@
     <a class="article-card" href="/emendas-parlamentares">
       <div class="article-category">Public Policy · Data Analysis</div>
       <div class="article-title">O Painel das Emendas: rastreando R$ bilhões em alocações parlamentares</div>
-      <p class="article-desc">Dashboard interativo com dados abertos do Portal da Transparência. Distribuição por partido, autor, favorecido — com detecção de anomalias e execução orçamentária completa. Uma radiografia do orçamento impositivo brasileiro.</p>
+      <p class="article-desc">Relatório interativo gerado a partir dos dados abertos do Portal da Transparência. Mapas per capita por estado, execução orçamentária por partido e autor, concentração de favorecidos e classificação temática das emendas. Uma radiografia do orçamento impositivo brasileiro.</p>
       <div class="article-meta">Interactive · PT-BR · Open data</div>
     </a>
 
