@@ -1,22 +1,23 @@
 # andreycosta.com
 
-Personal website source — hosted on Hostinger at [andreycosta.com](https://andreycosta.com).
+Personal website — hosted on Hostinger at [andreycosta.com](https://andreycosta.com).
 
 Built with zero frameworks. Semantic HTML, vanilla CSS/JS, editorial aesthetic.
+Auto-deployed to Hostinger on every push to `main`.
 
 ---
 
 ## Structure
 
 ```
-public_html/
+/
 ├── index.html                     # Homepage
 ├── .htaccess                      # Apache rewrite rules
 ├── curriculum/
 │   ├── index.html                 # Bilingual CV (PT/EN toggle, no reload)
 │   └── download/
-│       ├── ptbr.pdf               # CV in Portuguese
-│       └── enus.pdf               # CV in English
+│       ├── ptbr.pdf               # CV in Portuguese (upload manually)
+│       └── enus.pdf               # CV in English (upload manually)
 ├── contrato/
 │   └── index.html                 # Client-side rental contract generator
 └── emendas-parlamentares/
@@ -28,16 +29,19 @@ public_html/
 ## Pages
 
 ### `/` — Homepage
-Editorial layout. Cormorant Garamond display, DM Mono for data labels, noise texture overlay. Links to all active projects, research, and writing.
+Editorial layout. Cormorant Garamond display, DM Mono for data labels, noise texture overlay.
+Links to all active projects, research, and writing.
 
 ### `/curriculum` — CV
-Bilingual (PT/EN) with client-side language toggle. No page reload. PDF download for both languages. Print stylesheet included.
+Bilingual (PT/EN) with client-side language toggle. No page reload.
+PDF download for both languages. Print stylesheet included.
 
 ### `/contrato` — Contract Generator
-Client-side rental contract generator. Fills a legal template from form inputs, renders a printable document. No server, no storage.
+Client-side rental contract generator. No server, no storage.
 
 ### `/emendas-parlamentares` — Parliamentary Amendments Dashboard
-Interactive analytical panel for Brazilian federal parliamentary budget amendments (*emendas parlamentares*). Chart.js visualizations, filter system, anomaly detection. Built entirely in-browser against open government data.
+Interactive analytical panel for Brazilian federal parliamentary budget amendments.
+Chart.js visualizations, filter system, anomaly detection. Built entirely in-browser.
 
 ---
 
@@ -65,16 +69,12 @@ Interactive analytical panel for Brazilian federal parliamentary budget amendmen
 
 ---
 
-## Deployment
+## Branches
 
-Deployed via FTP to Hostinger. No build step. Push to `main` → upload `public_html/` contents.
-
-```
-Host:   ftp.andreycosta.com
-Path:   /public_html
-```
-
-> PDFs in `curriculum/download/` are not tracked in git (`.gitignore`). Upload manually after regeneration.
+| Branch | Description |
+|--------|-------------|
+| `main` | Current production site — auto-deployed to andreycosta.com |
+| `legacy` | Snapshot of original site prior to 2025-06 redesign |
 
 ---
 
