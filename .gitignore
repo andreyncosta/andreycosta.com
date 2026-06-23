@@ -1,0 +1,17 @@
+# PDFs are generated externally and uploaded manually
+public_html/curriculum/download/*.pdf
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Hostinger / cPanel artifacts
+.cpanel*
+.htpasswd
+error_log
