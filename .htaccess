@@ -21,3 +21,25 @@ AddDefaultCharset UTF-8
 AddType text/html .html
 AddType text/css .css
 AddType application/javascript .js
+
+# Security headers
+<IfModule mod_headers.c>
+  # Prevent MIME-type sniffing
+  Header always set X-Content-Type-Options "nosniff"
+
+  # Disallow embedding in frames (clickjacking protection)
+  Header always set X-Frame-Options "DENY"
+
+  # Force HTTPS for 2 years
+  Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+
+  # Content Security Policy — personal/portfolio site, no external scripts
+  Header always set Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; frame-ancestors 'none'"
+
+  # Do not leak full referrer to cross-origin destinations
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # Restrict browser features
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+</IfModule>
+
