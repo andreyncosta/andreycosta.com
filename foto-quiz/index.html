@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Photo Profile Quiz — Your Photographic Identity</title>
+  <meta name="description" content="20 questions. A complete portrait profile. Three AI-ready prompts engineered by a commercial photographer and prompt specialist." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── RESET & TOKENS ──────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0A0A0F;
+      --bg2:       #111118;
+      --card:      #13131A;
+      --card2:     #18181F;
+      --border:    #25252F;
+      --border2:   #2E2E3A;
+      --gold:      #C9A84C;
+      --gold-lt:   #E3C872;
+      --gold-dim:  rgba(201,168,76,0.10);
+      --gold-glow: rgba(201,168,76,0.06);
+      --text:      #EEEAE3;
+      --text2:     #B0AAA0;
+      --muted:     #6E6860;
+      --green:     #4CAF78;
+      --radius:    3px;
+      --transition: 0.22s ease;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(ellipse 60% 50% at 15% 10%, rgba(201,168,76,0.04) 0%, transparent 100%),
+        radial-gradient(ellipse 50% 40% at 85% 90%, rgba(201,168,76,0.025) 0%, transparent 100%);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── SCREENS ─────────────────────────────────────────── */
+    .screen { display: none; }
+    .screen.visible {
+      display: block;
+      animation: screenIn 0.45s ease both;
+    }
+    @keyframes screenIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── SHARED ──────────────────────────────────────────── */
+    .gold-rule {
+      display: block;
+      width: 48px;
+      height: 1.5px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      margin: 0 auto;
+    }
+
+    h1, h2, h3 { font-family: 'Playfair Display', serif; font-weight: 700; line-height: 1.2; }
+
+    .btn-gold {
+      display: inline-block;
+      background: var(--gold);
+      color: #080808;
+      border: none;
+      padding: 0.9rem 2.8rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: var(--radius);
+      transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+    }
+    .btn-gold:hover {
+      background: var(--gold-lt);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(201,168,76,0.25);
+    }
+    .btn-gold:active { transform: translateY(0); }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border2);
+      color: var(--muted);
+      padding: 0.7rem 1.8rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: var(--radius);
+      transition: border-color var(--transition), color var(--transition);
+    }
+    .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+    .btn-gold-outline {
+      background: transparent;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      padding: 0.7rem 1.8rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: var(--radius);
+      transition: background var(--transition), color var(--transition);
+    }
+    .btn-gold-outline:hover { background: var(--gold); color: #080808; }
+
+    /* ─── INTRO SCREEN ────────────────────────────────────── */
+    #screen-intro { min-height: 100vh; }
+
+    .intro-inner {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 3rem 1.5rem;
+      max-width: 620px;
+      margin: 0 auto;
+    }
+
+    .intro-eyebrow {
+      font-size: 0.65rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-weight: 600;
+      margin-bottom: 1.6rem;
+      animation: fadeUp 0.7s 0.15s ease both;
+    }
+
+    .intro-title {
+      font-size: clamp(2.2rem, 6vw, 3.6rem);
+      color: var(--text);
+      margin-bottom: 0.4rem;
+      animation: fadeUp 0.7s 0.3s ease both;
+    }
+    .intro-title em { color: var(--gold); font-style: italic; }
+
+    .intro-sub {
+      font-size: 0.95rem;
+      color: var(--text2);
+      font-weight: 300;
+      max-width: 480px;
+      line-height: 1.75;
+      margin: 1.5rem auto 2.5rem;
+      animation: fadeUp 0.7s 0.45s ease both;
+    }
+
+    .intro-cta { animation: fadeUp 0.7s 0.6s ease both; }
+
+    .intro-meta {
+      margin-top: 1.5rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.07em;
+      animation: fadeUp 0.7s 0.75s ease both;
+    }
+    .intro-meta span { color: var(--border2); margin: 0 0.4rem; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── QUIZ SCREEN ─────────────────────────────────────── */
+    .quiz-layout {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 1.25rem 5rem;
+      min-height: 100vh;
+    }
+
+    /* Progress bar */
+    .progress-header {
+      position: sticky;
+      top: 0;
+      background: rgba(10,10,15,0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 1.1rem 0 1rem;
+      z-index: 10;
+    }
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.6rem;
+    }
+    .progress-label {
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .progress-fraction {
+      font-size: 0.72rem;
+      color: var(--gold);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    .progress-track {
+      height: 2px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #9A6E1A, var(--gold), var(--gold-lt));
+      border-radius: 2px;
+      transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    /* Question */
+    .question-block {
+      padding-top: 2.2rem;
+      animation: qIn 0.35s ease both;
+    }
+    @keyframes qIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .q-number {
+      font-size: 0.62rem;
+      color: var(--gold);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 0.6rem;
+    }
+    .q-text {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.25rem, 3.5vw, 1.65rem);
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+      margin-bottom: 1.75rem;
+    }
+
+    /* Option cards */
+    .options-stack { display: flex; flex-direction: column; gap: 0.55rem; }
+
+    .opt-card {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.85rem 1.1rem;
+      cursor: pointer;
+      user-select: none;
+      transition:
+        border-color var(--transition),
+        background var(--transition),
+        transform 0.15s ease;
+    }
+    .opt-card:hover {
+      border-color: rgba(201,168,76,0.5);
+      background: var(--gold-glow);
+      transform: translateX(2px);
+    }
+    .opt-card.selected {
+      border-color: var(--gold);
+      background: var(--gold-dim);
+    }
+    .opt-card.selected .opt-badge {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(201,168,76,0.12);
+    }
+    .opt-card:hover .opt-badge {
+      border-color: rgba(201,168,76,0.6);
+      color: rgba(201,168,76,0.8);
+    }
+
+    .opt-badge {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 1px solid var(--border2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--muted);
+      flex-shrink: 0;
+      transition: border-color var(--transition), color var(--transition), background var(--transition);
+    }
+
+    .opt-text {
+      font-size: 0.875rem;
+      font-weight: 400;
+      color: var(--text2);
+      line-height: 1.4;
+      transition: color var(--transition);
+    }
+    .opt-card.selected .opt-text { color: var(--text); font-weight: 500; }
+    .opt-card:hover .opt-text { color: var(--text); }
+
+    /* ─── RESULTS SCREEN ──────────────────────────────────── */
+    .results-layout {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 3.5rem 1.25rem 6rem;
+    }
+
+    .results-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    .results-eyebrow {
+      font-size: 0.62rem;
+      color: var(--gold);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    .results-title {
+      font-size: clamp(1.8rem, 4.5vw, 2.6rem);
+      color: var(--text);
+      margin-bottom: 0.6rem;
+    }
+    .results-desc {
+      font-size: 0.875rem;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    /* ── Identity Card ── */
+    .id-card {
+      position: relative;
+      background: linear-gradient(135deg, #15151E 0%, #0D0D14 100%);
+      border: 1px solid var(--gold);
+      border-radius: var(--radius);
+      padding: 2rem 1.75rem 1.75rem;
+      margin-bottom: 2.5rem;
+      overflow: hidden;
+    }
+    .id-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(201,168,76,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .id-card-label {
+      font-size: 0.6rem;
+      color: var(--gold);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 1.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .id-card-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(201,168,76,0.3), transparent);
+    }
+    .id-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem 1rem;
+    }
+    .id-item {}
+    .id-item-label {
+      font-size: 0.58rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.25rem;
+    }
+    .id-item-value {
+      font-size: 0.82rem;
+      color: var(--text);
+      font-weight: 500;
+      line-height: 1.3;
+    }
+
+    /* ── Section ── */
+    .section { margin-bottom: 2.5rem; }
+    .section-head {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+    .section-head::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── Prompt Cards ── */
+    .prompt-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.4rem 1.5rem 1.2rem;
+      margin-bottom: 0.9rem;
+      transition: border-color var(--transition);
+    }
+    .prompt-card:hover { border-color: var(--border2); }
+
+    .prompt-label {
+      font-size: 0.6rem;
+      color: var(--gold);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 0.8rem;
+    }
+    .prompt-body {
+      font-size: 0.82rem;
+      color: #B8B2AA;
+      line-height: 1.75;
+      font-weight: 300;
+      word-break: break-word;
+    }
+    .copy-btn {
+      margin-top: 1rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.45rem 1rem;
+      font-size: 0.7rem;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: var(--radius);
+      transition: border-color var(--transition), color var(--transition), background var(--transition);
+    }
+    .copy-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .copy-btn.copied {
+      border-color: var(--green);
+      color: var(--green);
+      background: rgba(76,175,120,0.06);
+    }
+
+    /* ── Director Note ── */
+    .director-note {
+      border-left: 2px solid var(--gold);
+      background: rgba(201,168,76,0.04);
+      padding: 1.4rem 1.5rem 1.4rem 1.75rem;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      font-style: italic;
+      font-size: 0.875rem;
+      color: var(--text2);
+      line-height: 1.85;
+    }
+    .director-note strong { color: var(--text); font-style: normal; font-weight: 500; }
+
+    /* ── Tools Grid ── */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+    .tool-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.1rem 1rem;
+      transition: border-color var(--transition);
+    }
+    .tool-card.top { border-color: var(--gold); background: rgba(201,168,76,0.04); }
+    .tool-card.second { border-color: rgba(201,168,76,0.35); }
+
+    .tool-rec-badge {
+      font-size: 0.55rem;
+      color: var(--gold);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+      display: block;
+    }
+    .tool-name {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.3rem;
+    }
+    .tool-card.top .tool-name { color: var(--gold-lt); }
+    .tool-desc {
+      font-size: 0.75rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── Action Bar ── */
+    .action-bar {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      padding-top: 1rem;
+    }
+
+    /* ─── RESPONSIVE ──────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .id-grid { grid-template-columns: repeat(2, 1fr); }
+      .tools-grid { grid-template-columns: 1fr; }
+      .action-bar { flex-direction: column; }
+      .action-bar button { width: 100%; }
+    }
+    @media (max-width: 400px) {
+      .id-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+     INTRO SCREEN
+════════════════════════════════════════ -->
+<div id="screen-intro" class="screen visible">
+  <div class="intro-inner">
+    <div class="intro-eyebrow">Photographic Identity System</div>
+    <h1 class="intro-title">Your Portrait,<br><em>Engineered</em></h1>
+    <p class="intro-sub">
+      20 questions. A complete photographic profile. Three AI-ready image prompts written as if by a top-tier commercial photographer directing an AI model session.
+    </p>
+    <div class="intro-cta">
+      <button class="btn-gold" onclick="startQuiz()">Begin the Quiz &rarr;</button>
+    </div>
+    <p class="intro-meta">
+      20 questions <span>·</span> ~4 minutes <span>·</span> No sign-up needed
+    </p>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     QUIZ SCREEN
+════════════════════════════════════════ -->
+<div id="screen-quiz" class="screen">
+  <div class="quiz-layout">
+    <div class="progress-header">
+      <div class="progress-meta">
+        <span class="progress-label">Photo Profile Quiz</span>
+        <span class="progress-fraction" id="prog-frac">1 / 20</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="prog-fill" style="width:3%"></div>
+      </div>
+    </div>
+    <div id="q-area"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     RESULTS SCREEN
+════════════════════════════════════════ -->
+<div id="screen-results" class="screen">
+  <div class="results-layout" id="results-root"></div>
+</div>
+
+<!-- ════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ──────────────────────────────────────────
+   QUESTIONS
+────────────────────────────────────────── */
+const QS = [
+  { n:1,  text:"Primary purpose of your photo", opts:[
+    {id:'A', t:'Corporate / LinkedIn profile'},
+    {id:'B', t:'Personal branding & social media'},
+    {id:'C', t:'Speaker / conference bio'},
+    {id:'D', t:'Creative / artistic portfolio'},
+    {id:'E', t:'Press / media & publications'},
+  ]},
+  { n:2,  text:"Gender presentation", opts:[
+    {id:'A', t:'Masculine'},
+    {id:'B', t:'Feminine'},
+    {id:'C', t:'Androgynous / non-binary'},
+    {id:'D', t:'Prefer not to specify'},
+  ]},
+  { n:3,  text:"Skin tone", opts:[
+    {id:'A', t:'Very fair / porcelain'},
+    {id:'B', t:'Fair / light beige'},
+    {id:'C', t:'Medium / warm olive'},
+    {id:'D', t:'Tan / caramel brown'},
+    {id:'E', t:'Deep brown'},
+    {id:'F', t:'Very deep / ebony'},
+  ]},
+  { n:4,  text:"Hair", opts:[
+    {id:'A', t:'Short & dark (black/dark brown)'},
+    {id:'B', t:'Short & light (blonde/gray/white)'},
+    {id:'C', t:'Medium length, straight, dark'},
+    {id:'D', t:'Medium length, curly/wavy'},
+    {id:'E', t:'Long & straight'},
+    {id:'F', t:'Long & curly / voluminous'},
+    {id:'G', t:'Shaved / bald / very short'},
+  ]},
+  { n:5,  text:"Industry / profession", opts:[
+    {id:'A', t:'Technology & startups'},
+    {id:'B', t:'Finance, law or consulting'},
+    {id:'C', t:'Creative, design or media'},
+    {id:'D', t:'Healthcare or science'},
+    {id:'E', t:'Education or academia'},
+    {id:'F', t:'Executive / C-suite leadership'},
+    {id:'G', t:'Entrepreneur / founder'},
+  ]},
+  { n:6,  text:"Desired level of formality", opts:[
+    {id:'A', t:'Ultra-formal (suit & tie / haute couture)'},
+    {id:'B', t:'Business formal (blazer, structured)'},
+    {id:'C', t:'Business casual (polished but relaxed)'},
+    {id:'D', t:'Smart casual (clean, modern)'},
+    {id:'E', t:'Creative casual (expressive, artistic)'},
+  ]},
+  { n:7,  text:"The impression you want to make", opts:[
+    {id:'A', t:'Authoritative and commanding'},
+    {id:'B', t:'Approachable and warm'},
+    {id:'C', t:'Creative and innovative'},
+    {id:'D', t:'Trustworthy and grounded'},
+    {id:'E', t:'Dynamic and energetic'},
+    {id:'F', t:'Sophisticated and elegant'},
+  ]},
+  { n:8,  text:"Background / setting", opts:[
+    {id:'A', t:'Blurred modern office interior'},
+    {id:'B', t:'Contemporary urban exterior'},
+    {id:'C', t:'Lush nature / greenery'},
+    {id:'D', t:'Clean studio backdrop (white / light gray)'},
+    {id:'E', t:'Dark, dramatic backdrop (charcoal / deep tones)'},
+    {id:'F', t:'Architectural / geometric / brutalist'},
+  ]},
+  { n:9,  text:"Lighting mood", opts:[
+    {id:'A', t:'Bright & clean — natural, airy'},
+    {id:'B', t:'Soft & warm — golden hour glow'},
+    {id:'C', t:'Dramatic — strong contrast, deep shadows'},
+    {id:'D', t:'Cool & modern — blue-white tones'},
+    {id:'E', t:'Cinematic — film-grade color science'},
+  ]},
+  { n:10, text:"Wardrobe color palette", opts:[
+    {id:'A', t:'Neutrals (white, gray, black, navy)'},
+    {id:'B', t:'Earth tones (beige, brown, rust, olive)'},
+    {id:'C', t:'Bold saturated colors (cobalt, emerald, crimson)'},
+    {id:'D', t:'Pastels (light rose, sky blue, lavender)'},
+    {id:'E', t:'Monochromatic (tonal dressing in one color)'},
+  ]},
+  { n:11, text:"Framing / crop", opts:[
+    {id:'A', t:'Tight headshot (face and upper shoulders)'},
+    {id:'B', t:'Upper body (waist up)'},
+    {id:'C', t:'Three-quarter length'},
+    {id:'D', t:'Full body portrait'},
+    {id:'E', t:'Candid / in-motion'},
+  ]},
+  { n:12, text:"Your age range", opts:[
+    {id:'A', t:'18–25'},
+    {id:'B', t:'26–35'},
+    {id:'C', t:'36–45'},
+    {id:'D', t:'46–55'},
+    {id:'E', t:'56 and above'},
+  ]},
+  { n:13, text:"Facial expression / emotion", opts:[
+    {id:'A', t:'Confident, closed-mouth smile'},
+    {id:'B', t:'Warm, open smile (teeth showing)'},
+    {id:'C', t:'Serious and composed — no smile'},
+    {id:'D', t:'Pensive / thoughtful gaze'},
+    {id:'E', t:'Power pose — strong, intense'},
+  ]},
+  { n:14, text:"Style archetype reference", opts:[
+    {id:'A', t:'Fortune 500 executive (classic, institutional)'},
+    {id:'B', t:'Tech founder (smart casual, minimalist)'},
+    {id:'C', t:'Creative director (editorial, fashion-forward)'},
+    {id:'D', t:'Academic intellectual (understated, credible)'},
+    {id:'E', t:'Luxury professional (refined, high-end)'},
+  ]},
+  { n:15, text:"Body type / build (for body shots — select closest)", opts:[
+    {id:'A', t:'Slim / lean'},
+    {id:'B', t:'Athletic / muscular'},
+    {id:'C', t:'Average / medium build'},
+    {id:'D', t:'Curvy / full-figured'},
+    {id:'E', t:'Plus-size / large frame'},
+  ]},
+  { n:16, text:"Accessories", opts:[
+    {id:'A', t:'None — clean minimalism'},
+    {id:'B', t:'Classic glasses (tortoiseshell / metal frames)'},
+    {id:'C', t:'Fashion-forward glasses (bold frames)'},
+    {id:'D', t:'Subtle jewelry (thin chains, studs)'},
+    {id:'E', t:'Statement piece (watch, bold necklace, earrings)'},
+  ]},
+  { n:17, text:"Camera angle", opts:[
+    {id:'A', t:'Eye level — neutral, honest'},
+    {id:'B', t:'Slightly low — powerful, imposing'},
+    {id:'C', t:'Slightly high — approachable, soft'},
+    {id:'D', t:'Dynamic / slight dutch — creative energy'},
+  ]},
+  { n:18, text:"Post-processing / editing style", opts:[
+    {id:'A', t:'Natural & clean — minimal retouching'},
+    {id:'B', t:'High-fashion editorial — polished, perfect'},
+    {id:'C', t:'Cinematic — film grain, color grade'},
+    {id:'D', t:'Documentary — raw, authentic'},
+    {id:'E', t:'Artistic / stylized — creative treatment'},
+  ]},
+  { n:19, text:"Primary distribution platform", opts:[
+    {id:'A', t:'LinkedIn & professional networks'},
+    {id:'B', t:'Instagram & personal social media'},
+    {id:'C', t:'Company website / team page'},
+    {id:'D', t:'Speaker bureau & conference materials'},
+    {id:'E', t:'Book, press kit or publication'},
+  ]},
+  { n:20, text:"Special element to include", opts:[
+    {id:'A', t:'Work-related prop (laptop, instrument, tool)'},
+    {id:'B', t:'Brand colors or company identity element'},
+    {id:'C', t:'Cultural or heritage visual element'},
+    {id:'D', t:'Seasonal or location-specific mood'},
+    {id:'E', t:'None — pure, clean portrait'},
+  ]},
+];
+
+/* ──────────────────────────────────────────
+   PROFILE MAPS
+────────────────────────────────────────── */
+const M = {
+  gender:        {A:'man',     B:'woman',   C:'person',  D:'person'},
+  genderPoss:    {A:'his',     B:'her',     C:'their',   D:'their'},
+
+  skin: {
+    A:'very fair porcelain complexion',
+    B:'fair light beige complexion',
+    C:'medium warm olive complexion',
+    D:'tan caramel-brown complexion',
+    E:'deep brown complexion',
+    F:'rich ebony complexion',
+  },
+
+  hair: {
+    A:'short dark hair',
+    B:'short light hair (blonde/silver)',
+    C:'medium-length straight dark hair',
+    D:'medium-length curly hair',
+    E:'long straight hair',
+    F:'long voluminous curly hair',
+    G:'closely cropped / shaved head',
+  },
+
+  age: {
+    A:'early 20s', B:'late 20s to mid-30s', C:'late 30s to mid-40s',
+    D:'late 40s to mid-50s', E:'late 50s or older',
+  },
+
+  formality: {
+    A:'an impeccably tailored formal suit with tie',
+    B:'a structured tailored blazer with dress shirt',
+    C:'a polished business-casual blazer ensemble',
+    D:'a sharp smart-casual modern outfit',
+    E:'an expressive creative-casual look',
+  },
+  formalityLbl: {
+    A:'Ultra-Formal', B:'Business Formal', C:'Business Casual',
+    D:'Smart Casual',  E:'Creative Casual',
+  },
+
+  palette: {
+    A:'in a crisp neutral palette — white, charcoal gray, or deep navy',
+    B:'in rich earth tones — warm beige, walnut brown, rust, or olive',
+    C:'in a bold saturated color — cobalt blue, deep emerald, or crimson',
+    D:'in soft pastels — blush rose, sky blue, or dusty lavender',
+    E:'in a refined tonal monochromatic look',
+  },
+  paletteLbl: {
+    A:'Neutrals', B:'Earth Tones', C:'Bold Saturated',
+    D:'Pastels',  E:'Monochromatic',
+  },
+
+  bg: {
+    A:'shallow-focus modern open-plan office interior — blurred bokeh workspace background',
+    B:'contemporary urban exterior — clean architectural facade, natural light, city texture',
+    C:'lush natural greenery — dappled light through leaves, soft emerald bokeh',
+    D:'clean studio seamless backdrop — bright white or dove gray, even gradient',
+    E:'deep charcoal dramatic studio backdrop — dark vignette, atmospheric gradient',
+    F:'brutalist concrete architecture — strong geometric shapes, commanding negative space',
+  },
+  bgLbl: {
+    A:'Modern Office', B:'Urban Exterior', C:'Nature / Greenery',
+    D:'Clean Studio',  E:'Dark Studio',    F:'Architectural',
+  },
+
+  lighting: {
+    A:'large 120cm octabox key light at 45°, beauty-dish fill at 1:4 ratio, clean 5600K white balance — bright, airy, shadow-free',
+    B:'warm golden-hour window light from camera-left, soft bounce fill from right, 3:1 Rembrandt ratio at 3200K — glowing and warm',
+    C:'dramatic single hard-source key light from high camera-right, deep sculptural shadows, no fill — chiaroscuro contrast',
+    D:'cool blue-white LED panel array, 6500K daylight white balance, crisp modern editorial illumination',
+    E:'cinematic three-point setup with warm practicals, subtle amber/teal split gel, film-grade color science',
+  },
+  lightingLbl: {
+    A:'Bright & Clean', B:'Soft & Warm', C:'Dramatic',
+    D:'Cool & Modern',  E:'Cinematic',
+  },
+
+  impression: {
+    A:'authoritative, commanding presence',
+    B:'warm, genuinely approachable energy',
+    C:'creative, visionary, innovative quality',
+    D:'trustworthy, grounded, reliable character',
+    E:'dynamic, energetic, driven momentum',
+    F:'sophisticated, elegant, refined poise',
+  },
+
+  expression: {
+    A:'confident closed-mouth smile — composed and assured',
+    B:'warm open smile, teeth visible — radiating genuine approachability',
+    C:'serious, composed expression — no smile, focused intense gaze',
+    D:'thoughtful pensive expression — intellectually engaged, gaze slightly off-axis',
+    E:'direct power gaze into camera — strong, unwavering, commanding',
+  },
+
+  framing: {
+    A:'tight headshot — face and upper shoulders fill the frame',
+    B:'upper-body waist-up portrait',
+    C:'three-quarter length portrait',
+    D:'full-body portrait, head to toe',
+    E:'candid lifestyle shot — subject in natural motion',
+  },
+  framingLbl: {
+    A:'Tight Headshot', B:'Upper Body', C:'Three-Quarter',
+    D:'Full Body',      E:'Candid / In-Motion',
+  },
+
+  lens: {
+    A:'85mm f/1.4 portrait lens, compressed background, shallow depth of field',
+    B:'85mm f/1.8 portrait lens',
+    C:'70mm f/2.8 medium telephoto',
+    D:'50mm f/2 full-frame standard lens',
+    E:'35mm f/2 environmental wide-normal lens',
+  },
+  lensShort: {
+    A:'85mm f/1.4', B:'85mm f/1.8', C:'70mm f/2.8', D:'50mm f/2', E:'35mm f/2',
+  },
+
+  angle: {
+    A:'camera at exact eye level — neutral, direct, honest perspective',
+    B:'camera positioned slightly below eye level — empowering, commanding perspective',
+    C:'camera positioned slightly above eye level — soft, open, approachable',
+    D:'subtle dutch tilt — slight diagonal frame for creative dynamic tension',
+  },
+  angleLbl: {
+    A:'Eye Level', B:'Low Angle', C:'High Angle', D:'Dutch Tilt',
+  },
+
+  postProcess: {
+    A:'natural clean edit — skin texture preserved, minimal retouching, honest finish',
+    B:'high-fashion editorial retouching — flawless, polished, perfected skin, impeccable finish',
+    C:'cinematic color grade — subtle film grain, split-toning: warm highlights, cool shadows',
+    D:'documentary-style raw processing — authentic, unmanipulated, journalistic honesty',
+    E:'artistic stylized treatment — signature color science, creative post-production',
+  },
+  postProcessLbl: {
+    A:'Natural & Clean', B:'High-Fashion Editorial', C:'Cinematic',
+    D:'Documentary',     E:'Artistic / Stylized',
+  },
+
+  archetype: {
+    A:'Fortune 500 Executive',
+    B:'Tech Founder',
+    C:'Creative Director',
+    D:'Academic Intellectual',
+    E:'Luxury Professional',
+  },
+  archetypeDesc: {
+    A:'classic, institutional, quietly powerful authority',
+    B:'minimalist, modern, understated confidence',
+    C:'editorial, fashion-forward, visually articulate',
+    D:'understated, credible, scholarly gravitas',
+    E:'refined, impeccable, high-end luxury sensibility',
+  },
+
+  industry: {
+    A:'the technology and startup ecosystem',
+    B:'finance, law, and professional consulting',
+    C:'creative, design, and media industries',
+    D:'healthcare and scientific research',
+    E:'education and academia',
+    F:'C-suite executive leadership',
+    G:'entrepreneurship and the founder community',
+  },
+
+  purposeLbl: {
+    A:'Corporate / LinkedIn', B:'Personal Brand', C:'Speaker Bio',
+    D:'Creative Portfolio',   E:'Press / Media',
+  },
+
+  platformLbl: {
+    A:'LinkedIn & Professional Networks', B:'Instagram & Social Media',
+    C:'Company Website',                  D:'Speaker Bureau',
+    E:'Press Kit / Publication',
+  },
+
+  body: {
+    A:'slim, lean build',
+    B:'athletic, muscular build',
+    C:'average medium build',
+    D:'curvy, full-figured frame',
+    E:'plus-size, generous frame',
+  },
+
+  accessory: {
+    A:'',
+    B:'wearing classic tortoiseshell or metal-frame glasses',
+    C:'wearing bold fashion-forward statement glasses',
+    D:'with subtle fine jewelry — a delicate chain or small earring studs',
+    E:'with a commanding statement accessory — luxury watch, bold necklace, or striking earrings',
+  },
+
+  special: {
+    A:' A relevant work prop is incorporated naturally — laptop, professional instrument, or creative tool.',
+    B:' Brand color elements are woven organically into the composition.',
+    C:' A meaningful cultural or heritage visual element is embedded in the setting.',
+    D:' The atmosphere carries a strong seasonal and location-specific mood.',
+    E:'',
+  },
+};
+
+/* ──────────────────────────────────────────
+   STATE
+────────────────────────────────────────── */
+let cur = 0;         // current question index
+let ans = {};        // { 1:'A', 2:'B', ... }
+let busy = false;    // debounce during transition
+
+/* ──────────────────────────────────────────
+   SCREEN MANAGEMENT
+────────────────────────────────────────── */
+function show(id) {
+  ['screen-intro','screen-quiz','screen-results'].forEach(sid => {
+    const el = document.getElementById(sid);
+    el.classList.remove('visible');
+    el.style.display = 'none';
+  });
+  const target = document.getElementById(id);
+  target.style.display = 'block';
+  // Force reflow before adding class so animation fires
+  void target.offsetWidth;
+  target.classList.add('visible');
+  window.scrollTo({top:0, behavior:'instant'});
+}
+
+/* ──────────────────────────────────────────
+   QUIZ
+────────────────────────────────────────── */
+function startQuiz() {
+  cur = 0;
+  ans = {};
+  show('screen-quiz');
+  renderQ();
+}
+
+function renderQ() {
+  const q = QS[cur];
+  const total = QS.length;
+  const pct = Math.max(Math.round((cur / total) * 100), 3);
+
+  document.getElementById('prog-frac').textContent = `${cur+1} / ${total}`;
+  document.getElementById('prog-fill').style.width = pct + '%';
+
+  const area = document.getElementById('q-area');
+  area.innerHTML = `
+    <div class="question-block">
+      <div class="q-number">Question ${q.n} &nbsp;/&nbsp; ${total}</div>
+      <h2 class="q-text">${q.text}</h2>
+      <div class="options-stack">
+        ${q.opts.map(o => `
+          <div class="opt-card${ans[q.n]===o.id?' selected':''}"
+               onclick="pick('${o.id}')"
+               id="opt-${o.id}">
+            <div class="opt-badge">${o.id}</div>
+            <div class="opt-text">${o.t}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function pick(optId) {
+  if (busy) return;
+  const q = QS[cur];
+  ans[q.n] = optId;
+
+  // Visual feedback
+  document.querySelectorAll('.opt-card').forEach(c => c.classList.remove('selected'));
+  const el = document.getElementById('opt-' + optId);
+  if (el) el.classList.add('selected');
+
+  busy = true;
+  setTimeout(() => {
+    busy = false;
+    cur++;
+    if (cur >= QS.length) {
+      saveHash();
+      buildResults();
+    } else {
+      renderQ();
+    }
+  }, 480);
+}
+
+/* ──────────────────────────────────────────
+   URL HASH (shareable results)
+────────────────────────────────────────── */
+function saveHash() {
+  const encoded = QS.map(q => ans[q.n] || q.opts[0].id).join('');
+  history.replaceState(null, '', '#' + encoded);
+}
+
+function loadHash() {
+  const h = window.location.hash.slice(1);
+  if (!h || h.length < 20) return false;
+  QS.forEach((q, i) => {
+    const letter = h[i] ? h[i].toUpperCase() : q.opts[0].id;
+    const valid = q.opts.map(o => o.id);
+    ans[q.n] = valid.includes(letter) ? letter : q.opts[0].id;
+  });
+  return true;
+}
+
+/* ──────────────────────────────────────────
+   PROFILE BUILDER
+────────────────────────────────────────── */
+function profile() {
+  const a = ans;
+  const fk = a[11] || 'A'; // framing key
+  return {
+    gender:       M.gender[a[2]]        || 'person',
+    genderPoss:   M.genderPoss[a[2]]    || 'their',
+    skin:         M.skin[a[3]]          || 'neutral complexion',
+    hair:         M.hair[a[4]]          || 'hair',
+    age:          M.age[a[12]]          || 'adult',
+    formality:    M.formality[a[6]]     || 'professional attire',
+    formalityLbl: M.formalityLbl[a[6]]  || 'Professional',
+    palette:      M.palette[a[10]]      || 'neutral palette',
+    paletteLbl:   M.paletteLbl[a[10]]   || 'Neutrals',
+    bg:           M.bg[a[8]]            || 'studio backdrop',
+    bgLbl:        M.bgLbl[a[8]]         || 'Studio',
+    lighting:     M.lighting[a[9]]      || 'studio lighting',
+    lightingLbl:  M.lightingLbl[a[9]]   || 'Studio',
+    impression:   M.impression[a[7]]    || 'professional presence',
+    expression:   M.expression[a[13]]   || 'composed expression',
+    framing:      M.framing[fk]         || 'portrait',
+    framingLbl:   M.framingLbl[fk]      || 'Portrait',
+    framingKey:   fk,
+    lens:         M.lens[fk]            || '85mm f/1.8',
+    lensShort:    M.lensShort[fk]       || '85mm f/1.8',
+    angle:        M.angle[a[17]]        || 'eye level',
+    angleLbl:     M.angleLbl[a[17]]     || 'Eye Level',
+    postProcess:  M.postProcess[a[18]]  || 'natural edit',
+    postProcessLbl: M.postProcessLbl[a[18]] || 'Natural & Clean',
+    archetype:    M.archetype[a[14]]    || 'Professional',
+    archetypeDesc:M.archetypeDesc[a[14]]|| 'professional quality',
+    industry:     M.industry[a[5]]      || 'professional field',
+    purposeLbl:   M.purposeLbl[a[1]]    || 'Professional',
+    platformLbl:  M.platformLbl[a[19]]  || 'Professional Platform',
+    body:         M.body[a[15]]         || 'medium build',
+    accessory:    M.accessory[a[16]]    || '',
+    special:      M.special[a[20]]      || '',
+  };
+}
+
+/* ──────────────────────────────────────────
+   SUBJECT DESCRIPTION
+────────────────────────────────────────── */
+function subject(p) {
+  const acc = p.accessory ? `, ${p.accessory}` : '';
+  const body = (p.framingKey !== 'A') ? `, ${p.body}` : '';
+  return `A ${p.age} ${p.gender} with ${p.skin} and ${p.hair}${acc}${body}`;
+}
+
+/* ──────────────────────────────────────────
+   PROMPT A — Primary
+────────────────────────────────────────── */
+function promptA(p) {
+  return [
+    `Professional portrait photograph of ${subject(p)},`,
+    `wearing ${p.formality} ${p.palette}.`,
+    `Expression: ${p.expression}, projecting ${p.impression}.`,
+    `${p.framing}, shot on ${p.lens}, ${p.angle}.`,
+    `Lighting: ${p.lighting}.`,
+    `Background: ${p.bg}.`,
+    `Post-processing: ${p.postProcess}.`,
+    `Style archetype: ${p.archetype} — ${p.archetypeDesc}.`,
+    `Intended for ${p.purposeLbl} in ${p.industry}.`,
+    p.special.trim() ? p.special.trim() : '',
+    `Ultra-high resolution, commercial portrait photography, shot on Phase One IQ4 150MP. --ar 4:5 --style raw --q 2`,
+  ].filter(Boolean).join(' ');
+}
+
+/* ──────────────────────────────────────────
+   PROMPT B — Editorial
+────────────────────────────────────────── */
+function promptB(p) {
+  const editLight =
+    p.lightingLbl === 'Dramatic' || p.lightingLbl === 'Cinematic'
+      ? p.lighting
+      : 'hard directional single-source key light with dramatic shadow fall-off, fashion-editorial contrast';
+  const editBg =
+    (p.bgLbl === 'Dark Studio' || p.bgLbl === 'Architectural')
+      ? p.bg
+      : `editorial reinterpretation of ${p.bgLbl} — graphic, high-contrast, compositionally bold`;
+  return [
+    `Editorial portrait — ${subject(p)},`,
+    `wearing an elevated editorial interpretation of ${p.formality} ${p.palette}.`,
+    `Expression: commanding, striking — owning the frame with ${p.impression}.`,
+    `${p.framing}. ${p.lens}, ${p.angle}.`,
+    `Lighting: ${editLight}.`,
+    `Background: ${editBg}.`,
+    `Post-processing: high-fashion editorial retouching — sculpted, polished, perfected; impeccable finish.`,
+    `Shot with a luxury fashion-magazine sensibility, conveying ${p.archetypeDesc}.`,
+    `For ${p.industry}. --ar 4:5 --style raw --q 2`,
+  ].join(' ');
+}
+
+/* ──────────────────────────────────────────
+   PROMPT C — Candid / Lifestyle
+────────────────────────────────────────── */
+function promptC(p) {
+  const ctxMap = {
+    A:'caught reviewing a document or phone at a sleek desk, natural window light from the side — observational, unposed',
+    B:'walking purposefully through a professional environment, in natural confident stride — caught mid-motion',
+    C:'in animated professional conversation, gesturing naturally, fully engaged — genuine and unguarded',
+    D:'a quiet reflective moment — leaning against a wall or window, half-turned, candidly observed',
+    E:'in a candid moment of movement — turning, stepping, or gesturing in a professional environment',
+  };
+  const ctx = ctxMap[p.framingKey] || ctxMap['B'];
+  return [
+    `Candid lifestyle portrait — ${subject(p)},`,
+    `wearing ${p.formality} ${p.palette}, ${ctx}.`,
+    `The shot feels observed, not posed — ${p.impression} expressed through natural body language and environment.`,
+    `Environmental framing with a wider field of view to establish context.`,
+    `${p.lens}, ${p.angle}.`,
+    `Lighting: ${p.lighting} adapted to a natural uncontrolled environment — authentic, less controlled.`,
+    `Background: ${p.bg} — integrated as contextual storytelling, not purely decorative.`,
+    `Post-processing: ${p.postProcess} — the overall feel is aspirational cinéma-vérité.`,
+    `For ${p.industry}, ${p.purposeLbl}. --ar 4:5 --style raw --q 2`,
+  ].join(' ');
+}
+
+/* ──────────────────────────────────────────
+   DIRECTOR NOTE
+────────────────────────────────────────── */
+function dirNote(p) {
+  return `For this <strong>${p.archetype}</strong> portrait — destined for <strong>${p.platformLbl}</strong> — we want to lead every frame with <strong>${p.impression}</strong>. `
+    + `We'll shoot on a <strong>${p.lensShort}</strong>, ${p.angle}, under <strong>${p.lightingLbl.toLowerCase()} lighting</strong> (${p.lighting.split('—')[0].trim()}). `
+    + `The subject is in ${p.formalityLbl.toLowerCase()}, ${p.paletteLbl.toLowerCase()} — ensure the wardrobe reads cleanly against the ${p.bgLbl.toLowerCase()} background with no color clashing. `
+    + `All retouching should aim for <strong>${p.postProcessLbl.toLowerCase()}</strong> — this should feel like ${p.archetypeDesc}, never over-produced or sterile.`;
+}
+
+/* ──────────────────────────────────────────
+   TOOL RECOMMENDATIONS
+────────────────────────────────────────── */
+function tools() {
+  const a = ans;
+  const scores = {
+    'Midjourney':                   0,
+    'DALL·E 3':                     0,
+    'Flux (FLUX.1 dev)':            0,
+    'Stable Diffusion + ControlNet':0,
+  };
+  const descs = {
+    'Midjourney':                   'Best-in-class for editorial, fashion-forward, and cinematic portrait aesthetics. Excels at mood and atmosphere.',
+    'DALL·E 3':                     'Excellent for clean, natural corporate headshots. Simple prompts, reliable results for LinkedIn and team pages.',
+    'Flux (FLUX.1 dev)':            'State-of-the-art photorealism. Ideal for authentic documentary and lifestyle shots that must look like genuine photos.',
+    'Stable Diffusion + ControlNet':'Precise body-pose control via depth maps and pose references — essential for full-body portraits and non-standard builds.',
+  };
+
+  // Midjourney: editorial, creative, cinematic, luxury, dramatic
+  if (['C','E'].includes(a[14])) scores['Midjourney'] += 3;
+  if (['C','E'].includes(a[9]))  scores['Midjourney'] += 2;
+  if (['B','E'].includes(a[18])) scores['Midjourney'] += 2;
+  if (['C','D','E'].includes(a[1])) scores['Midjourney'] += 1;
+
+  // DALL-E 3: corporate, clean, formal, studio
+  if (a[1] === 'A' || a[1] === 'C')       scores['DALL·E 3'] += 2;
+  if (['A','B'].includes(a[14]))           scores['DALL·E 3'] += 2;
+  if (['A','B'].includes(a[9]))            scores['DALL·E 3'] += 2;
+  if (a[18] === 'A')                       scores['DALL·E 3'] += 2;
+  if (['D','E'].includes(a[8]))            scores['DALL·E 3'] += 1;
+
+  // Flux: photorealism, authentic, documentary, tech founder
+  if (['B','D'].includes(a[14]))           scores['Flux (FLUX.1 dev)'] += 2;
+  if (['D','A'].includes(a[18]))           scores['Flux (FLUX.1 dev)'] += 2;
+  if (a[1] === 'B')                        scores['Flux (FLUX.1 dev)'] += 1;
+  if (['B','C'].includes(a[8]))            scores['Flux (FLUX.1 dev)'] += 1;
+  if (['A','B'].includes(a[9]))            scores['Flux (FLUX.1 dev)'] += 1;
+
+  // SD+ControlNet: body shots, non-standard builds
+  if (a[11] === 'D')                               scores['Stable Diffusion + ControlNet'] += 4;
+  if (a[11] === 'C')                               scores['Stable Diffusion + ControlNet'] += 2;
+  if (['B','D','E'].includes(a[15]))               scores['Stable Diffusion + ControlNet'] += 2;
+  if (a[11] === 'E')                               scores['Stable Diffusion + ControlNet'] += 1;
+
+  return Object.entries(scores)
+    .sort((x,y) => y[1]-x[1])
+    .map(([name, score], i) => ({ name, score, desc: descs[name], rank: i }));
+}
+
+/* ──────────────────────────────────────────
+   RENDER RESULTS
+────────────────────────────────────────── */
+function buildResults() {
+  const p = profile();
+  const pA = promptA(p);
+  const pB = promptB(p);
+  const pC = promptC(p);
+  const note = dirNote(p);
+  const toolList = tools();
+
+  const toolsHTML = toolList.map(t => {
+    const cls = t.rank === 0 ? 'tool-card top' : t.rank === 1 ? 'tool-card second' : 'tool-card';
+    const badge = t.rank === 0
+      ? '<span class="tool-rec-badge">★ Top Recommendation</span>'
+      : t.rank === 1
+        ? '<span class="tool-rec-badge" style="color:var(--text2)">◆ Strong Alternative</span>'
+        : '';
+    return `<div class="${cls}">${badge}<div class="tool-name">${t.name}</div><div class="tool-desc">${t.desc}</div></div>`;
+  }).join('');
+
+  document.getElementById('results-root').innerHTML = `
+    <div class="results-header">
+      <div class="gold-rule" style="margin-bottom:1.2rem"></div>
+      <div class="results-eyebrow">✦ Your Results</div>
+      <h2 class="results-title">Your Photographic Profile</h2>
+      <p class="results-desc">Your complete professional portrait blueprint — ready for AI generation.</p>
+    </div>
+
+    <div class="id-card">
+      <div class="id-card-label">✦ Photographic Identity Card</div>
+      <div class="id-grid">
+        <div class="id-item"><div class="id-item-label">Purpose</div><div class="id-item-value">${p.purposeLbl}</div></div>
+        <div class="id-item"><div class="id-item-label">Archetype</div><div class="id-item-value">${p.archetype}</div></div>
+        <div class="id-item"><div class="id-item-label">Mood</div><div class="id-item-value">${p.lightingLbl}</div></div>
+        <div class="id-item"><div class="id-item-label">Setting</div><div class="id-item-value">${p.bgLbl}</div></div>
+        <div class="id-item"><div class="id-item-label">Palette</div><div class="id-item-value">${p.paletteLbl}</div></div>
+        <div class="id-item"><div class="id-item-label">Framing</div><div class="id-item-value">${p.framingLbl}</div></div>
+        <div class="id-item"><div class="id-item-label">Formality</div><div class="id-item-value">${p.formalityLbl}</div></div>
+        <div class="id-item"><div class="id-item-label">Platform</div><div class="id-item-value">${p.platformLbl}</div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">AI Image Prompts</div>
+
+      <div class="prompt-card">
+        <div class="prompt-label">Prompt A &mdash; Primary &middot; Midjourney / DALL·E 3 / Flux</div>
+        <div class="prompt-body" id="pA">${pA}</div>
+        <button class="copy-btn" onclick="doCopy('pA',this)">&#x2398; Copy Prompt A</button>
+      </div>
+
+      <div class="prompt-card">
+        <div class="prompt-label">Prompt B &mdash; Editorial Variant</div>
+        <div class="prompt-body" id="pB">${pB}</div>
+        <button class="copy-btn" onclick="doCopy('pB',this)">&#x2398; Copy Prompt B</button>
+      </div>
+
+      <div class="prompt-card">
+        <div class="prompt-label">Prompt C &mdash; Candid / Lifestyle Variant</div>
+        <div class="prompt-body" id="pC">${pC}</div>
+        <button class="copy-btn" onclick="doCopy('pC',this)">&#x2398; Copy Prompt C</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">Photographer's Direction Note</div>
+      <div class="director-note">${note}</div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">Recommended AI Tools</div>
+      <div class="tools-grid">${toolsHTML}</div>
+    </div>
+
+    <div class="action-bar">
+      <button class="btn-outline" onclick="retake()">&larr; Retake Quiz</button>
+      <button class="btn-gold-outline" onclick="doShare(this)">Share Results &nearr;</button>
+    </div>`;
+
+  show('screen-results');
+}
+
+/* ──────────────────────────────────────────
+   UTILITIES
+────────────────────────────────────────── */
+function doCopy(elId, btn) {
+  const text = document.getElementById(elId).textContent;
+  const orig = btn.textContent;
+  const write = t => {
+    btn.textContent = '✓ Copied to clipboard';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 2600);
+  };
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(write).catch(() => fallbackCopy(text, write));
+  } else {
+    fallbackCopy(text, write);
+  }
+}
+
+function fallbackCopy(text, cb) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try { document.execCommand('copy'); cb(); } catch(e) {}
+  document.body.removeChild(ta);
+}
+
+function doShare(btn) {
+  const url = location.href.split('#')[0] + location.hash;
+  const orig = btn.textContent;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => {
+      btn.textContent = '✓ Link copied!';
+      setTimeout(() => { btn.textContent = orig; }, 2600);
+    });
+  }
+}
+
+function retake() {
+  history.replaceState(null, '', location.pathname + location.search);
+  cur = 0; ans = {};
+  show('screen-intro');
+}
+
+/* ──────────────────────────────────────────
+   INIT
+────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', () => {
+  if (loadHash()) {
+    buildResults();
+  }
+  // screen-intro is already visible via HTML class
+});
+</script>
+</body>
+</html>
