@@ -49,14 +49,6 @@
 
     /* ─── SCREENS ─────────────────────────────────────────── */
     .screen { display: none; }
-    .screen.visible {
-      display: block;
-      animation: screenIn 0.45s ease both;
-    }
-    @keyframes screenIn {
-      from { opacity: 0; transform: translateY(14px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
 
     /* ─── SHARED ──────────────────────────────────────────── */
     .gold-rule {
@@ -550,7 +542,7 @@
 <!-- ════════════════════════════════════════
      INTRO SCREEN
 ════════════════════════════════════════ -->
-<div id="screen-intro" class="screen visible">
+<div id="screen-intro" class="screen">
   <div class="intro-inner">
     <div class="intro-eyebrow">Photographic Identity System</div>
     <h1 class="intro-title">Your Portrait,<br><em>Engineered</em></h1>
@@ -963,16 +955,10 @@ let busy = false;    // debounce during transition
 ────────────────────────────────────────── */
 function show(id) {
   ['screen-intro','screen-quiz','screen-results'].forEach(sid => {
-    const el = document.getElementById(sid);
-    el.classList.remove('visible');
-    el.style.display = 'none';
+    document.getElementById(sid).style.display = 'none';
   });
-  const target = document.getElementById(id);
-  target.style.display = 'block';
-  // Force reflow before adding class so animation fires
-  void target.offsetWidth;
-  target.classList.add('visible');
-  window.scrollTo({top:0, behavior:'instant'});
+  document.getElementById(id).style.display = 'block';
+  window.scrollTo(0, 0);
 }
 
 /* ──────────────────────────────────────────
@@ -1365,8 +1351,9 @@ function retake() {
 window.addEventListener('DOMContentLoaded', () => {
   if (loadHash()) {
     buildResults();
+  } else {
+    show('screen-intro');
   }
-  // screen-intro is already visible via HTML class
 });
 </script>
 </body>
