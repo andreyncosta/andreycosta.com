@@ -1,162 +1,164 @@
 'use strict';
 
 /* ──────────────────────────────────────────
-   QUESTIONS
+   PERGUNTAS
 ────────────────────────────────────────── */
 const QS = [
-  { n:1,  text:"Primary purpose of your photo", opts:[
-    {id:'A', t:'Corporate / LinkedIn profile'},
-    {id:'B', t:'Personal branding & social media'},
-    {id:'C', t:'Speaker / conference bio'},
-    {id:'D', t:'Creative / artistic portfolio'},
-    {id:'E', t:'Press / media & publications'},
+  { n:1,  text:"Objetivo principal da sua foto", opts:[
+    {id:'A', t:'Corporativo / LinkedIn'},
+    {id:'B', t:'Personal branding & redes sociais'},
+    {id:'C', t:'Speaker / bio para eventos'},
+    {id:'D', t:'Portfólio criativo / artístico'},
+    {id:'E', t:'Imprensa / mídia & publicações'},
   ]},
-  { n:2,  text:"Gender presentation", opts:[
-    {id:'A', t:'Masculine'},
-    {id:'B', t:'Feminine'},
-    {id:'C', t:'Androgynous / non-binary'},
-    {id:'D', t:'Prefer not to specify'},
+  { n:2,  text:"Apresentação de gênero", opts:[
+    {id:'A', t:'Masculino'},
+    {id:'B', t:'Feminino'},
+    {id:'C', t:'Andrógino / não-binário'},
+    {id:'D', t:'Prefiro não especificar'},
   ]},
-  { n:3,  text:"Skin tone", opts:[
-    {id:'A', t:'Very fair / porcelain'},
-    {id:'B', t:'Fair / light beige'},
-    {id:'C', t:'Medium / warm olive'},
-    {id:'D', t:'Tan / caramel brown'},
-    {id:'E', t:'Deep brown'},
-    {id:'F', t:'Very deep / ebony'},
+  { n:3,  text:"Tom de pele", opts:[
+    {id:'A', t:'Muito claro / porcelana'},
+    {id:'B', t:'Claro / bege'},
+    {id:'C', t:'Médio / oliva quente'},
+    {id:'D', t:'Bronzeado / caramelo'},
+    {id:'E', t:'Marrom profundo'},
+    {id:'F', t:'Muito escuro / ébano'},
   ]},
-  { n:4,  text:"Hair", opts:[
-    {id:'A', t:'Short & dark (black/dark brown)'},
-    {id:'B', t:'Short & light (blonde/gray/white)'},
-    {id:'C', t:'Medium length, straight, dark'},
-    {id:'D', t:'Medium length, curly/wavy'},
-    {id:'E', t:'Long & straight'},
-    {id:'F', t:'Long & curly / voluminous'},
-    {id:'G', t:'Shaved / bald / very short'},
+  { n:4,  text:"Cabelo", opts:[
+    {id:'A', t:'Curto e escuro (preto/castanho escuro)'},
+    {id:'B', t:'Curto e claro (loiro/grisalho/branco)'},
+    {id:'C', t:'Médio, liso e escuro'},
+    {id:'D', t:'Médio, cacheado/ondulado'},
+    {id:'E', t:'Comprido e liso'},
+    {id:'F', t:'Comprido e cacheado / volumoso'},
+    {id:'G', t:'Raspado / careca / bem curto'},
   ]},
-  { n:5,  text:"Industry / profession", opts:[
-    {id:'A', t:'Technology & startups'},
-    {id:'B', t:'Finance, law or consulting'},
-    {id:'C', t:'Creative, design or media'},
-    {id:'D', t:'Healthcare or science'},
-    {id:'E', t:'Education or academia'},
-    {id:'F', t:'Executive / C-suite leadership'},
-    {id:'G', t:'Entrepreneur / founder'},
+  { n:5,  text:"Setor / profissão", opts:[
+    {id:'A', t:'Tecnologia & startups'},
+    {id:'B', t:'Finanças, direito ou consultoria'},
+    {id:'C', t:'Criação, design ou mídia'},
+    {id:'D', t:'Saúde ou ciência'},
+    {id:'E', t:'Educação ou academia'},
+    {id:'F', t:'Executivo(a) / liderança C-suite'},
+    {id:'G', t:'Empreendedor(a) / fundador(a)'},
   ]},
-  { n:6,  text:"Desired level of formality", opts:[
-    {id:'A', t:'Ultra-formal (suit & tie / haute couture)'},
-    {id:'B', t:'Business formal (blazer, structured)'},
-    {id:'C', t:'Business casual (polished but relaxed)'},
-    {id:'D', t:'Smart casual (clean, modern)'},
-    {id:'E', t:'Creative casual (expressive, artistic)'},
+  { n:6,  text:"Nível de formalidade desejado", opts:[
+    {id:'A', t:'Ultra-formal (terno/gravata / haute couture)'},
+    {id:'B', t:'Formal de negócios (blazer estruturado)'},
+    {id:'C', t:'Business casual (polido, mas descontraído)'},
+    {id:'D', t:'Smart casual (clean, moderno)'},
+    {id:'E', t:'Casual criativo (expressivo, artístico)'},
   ]},
-  { n:7,  text:"The impression you want to make", opts:[
-    {id:'A', t:'Authoritative and commanding'},
-    {id:'B', t:'Approachable and warm'},
-    {id:'C', t:'Creative and innovative'},
-    {id:'D', t:'Trustworthy and grounded'},
-    {id:'E', t:'Dynamic and energetic'},
-    {id:'F', t:'Sophisticated and elegant'},
+  { n:7,  text:"A impressão que você quer causar", opts:[
+    {id:'A', t:'Autoritativo e imponente'},
+    {id:'B', t:'Acessível e caloroso'},
+    {id:'C', t:'Criativo e inovador'},
+    {id:'D', t:'Confiável e sólido'},
+    {id:'E', t:'Dinâmico e energético'},
+    {id:'F', t:'Sofisticado e elegante'},
   ]},
-  { n:8,  text:"Background / setting", opts:[
-    {id:'A', t:'Blurred modern office interior'},
-    {id:'B', t:'Contemporary urban exterior'},
-    {id:'C', t:'Lush nature / greenery'},
-    {id:'D', t:'Clean studio backdrop (white / light gray)'},
-    {id:'E', t:'Dark, dramatic backdrop (charcoal / deep tones)'},
-    {id:'F', t:'Architectural / geometric / brutalist'},
+  { n:8,  text:"Fundo / cenário", opts:[
+    {id:'A', t:'Interior de escritório moderno, desfocado'},
+    {id:'B', t:'Exterior urbano contemporâneo'},
+    {id:'C', t:'Natureza / vegetação exuberante'},
+    {id:'D', t:'Fundo de estúdio limpo (branco / cinza claro)'},
+    {id:'E', t:'Fundo dramático escuro (carvão / tons profundos)'},
+    {id:'F', t:'Arquitetura / geométrico / brutalista'},
   ]},
-  { n:9,  text:"Lighting mood", opts:[
-    {id:'A', t:'Bright & clean — natural, airy'},
-    {id:'B', t:'Soft & warm — golden hour glow'},
-    {id:'C', t:'Dramatic — strong contrast, deep shadows'},
-    {id:'D', t:'Cool & modern — blue-white tones'},
-    {id:'E', t:'Cinematic — film-grade color science'},
+  { n:9,  text:"Clima da iluminação", opts:[
+    {id:'A', t:'Claro e limpo — natural, arejado'},
+    {id:'B', t:'Suave e quente — brilho da hora dourada'},
+    {id:'C', t:'Dramático — alto contraste, sombras profundas'},
+    {id:'D', t:'Frio e moderno — tons azul-branco'},
+    {id:'E', t:'Cinematográfico — ciência de cor de filme'},
   ]},
-  { n:10, text:"Wardrobe color palette", opts:[
-    {id:'A', t:'Neutrals (white, gray, black, navy)'},
-    {id:'B', t:'Earth tones (beige, brown, rust, olive)'},
-    {id:'C', t:'Bold saturated colors (cobalt, emerald, crimson)'},
-    {id:'D', t:'Pastels (light rose, sky blue, lavender)'},
-    {id:'E', t:'Monochromatic (tonal dressing in one color)'},
+  { n:10, text:"Paleta de cores do vestuário", opts:[
+    {id:'A', t:'Neutros (branco, cinza, preto, marinho)'},
+    {id:'B', t:'Tons terrosos (bege, marrom, ferrugem, oliva)'},
+    {id:'C', t:'Cores saturadas (azul cobalto, esmeralda, carmim)'},
+    {id:'D', t:'Pastéis (rosa claro, azul céu, lavanda)'},
+    {id:'E', t:'Monocromático (look tonal em uma só cor)'},
   ]},
-  { n:11, text:"Framing / crop", opts:[
-    {id:'A', t:'Tight headshot (face and upper shoulders)'},
-    {id:'B', t:'Upper body (waist up)'},
-    {id:'C', t:'Three-quarter length'},
-    {id:'D', t:'Full body portrait'},
-    {id:'E', t:'Candid / in-motion'},
+  { n:11, text:"Enquadramento / recorte", opts:[
+    {id:'A', t:'Headshot fechado (rosto e ombros superiores)'},
+    {id:'B', t:'Meio-corpo (até a cintura)'},
+    {id:'C', t:'Três-quartos'},
+    {id:'D', t:'Corpo inteiro'},
+    {id:'E', t:'Candid / em movimento'},
   ]},
-  { n:12, text:"Your age range", opts:[
+  { n:12, text:"Sua faixa etária", opts:[
     {id:'A', t:'18–25'},
     {id:'B', t:'26–35'},
     {id:'C', t:'36–45'},
     {id:'D', t:'46–55'},
-    {id:'E', t:'56 and above'},
+    {id:'E', t:'56 anos ou mais'},
   ]},
-  { n:13, text:"Facial expression / emotion", opts:[
-    {id:'A', t:'Confident, closed-mouth smile'},
-    {id:'B', t:'Warm, open smile (teeth showing)'},
-    {id:'C', t:'Serious and composed — no smile'},
-    {id:'D', t:'Pensive / thoughtful gaze'},
-    {id:'E', t:'Power pose — strong, intense'},
+  { n:13, text:"Expressão facial / emoção", opts:[
+    {id:'A', t:'Sorriso confiante, boca fechada'},
+    {id:'B', t:'Sorriso caloroso, boca aberta (dentes à mostra)'},
+    {id:'C', t:'Sério e composto — sem sorriso'},
+    {id:'D', t:'Olhar pensativo / contemplativo'},
+    {id:'E', t:'Power pose — forte, intenso'},
   ]},
-  { n:14, text:"Style archetype reference", opts:[
-    {id:'A', t:'Fortune 500 executive (classic, institutional)'},
-    {id:'B', t:'Tech founder (smart casual, minimalist)'},
-    {id:'C', t:'Creative director (editorial, fashion-forward)'},
-    {id:'D', t:'Academic intellectual (understated, credible)'},
-    {id:'E', t:'Luxury professional (refined, high-end)'},
+  { n:14, text:"Arquétipo de estilo de referência", opts:[
+    {id:'A', t:'Executivo Fortune 500 (clássico, institucional)'},
+    {id:'B', t:'Fundador de tech (smart casual, minimalista)'},
+    {id:'C', t:'Diretor criativo (editorial, fashion-forward)'},
+    {id:'D', t:'Intelectual acadêmico (discreto, credível)'},
+    {id:'E', t:'Profissional de luxo (refinado, high-end)'},
   ]},
-  { n:15, text:"Body type / build (for body shots — select closest)", opts:[
-    {id:'A', t:'Slim / lean'},
-    {id:'B', t:'Athletic / muscular'},
-    {id:'C', t:'Average / medium build'},
-    {id:'D', t:'Curvy / full-figured'},
-    {id:'E', t:'Plus-size / large frame'},
+  { n:15, text:"Tipo físico / estrutura (para fotos de corpo — escolha o mais próximo)", opts:[
+    {id:'A', t:'Magro(a) / esguio(a)'},
+    {id:'B', t:'Atlético(a) / musculoso(a)'},
+    {id:'C', t:'Médio(a) / estrutura regular'},
+    {id:'D', t:'Curvilíneo(a) / cheio(a) de curvas'},
+    {id:'E', t:'Plus size / estrutura grande'},
   ]},
-  { n:16, text:"Accessories", opts:[
-    {id:'A', t:'None — clean minimalism'},
-    {id:'B', t:'Classic glasses (tortoiseshell / metal frames)'},
-    {id:'C', t:'Fashion-forward glasses (bold frames)'},
-    {id:'D', t:'Subtle jewelry (thin chains, studs)'},
-    {id:'E', t:'Statement piece (watch, bold necklace, earrings)'},
+  { n:16, text:"Acessórios", opts:[
+    {id:'A', t:'Nenhum — minimalismo limpo'},
+    {id:'B', t:'Óculos clássicos (tartaruga / armação de metal)'},
+    {id:'C', t:'Óculos fashion (armação ousada)'},
+    {id:'D', t:'Joias sutis (correntes finas, brincos pequenos)'},
+    {id:'E', t:'Peça de destaque (relógio, colar, brincos marcantes)'},
   ]},
-  { n:17, text:"Camera angle", opts:[
-    {id:'A', t:'Eye level — neutral, honest'},
-    {id:'B', t:'Slightly low — powerful, imposing'},
-    {id:'C', t:'Slightly high — approachable, soft'},
-    {id:'D', t:'Dynamic / slight dutch — creative energy'},
+  { n:17, text:"Ângulo da câmera", opts:[
+    {id:'A', t:'Nível dos olhos — neutro, honesto'},
+    {id:'B', t:'Levemente baixo — poderoso, imponente'},
+    {id:'C', t:'Levemente alto — acessível, suave'},
+    {id:'D', t:'Dinâmico / leve inclinação — energia criativa'},
   ]},
-  { n:18, text:"Post-processing / editing style", opts:[
-    {id:'A', t:'Natural & clean — minimal retouching'},
-    {id:'B', t:'High-fashion editorial — polished, perfect'},
-    {id:'C', t:'Cinematic — film grain, color grade'},
-    {id:'D', t:'Documentary — raw, authentic'},
-    {id:'E', t:'Artistic / stylized — creative treatment'},
+  { n:18, text:"Estilo de pós-produção / edição", opts:[
+    {id:'A', t:'Natural e limpo — retoque mínimo'},
+    {id:'B', t:'Editorial high-fashion — polido, perfeito'},
+    {id:'C', t:'Cinematográfico — granulado, correção de cor'},
+    {id:'D', t:'Documental — cru, autêntico'},
+    {id:'E', t:'Artístico / estilizado — tratamento criativo'},
   ]},
-  { n:19, text:"Primary distribution platform", opts:[
-    {id:'A', t:'LinkedIn & professional networks'},
-    {id:'B', t:'Instagram & personal social media'},
-    {id:'C', t:'Company website / team page'},
-    {id:'D', t:'Speaker bureau & conference materials'},
-    {id:'E', t:'Book, press kit or publication'},
+  { n:19, text:"Plataforma principal de distribuição", opts:[
+    {id:'A', t:'LinkedIn & redes profissionais'},
+    {id:'B', t:'Instagram & redes sociais pessoais'},
+    {id:'C', t:'Site da empresa / página da equipe'},
+    {id:'D', t:'Speaker bureau & materiais de eventos'},
+    {id:'E', t:'Livro, press kit ou publicação'},
   ]},
-  { n:20, text:"Special element to include", opts:[
-    {id:'A', t:'Work-related prop (laptop, instrument, tool)'},
-    {id:'B', t:'Brand colors or company identity element'},
-    {id:'C', t:'Cultural or heritage visual element'},
-    {id:'D', t:'Seasonal or location-specific mood'},
-    {id:'E', t:'None — pure, clean portrait'},
+  { n:20, text:"Elemento especial para incluir", opts:[
+    {id:'A', t:'Prop relacionado ao trabalho (laptop, instrumento, ferramenta)'},
+    {id:'B', t:'Cores da marca ou elemento de identidade visual'},
+    {id:'C', t:'Elemento visual cultural ou de patrimônio'},
+    {id:'D', t:'Clima sazonal ou específico de localização'},
+    {id:'E', t:'Nenhum — retrato puro e limpo'},
   ]},
 ];
 
 /* ──────────────────────────────────────────
    PROFILE MAPS
+   • English strings → go into AI prompts (must stay EN)
+   • *Lbl / *PT strings → display only, translated to PT
 ────────────────────────────────────────── */
 const M = {
-  gender:        {A:'man',     B:'woman',   C:'person',  D:'person'},
-  genderPoss:    {A:'his',     B:'her',     C:'their',   D:'their'},
+  gender:     {A:'man',    B:'woman',  C:'person', D:'person'},
+  genderPoss: {A:'his',   B:'her',    C:'their',  D:'their'},
 
   skin: {
     A:'very fair porcelain complexion',
@@ -190,8 +192,8 @@ const M = {
     E:'an expressive creative-casual look',
   },
   formalityLbl: {
-    A:'Ultra-Formal', B:'Business Formal', C:'Business Casual',
-    D:'Smart Casual',  E:'Creative Casual',
+    A:'Ultra-Formal', B:'Formal de Negócios', C:'Business Casual',
+    D:'Smart Casual',  E:'Casual Criativo',
   },
 
   palette: {
@@ -202,8 +204,8 @@ const M = {
     E:'in a refined tonal monochromatic look',
   },
   paletteLbl: {
-    A:'Neutrals', B:'Earth Tones', C:'Bold Saturated',
-    D:'Pastels',  E:'Monochromatic',
+    A:'Neutros', B:'Tons Terrosos', C:'Saturados',
+    D:'Pastéis',  E:'Monocromático',
   },
 
   bg: {
@@ -214,9 +216,15 @@ const M = {
     E:'deep charcoal dramatic studio backdrop — dark vignette, atmospheric gradient',
     F:'brutalist concrete architecture — strong geometric shapes, commanding negative space',
   },
+  /* bgLbl stays in English — it is interpolated into AI prompts in promptB */
   bgLbl: {
     A:'Modern Office', B:'Urban Exterior', C:'Nature / Greenery',
     D:'Clean Studio',  E:'Dark Studio',    F:'Architectural',
+  },
+  /* bgLblPT is for display only (identity card, director note) */
+  bgLblPT: {
+    A:'Escritório Moderno', B:'Exterior Urbano', C:'Natureza',
+    D:'Estúdio Limpo',     E:'Estúdio Escuro',  F:'Arquitetura',
   },
 
   lighting: {
@@ -227,8 +235,8 @@ const M = {
     E:'cinematic three-point setup with warm practicals, subtle amber/teal split gel, film-grade color science',
   },
   lightingLbl: {
-    A:'Bright & Clean', B:'Soft & Warm', C:'Dramatic',
-    D:'Cool & Modern',  E:'Cinematic',
+    A:'Claro & Limpo', B:'Suave & Quente', C:'Dramático',
+    D:'Frio & Moderno', E:'Cinematográfico',
   },
 
   impression: {
@@ -238,6 +246,15 @@ const M = {
     D:'trustworthy, grounded, reliable character',
     E:'dynamic, energetic, driven momentum',
     F:'sophisticated, elegant, refined poise',
+  },
+  /* impressionPT: used in director note (PT) only */
+  impressionPT: {
+    A:'presença autoritativa e imponente',
+    B:'energia acessível e genuinamente calorosa',
+    C:'criatividade visionária e inovadora',
+    D:'caráter confiável, sólido e seguro',
+    E:'dinamismo energético e determinado',
+    F:'postura sofisticada, elegante e refinada',
   },
 
   expression: {
@@ -256,8 +273,8 @@ const M = {
     E:'candid lifestyle shot — subject in natural motion',
   },
   framingLbl: {
-    A:'Tight Headshot', B:'Upper Body', C:'Three-Quarter',
-    D:'Full Body',      E:'Candid / In-Motion',
+    A:'Headshot Fechado', B:'Meio-Corpo', C:'Três-Quartos',
+    D:'Corpo Inteiro',    E:'Candid / Em Movimento',
   },
 
   lens: {
@@ -278,7 +295,7 @@ const M = {
     D:'subtle dutch tilt — slight diagonal frame for creative dynamic tension',
   },
   angleLbl: {
-    A:'Eye Level', B:'Low Angle', C:'High Angle', D:'Dutch Tilt',
+    A:'Nível dos Olhos', B:'Ângulo Baixo', C:'Ângulo Alto', D:'Inclinação Criativa',
   },
 
   postProcess: {
@@ -289,10 +306,11 @@ const M = {
     E:'artistic stylized treatment — signature color science, creative post-production',
   },
   postProcessLbl: {
-    A:'Natural & Clean', B:'High-Fashion Editorial', C:'Cinematic',
-    D:'Documentary',     E:'Artistic / Stylized',
+    A:'Natural & Limpo', B:'Editorial High-Fashion', C:'Cinematográfico',
+    D:'Documental',      E:'Artístico / Estilizado',
   },
 
+  /* archetype stays English — used literally inside AI prompts */
   archetype: {
     A:'Fortune 500 Executive',
     B:'Tech Founder',
@@ -307,6 +325,14 @@ const M = {
     D:'understated, credible, scholarly gravitas',
     E:'refined, impeccable, high-end luxury sensibility',
   },
+  /* archetypeDescPT: used in director note (PT) only */
+  archetypeDescPT: {
+    A:'autoridade clássica e institucional',
+    B:'confiança minimalista e moderna',
+    C:'expressão editorial e fashion-forward',
+    D:'gravitas acadêmica e credível',
+    E:'sensibilidade refinada de alto padrão',
+  },
 
   industry: {
     A:'the technology and startup ecosystem',
@@ -318,15 +344,16 @@ const M = {
     G:'entrepreneurship and the founder community',
   },
 
+  /* purposeLbl stays English — interpolated into AI prompts */
   purposeLbl: {
     A:'Corporate / LinkedIn', B:'Personal Brand', C:'Speaker Bio',
     D:'Creative Portfolio',   E:'Press / Media',
   },
 
   platformLbl: {
-    A:'LinkedIn & Professional Networks', B:'Instagram & Social Media',
-    C:'Company Website',                  D:'Speaker Bureau',
-    E:'Press Kit / Publication',
+    A:'LinkedIn & Redes Profissionais', B:'Instagram & Redes Sociais',
+    C:'Site da Empresa',                D:'Speaker Bureau',
+    E:'Press Kit / Publicação',
   },
 
   body: {
@@ -391,7 +418,7 @@ function renderQ() {
   document.getElementById('prog-fill').style.width = pct + '%';
 
   var html = '<div class="question-block">'
-    + '<div class="q-number">Question ' + q.n + '  /  ' + total + '</div>'
+    + '<div class="q-number">Pergunta ' + q.n + '  /  ' + total + '</div>'
     + '<h2 class="q-text">' + q.text + '</h2>'
     + '<div class="options-stack">';
 
@@ -465,27 +492,28 @@ function profile() {
     formality:      M.formality[a[6]]      || 'professional attire',
     formalityLbl:   M.formalityLbl[a[6]]   || 'Professional',
     palette:        M.palette[a[10]]       || 'neutral palette',
-    paletteLbl:     M.paletteLbl[a[10]]    || 'Neutrals',
+    paletteLbl:     M.paletteLbl[a[10]]    || 'Neutros',
     bg:             M.bg[a[8]]             || 'studio backdrop',
     bgLbl:          M.bgLbl[a[8]]          || 'Studio',
+    bgLblPT:        M.bgLblPT[a[8]]        || 'Estúdio',
     lighting:       M.lighting[a[9]]       || 'studio lighting',
-    lightingLbl:    M.lightingLbl[a[9]]    || 'Studio',
+    lightingLbl:    M.lightingLbl[a[9]]    || 'Claro & Limpo',
     impression:     M.impression[a[7]]     || 'professional presence',
     expression:     M.expression[a[13]]    || 'composed expression',
     framing:        M.framing[fk]          || 'portrait',
-    framingLbl:     M.framingLbl[fk]       || 'Portrait',
+    framingLbl:     M.framingLbl[fk]       || 'Headshot Fechado',
     framingKey:     fk,
     lens:           M.lens[fk]             || '85mm f/1.8',
     lensShort:      M.lensShort[fk]        || '85mm f/1.8',
     angle:          M.angle[a[17]]         || 'eye level',
-    angleLbl:       M.angleLbl[a[17]]      || 'Eye Level',
+    angleLbl:       M.angleLbl[a[17]]      || 'Nível dos Olhos',
     postProcess:    M.postProcess[a[18]]   || 'natural edit',
-    postProcessLbl: M.postProcessLbl[a[18]]|| 'Natural & Clean',
+    postProcessLbl: M.postProcessLbl[a[18]]|| 'Natural & Limpo',
     archetype:      M.archetype[a[14]]     || 'Professional',
     archetypeDesc:  M.archetypeDesc[a[14]] || 'professional quality',
     industry:       M.industry[a[5]]       || 'professional field',
     purposeLbl:     M.purposeLbl[a[1]]     || 'Professional',
-    platformLbl:    M.platformLbl[a[19]]   || 'Professional Platform',
+    platformLbl:    M.platformLbl[a[19]]   || 'Plataforma Profissional',
     body:           M.body[a[15]]          || 'medium build',
     accessory:      M.accessory[a[16]]     || '',
     special:        M.special[a[20]]       || '',
@@ -500,6 +528,9 @@ function buildSubject(p) {
 
 /* ──────────────────────────────────────────
    PROMPT GENERATION
+   Stays entirely in English — AI image tools
+   (Midjourney, DALL·E, Flux, SD) interpret
+   English prompts with far greater accuracy.
 ────────────────────────────────────────── */
 function promptA(p) {
   var parts = [
@@ -519,9 +550,11 @@ function promptA(p) {
 }
 
 function promptB(p) {
-  var editLight = (p.lightingLbl === 'Dramatic' || p.lightingLbl === 'Cinematic')
+  /* lightingLbl is now in PT — compare against PT strings */
+  var editLight = (p.lightingLbl === 'Dramático' || p.lightingLbl === 'Cinematográfico')
     ? p.lighting
     : 'hard directional single-source key light with dramatic shadow fall-off, fashion-editorial contrast';
+  /* bgLbl stays English — compare and interpolate against EN strings */
   var editBg = (p.bgLbl === 'Dark Studio' || p.bgLbl === 'Architectural')
     ? p.bg
     : 'editorial reinterpretation of ' + p.bgLbl + ' — graphic, high-contrast, compositionally bold';
@@ -560,13 +593,21 @@ function promptC(p) {
   ].join(' ');
 }
 
+/* ──────────────────────────────────────────
+   NOTA DE DIREÇÃO DO FOTÓGRAFO  (PT)
+────────────────────────────────────────── */
 function dirNote(p) {
-  return 'For this <strong>' + p.archetype + '</strong> portrait — destined for <strong>' + p.platformLbl + '</strong> — we want to lead every frame with <strong>' + p.impression + '</strong>. '
-    + 'We\'ll shoot on a <strong>' + p.lensShort + '</strong>, ' + p.angle + ', under <strong>' + p.lightingLbl.toLowerCase() + ' lighting</strong> (' + p.lighting.split('—')[0].trim() + '). '
-    + 'The subject is in ' + p.formalityLbl.toLowerCase() + ', ' + p.paletteLbl.toLowerCase() + ' — ensure the wardrobe reads cleanly against the ' + p.bgLbl.toLowerCase() + ' background with no color clashing. '
-    + 'All retouching should aim for <strong>' + p.postProcessLbl.toLowerCase() + '</strong> — this should feel like ' + p.archetypeDesc + ', never over-produced or sterile.';
+  var imp       = M.impressionPT[ans[7]]    || p.impression;
+  var archDescPT = M.archetypeDescPT[ans[14]] || p.archetypeDesc;
+  return 'Para este retrato de <strong>' + p.archetype + '</strong> — destinado a <strong>' + p.platformLbl + '</strong> — o objetivo é transmitir em cada frame: <strong>' + imp + '</strong>. '
+    + 'Fotografaremos com uma objetiva <strong>' + p.lensShort + '</strong>, ' + p.angleLbl.toLowerCase() + ', sob <strong>iluminação ' + p.lightingLbl + '</strong> (' + p.lighting.split('—')[0].trim() + '). '
+    + 'O(a) fotografado(a) estará em look ' + p.formalityLbl.toLowerCase() + ', paleta ' + p.paletteLbl.toLowerCase() + ' — o vestuário deve harmonizar com o cenário "' + p.bgLblPT + '" sem conflito de cores. '
+    + 'Toda a pós-produção deve buscar um resultado <strong>' + p.postProcessLbl.toLowerCase() + '</strong> — transmitindo ' + archDescPT + ', sem exageros ou artificialidade.';
 }
 
+/* ──────────────────────────────────────────
+   FERRAMENTAS RECOMENDADAS
+────────────────────────────────────────── */
 function scoredTools() {
   var a = ans;
   var scores = {
@@ -576,10 +617,10 @@ function scoredTools() {
     'Stable Diffusion + ControlNet': 0,
   };
   var descs = {
-    'Midjourney': 'Best-in-class for editorial, fashion-forward, and cinematic portrait aesthetics. Excels at mood and atmosphere.',
-    'DALL·E 3': 'Excellent for clean, natural corporate headshots. Simple prompts, reliable results for LinkedIn and team pages.',
-    'Flux (FLUX.1 dev)': 'State-of-the-art photorealism. Ideal for authentic documentary and lifestyle shots that must look like genuine photos.',
-    'Stable Diffusion + ControlNet': 'Precise body-pose control via depth maps and pose references — essential for full-body portraits and non-standard builds.',
+    'Midjourney': 'Referência para estética editorial, fashion-forward e cinematográfica em retratos. Excelente em mood e atmosfera.',
+    'DALL·E 3': 'Ótimo para headshots corporativos limpos e naturais. Prompts simples, resultados confiáveis para LinkedIn e páginas de equipe.',
+    'Flux (FLUX.1 dev)': 'Fotorrealismo de ponta. Ideal para fotos documentais e de lifestyle que precisam parecer fotografias reais.',
+    'Stable Diffusion + ControlNet': 'Controle preciso de pose corporal via mapas de profundidade — essencial para retratos de corpo inteiro e estruturas físicas não-padrão.',
   };
 
   if (['C','E'].indexOf(a[14]) !== -1) scores['Midjourney'] += 3;
@@ -610,7 +651,7 @@ function scoredTools() {
 }
 
 /* ──────────────────────────────────────────
-   RENDER RESULTS
+   RENDER RESULTADOS
 ────────────────────────────────────────── */
 function buildResults() {
   var p = profile();
@@ -623,82 +664,85 @@ function buildResults() {
   var toolsHTML = tools.map(function(t) {
     var cls = t.rank === 0 ? 'tool-card top' : t.rank === 1 ? 'tool-card second' : 'tool-card';
     var badge = t.rank === 0
-      ? '<span class="tool-rec-badge">★ Top Recommendation</span>'
+      ? '<span class="tool-rec-badge">★ Recomendação Principal</span>'
       : t.rank === 1
-        ? '<span class="tool-rec-badge" style="color:var(--text2)">◆ Strong Alternative</span>'
+        ? '<span class="tool-rec-badge" style="color:var(--text2)">◆ Forte Alternativa</span>'
         : '';
-    return '<div class="' + cls + '">' + badge + '<div class="tool-name">' + t.name + '</div><div class="tool-desc">' + t.desc + '</div></div>';
+    return '<div class="' + cls + '">' + badge
+      + '<div class="tool-name">' + t.name + '</div>'
+      + '<div class="tool-desc">' + t.desc + '</div></div>';
   }).join('');
 
   document.getElementById('results-root').innerHTML =
     '<div class="results-header">'
     + '<div class="gold-rule" style="margin-bottom:1.2rem"></div>'
-    + '<div class="results-eyebrow">✶ Your Results</div>'
-    + '<h2 class="results-title">Your Photographic Profile</h2>'
-    + '<p class="results-desc">Your complete professional portrait blueprint — ready for AI generation.</p>'
+    + '<div class="results-eyebrow">✶ Seus Resultados</div>'
+    + '<h2 class="results-title">Seu Perfil Fotográfico</h2>'
+    + '<p class="results-desc">Seu blueprint profissional de retrato — pronto para geração por IA.</p>'
     + '</div>'
 
     + '<div class="id-card">'
-    + '<div class="id-card-label">✶ Photographic Identity Card</div>'
+    + '<div class="id-card-label">✶ Cartão de Identidade Fotográfica</div>'
     + '<div class="id-grid">'
-    + '<div class="id-item"><div class="id-item-label">Purpose</div><div class="id-item-value">' + p.purposeLbl + '</div></div>'
-    + '<div class="id-item"><div class="id-item-label">Archetype</div><div class="id-item-value">' + p.archetype + '</div></div>'
-    + '<div class="id-item"><div class="id-item-label">Mood</div><div class="id-item-value">' + p.lightingLbl + '</div></div>'
-    + '<div class="id-item"><div class="id-item-label">Setting</div><div class="id-item-value">' + p.bgLbl + '</div></div>'
-    + '<div class="id-item"><div class="id-item-label">Palette</div><div class="id-item-value">' + p.paletteLbl + '</div></div>'
-    + '<div class="id-item"><div class="id-item-label">Framing</div><div class="id-item-value">' + p.framingLbl + '</div></div>'
-    + '<div class="id-item"><div class="id-item-label">Formality</div><div class="id-item-value">' + p.formalityLbl + '</div></div>'
-    + '<div class="id-item"><div class="id-item-label">Platform</div><div class="id-item-value">' + p.platformLbl + '</div></div>'
+    + '<div class="id-item"><div class="id-item-label">Objetivo</div><div class="id-item-value">' + p.purposeLbl + '</div></div>'
+    + '<div class="id-item"><div class="id-item-label">Arquétipo</div><div class="id-item-value">' + p.archetype + '</div></div>'
+    + '<div class="id-item"><div class="id-item-label">Iluminação</div><div class="id-item-value">' + p.lightingLbl + '</div></div>'
+    + '<div class="id-item"><div class="id-item-label">Cenário</div><div class="id-item-value">' + p.bgLblPT + '</div></div>'
+    + '<div class="id-item"><div class="id-item-label">Paleta</div><div class="id-item-value">' + p.paletteLbl + '</div></div>'
+    + '<div class="id-item"><div class="id-item-label">Enquadramento</div><div class="id-item-value">' + p.framingLbl + '</div></div>'
+    + '<div class="id-item"><div class="id-item-label">Formalidade</div><div class="id-item-value">' + p.formalityLbl + '</div></div>'
+    + '<div class="id-item"><div class="id-item-label">Plataforma</div><div class="id-item-value">' + p.platformLbl + '</div></div>'
     + '</div></div>'
 
     + '<div class="section">'
-    + '<div class="section-head">AI Image Prompts</div>'
+    + '<div class="section-head">Prompts para IA</div>'
+    + '<p style="font-size:0.72rem;color:var(--muted);margin:-0.5rem 0 1.2rem;letter-spacing:0.03em;">em inglês — as ferramentas de IA funcionam melhor com prompts em inglês</p>'
 
     + '<div class="prompt-card">'
-    + '<div class="prompt-label">Prompt A &mdash; Primary &middot; Midjourney / DALL&middot;E 3 / Flux</div>'
+    + '<div class="prompt-label">Prompt A &mdash; Principal &middot; Midjourney / DALL&middot;E 3 / Flux</div>'
     + '<div class="prompt-body" id="pA">' + pA + '</div>'
-    + '<button class="copy-btn" data-copy="pA">&#x2398; Copy Prompt A</button>'
+    + '<button class="copy-btn" data-copy="pA">&#x2398; Copiar Prompt A</button>'
     + '</div>'
 
     + '<div class="prompt-card">'
-    + '<div class="prompt-label">Prompt B &mdash; Editorial Variant</div>'
+    + '<div class="prompt-label">Prompt B &mdash; Variante Editorial</div>'
     + '<div class="prompt-body" id="pB">' + pB + '</div>'
-    + '<button class="copy-btn" data-copy="pB">&#x2398; Copy Prompt B</button>'
+    + '<button class="copy-btn" data-copy="pB">&#x2398; Copiar Prompt B</button>'
     + '</div>'
 
     + '<div class="prompt-card">'
-    + '<div class="prompt-label">Prompt C &mdash; Candid / Lifestyle Variant</div>'
+    + '<div class="prompt-label">Prompt C &mdash; Variante Candid / Lifestyle</div>'
     + '<div class="prompt-body" id="pC">' + pC + '</div>'
-    + '<button class="copy-btn" data-copy="pC">&#x2398; Copy Prompt C</button>'
+    + '<button class="copy-btn" data-copy="pC">&#x2398; Copiar Prompt C</button>'
     + '</div>'
     + '</div>'
 
     + '<div class="section">'
-    + '<div class="section-head">Photographer\'s Direction Note</div>'
+    + '<div class="section-head">Nota de Direção do Fotógrafo</div>'
     + '<div class="director-note">' + note + '</div>'
     + '</div>'
 
     + '<div class="section">'
-    + '<div class="section-head">Recommended AI Tools</div>'
+    + '<div class="section-head">Ferramentas de IA Recomendadas</div>'
     + '<div class="tools-grid">' + toolsHTML + '</div>'
     + '</div>'
 
     + '<div class="action-bar">'
-    + '<button class="btn-outline" id="btn-retake">&larr; Retake Quiz</button>'
-    + '<button class="btn-gold-outline" id="btn-share">Share Results &nearr;</button>'
+    + '<button class="btn-outline" id="btn-retake">&larr; Refazer o Quiz</button>'
+    + '<button class="btn-gold-outline" id="btn-share">Compartilhar Resultados &nearr;</button>'
     + '</div>';
 
   show('screen-results');
 }
 
 /* ──────────────────────────────────────────
-   UTILITIES
+   UTILITÁRIOS
 ────────────────────────────────────────── */
 function doCopy(elId, btn) {
   var text = document.getElementById(elId).textContent;
   var orig = btn.textContent;
   function confirm() {
-    btn.textContent = '✓ Copied to clipboard';
+    btn.textContent = '✓ Copiado!';
     btn.classList.add('copied');
     setTimeout(function() { btn.textContent = orig; btn.classList.remove('copied'); }, 2600);
   }
@@ -724,7 +768,7 @@ function doShare(btn) {
   var orig = btn.textContent;
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(url).then(function() {
-      btn.textContent = '✓ Link copied!';
+      btn.textContent = '✓ Link copiado!';
       setTimeout(function() { btn.textContent = orig; }, 2600);
     });
   }
@@ -737,21 +781,20 @@ function retake() {
 }
 
 /* ──────────────────────────────────────────
-   INIT — wire up all events here, no inline
-   onclick anywhere in the HTML
+   INIT — eventos delegados, sem onclick inline
 ────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', function() {
 
-  // "Begin the Quiz" button
+  // Botão "Iniciar o Quiz"
   document.getElementById('btn-start').addEventListener('click', startQuiz);
 
-  // Option cards (delegated — they're re-created on every question)
+  // Opções (delegação — recriadas a cada pergunta)
   document.getElementById('q-area').addEventListener('click', function(e) {
     var card = e.target.closest('[data-pick]');
     if (card) pick(card.dataset.pick);
   });
 
-  // Results buttons (delegated — created by buildResults)
+  // Botões dos resultados (delegação — criados por buildResults)
   document.getElementById('results-root').addEventListener('click', function(e) {
     var btn = e.target.closest('button');
     if (!btn) return;
@@ -760,7 +803,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (btn.dataset.copy)        { doCopy(btn.dataset.copy, btn); }
   });
 
-  // Load from URL hash or show intro
+  // Carregar do hash da URL ou mostrar a intro
   if (loadHash()) {
     buildResults();
   } else {
