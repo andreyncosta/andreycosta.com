@@ -1,0 +1,2 @@
+# Migration checksums must be identical on Windows and Linux.
+candidatos/migrations/*.sql text eol=lf

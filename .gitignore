@@ -15,3 +15,12 @@ Thumbs.db
 .cpanel*
 .htpasswd
 error_log
+
+# Application state must never be deployed or versioned.
+*.sqlite*
+*.db
+*.db-*
+*.csv
+*.zip
+candidatos-private/
+artifacts/

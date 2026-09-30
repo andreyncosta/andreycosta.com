@@ -1,0 +1,17 @@
+name: Validate candidatos
+on:
+  push:
+    paths: ['candidatos/**', '.github/workflows/candidatos.yml']
+  pull_request:
+    paths: ['candidatos/**', '.github/workflows/candidatos.yml']
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PHP and SQLite
+        run: sudo apt-get update && sudo apt-get install -y php-cli php-sqlite3
+      - name: Syntax and behavioral tests
+        run: |
+          find candidatos -name '*.php' -print0 | xargs -0 -n1 php -l
+          php candidatos/tests.php
