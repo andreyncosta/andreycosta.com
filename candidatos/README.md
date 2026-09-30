@@ -15,6 +15,8 @@ Aplicação em PHP 8.2+ e SQLite, sem framework e sem dependências de frontend.
 
 ## Decisões para esta versão
 
+- Administradores também podem receber lotes, classificar suas candidaturas e participar de redistribuições. O atalho Minhas candidaturas filtra seu trabalho; as permissões de gestão são mantidas. A suspensão de acesso pelo painel continua restrita a contas de revisor.
+
 - Carga significa todas as pendências do revisor, em todos os recortes.
 - No lote fixo, distribuição alternada até X por pessoa. Se faltarem candidatos, diferenças de quantidade serão no máximo uma unidade.
 - Completar carga e transferir priorizam a menor carga total; empate pelo ID do revisor.

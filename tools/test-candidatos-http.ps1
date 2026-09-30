@@ -25,6 +25,18 @@ foreach ($route in @('?view=users','?view=distribution','?view=settings','?view=
 $response = Get-Page '?view=export'
 Assert ($response.Headers['Content-Type'] -match 'text/csv') 'Exportação CSV'
 $page = Get-Page
+$selfPreview = Post-Form @{ action='preview'; csrf=(Get-Csrf $page); kind='assign'; year='2026'; office='DEPUTADO FEDERAL'; uf='SP'; quantity='1'; mode='fixed'; 'users[]'='1' }
+Assert ($selfPreview.Content -match 'name="users\[\]" value="1"') 'Administrador listado como destinatario'
+$selfOperation = [regex]::Match($selfPreview.Content, 'name="operation" value="([a-f0-9]+)"').Groups[1].Value
+$selfDone = Post-Form @{ action='execute'; csrf=(Get-Csrf $selfPreview); operation=$selfOperation }
+Assert ($selfDone.Content -match 'Lote \d') 'Autoatribuicao via HTTP'
+$mine = Get-Page '?source=1'
+$selfForm=[regex]::Match($mine.Content,'(?s)<form method="post" id="eval\d+">(.*?)</form>').Groups[1].Value
+$selfAssignment=[regex]::Match($selfForm,'name="assignment" value="(\d+)"').Groups[1].Value
+$selfVersion=[regex]::Match($selfForm,'name="version" value="(\d+)"').Groups[1].Value
+$selfSaved=Post-Form @{action='save'; csrf=(Get-Csrf $mine); assignment=$selfAssignment; version=$selfVersion; ideological='1'; profile='-1'; status='done'}
+Assert ($selfSaved.Content -match 'salva\.') 'Administrador classifica via formulario'
+$page = Get-Page
 $preview = Post-Form @{ action='preview'; csrf=(Get-Csrf $page); kind='assign'; year='2026'; office='DEPUTADO FEDERAL'; uf='SP'; quantity='2'; mode='fixed'; 'users[]'='3' }
 Assert ($preview.Content -match 'Confirmar esta') 'Prévia HTTP'
 $operation = [regex]::Match($preview.Content, 'name="operation" value="([a-f0-9]+)"').Groups[1].Value

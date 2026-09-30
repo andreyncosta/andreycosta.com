@@ -136,7 +136,7 @@ function plan(array $input): array {
     $loads=[]; $names=[];
     foreach ($users as $id) {
         $u = activeUser($id);
-        if ($u['role']!=='reviewer' || !$u['password']) throw new DomainException('Selecione revisores ativos com convite aceito.');
+        if (!$u['password']) throw new DomainException('Selecione participantes ativos com convite aceito.');
         if ($kind==='reclaim' && $id===(int)$f['source']) throw new DomainException('O destinatário deve ser diferente da origem.');
         $loads[$id]=workload($id); $names[$id]=$u['name'];
     }

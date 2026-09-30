@@ -16,6 +16,8 @@ A unidade de trabalho é a candidatura em determinada eleição, não a pessoa i
 
 ### Administrador
 
+O administrador também pode receber lotes, classificar suas próprias candidaturas e ter suas pendências retomadas ou redistribuídas, sem perder as permissões de gestão.
+
 - Convidar revisores, aprovar acessos e suspender contas.
 - Consultar candidaturas, avaliações, lotes e histórico.
 - Atribuir, retomar e redistribuir trabalho.

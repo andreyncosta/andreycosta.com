@@ -80,6 +80,14 @@ try {
     $results=[];
     foreach($workers as [$proc,$pipes]) { $results[]=stream_get_contents($pipes[1]); $err=stream_get_contents($pipes[2]); fclose($pipes[1]); fclose($pipes[2]); check(proc_close($proc)===0,'Processo concorrente: '.$err); }
     sort($results); check($results===['conflict','ok'],'Distribuição concorrente serializada');
+    $own=plan(array_merge($spec,['users'=>[1],'quantity'=>2])); executePlan(1,$own,'admin-own');
+    check(workload(1)===2,'Administrador recebe lote próprio');
+    $ownAssignment=query('SELECT * FROM assignments WHERE user_id=1 AND ended_at IS NULL LIMIT 1')->fetch();
+    saveEvaluation(1,(int)$ownAssignment['id'],0,1,-1,'done');
+    check(workload(1)===1,'Administrador conclui a própria avaliação');
+    $takeBack=plan(['kind'=>'reclaim','source'=>'1','users'=>[2],'reason'=>'Transferir trabalho do administrador']);
+    check(count($takeBack['map'])===1,'Retomada do administrador exclui concluídas'); executePlan(1,$takeBack,'admin-transfer');
+    check(workload(1)===0 && activeUser(1,true)['role']==='admin','Redistribuição preserva acesso administrativo');
     $file=backup(); $restored=new PDO('sqlite:'.$file);
     check($restored->query('PRAGMA integrity_check')->fetchColumn()==='ok','Backup íntegro');
     foreach(['users','candidates','assignments','evaluations','events'] as $table) check((int)$restored->query("SELECT COUNT(*) FROM $table")->fetchColumn()===(int)query("SELECT COUNT(*) FROM $table")->fetchColumn(),'Restauração: '.$table);
