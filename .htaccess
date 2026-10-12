@@ -4,6 +4,9 @@
   # Block WordPress scan attempts
   RewriteRule ^wp-admin(/.*)?$ - [F,L]
 
+  # Fiscal Observatory alias from the original project specification
+  RewriteRule ^projetos/observatorio-fiscal/?$ /observatorio-fiscal/ [R=301,L]
+
   # Serve existing files and directories directly
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d

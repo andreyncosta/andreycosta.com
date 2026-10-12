@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Receitas, despesas e resultado primário do Governo Central. Dados oficiais do Tesouro, de 1997 a 2026, com valores nominais e reais.">
+  <title>Observatório Fiscal Brasileiro — Andrey Costa</title>
+  <link rel="canonical" href="https://andreycosta.com/observatorio-fiscal/">
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header><a href="/">Andrey Costa <span> / projetos</span></a><a href="#metodologia">Metodologia ↗</a></header>
+  <main>
+    <section class="intro"><p class="eyebrow">ECONOMIA PÚBLICA · DADOS ABERTOS</p>
+      <h1>Observatório <em>Fiscal Brasileiro</em></h1>
+      <p class="lead">Como evoluem as receitas, as despesas e o resultado primário do Governo Central?</p>
+      <p id="provenance" class="muted" role="status">Carregando dados oficiais do Tesouro Nacional…</p>
+    </section>
+    <section class="controls" aria-label="Filtros">
+      <label>Início<input id="start" type="month"></label>
+      <label>Fim<input id="end" type="month"></label>
+      <label>Valores<select id="basis"><option value="nominal">Nominais</option><option value="real">Reais · IPCA</option></select></label>
+      <label>Visualização<select id="view"><option value="flows">Receita líquida e despesa</option><option value="balance">Resultado primário mensal</option><option value="rolling">Resultado em 12 meses</option></select></label>
+      <button id="download" type="button">Baixar CSV ↓</button>
+    </section>
+    <p id="filter-error" role="alert" hidden>Selecione um período válido, com início anterior ou igual ao fim.</p>
+    <div id="dashboard" hidden>
+      <section class="kpis" aria-label="Indicadores do último mês selecionado">
+        <article><p>Receita líquida</p><strong id="revenue">—</strong><span>Após transferências por repartição</span></article>
+        <article><p>Despesa primária</p><strong id="expense">—</strong><span>Total do Governo Central</span></article>
+        <article><p>Resultado primário</p><strong id="balance">—</strong><span id="balance-label">Acima da linha</span></article>
+        <article><p>Resultado em 12 meses</p><strong id="rolling">—</strong><span>Janela completa de 12 meses</span></article>
+      </section>
+      <section class="chart-panel"><div class="panel-head"><div><p class="eyebrow">TRAJETÓRIA FISCAL</p><h2 id="chart-title">Receita líquida e despesa</h2></div><span id="units"></span></div>
+        <div id="legend" class="legend"></div>
+        <svg id="chart" viewBox="0 0 1000 330" role="img" aria-labelledby="chart-title chart-description"><desc id="chart-description">Séries mensais. Os valores completos estão na tabela abaixo.</desc></svg>
+        <p id="chart-detail" class="chart-detail" aria-live="polite"></p>
+      </section>
+      <section class="composition"><div><p class="eyebrow">COMPOSIÇÃO · ÚLTIMO MÊS SELECIONADO</p><h2>Onde estão os fluxos?</h2><p class="muted">Grupos do mesmo nível. As receitas usam o total bruto como denominador; as despesas usam a despesa total.</p></div><div><h3>Receitas</h3><div id="revenue-bars"></div></div><div><h3>Despesas</h3><div id="expense-bars"></div></div></section>
+      <details><summary>Consultar dados mensais <span id="table-count"></span></summary><div class="table-wrap"><table><caption id="table-caption"></caption><thead><tr><th>Mês</th><th>Receita líquida</th><th>Despesa</th><th>Resultado primário</th><th>Resultado em 12 meses</th></tr></thead><tbody id="table-body"></tbody></table></div></details>
+    </div>
+    <section id="metodologia" class="notes"><p class="eyebrow">LEITURA DOS DADOS</p><h2>Metodologia e fontes</h2><div class="notes-grid">
+      <div><h3>O que está sendo medido</h3><p>Governo Central, metodologia <strong>acima da linha</strong> do Resultado do Tesouro Nacional (RTN). A receita líquida corresponde à receita total menos as transferências por repartição. O resultado primário é a receita líquida menos a despesa primária: valores positivos indicam superávit; negativos, déficit.</p><p>Esse conceito difere do resultado abaixo da linha apurado pelo Banco Central para a verificação da meta fiscal. Estados e municípios não estão consolidados neste painel.</p></div>
+      <div><h3>Preços e comparações</h3><p>Valores nominais e reais vêm das tabelas 1.1 e 1.1-A da planilha oficial. Os valores reais usam a correção pelo IPCA publicada pelo próprio Tesouro; a base de preços aparece no painel. O acumulado em 12 meses exige uma janela completa e inclui meses anteriores ao início do filtro.</p><p>Os dados estão sujeitos a revisões e mudanças metodológicas. A cobertura termina no último mês da planilha coletada, mesmo quando a extração ocorre depois.</p></div>
+    </div><p><a href="https://www.tesourotransparente.gov.br/ckan/dataset/resultado-do-tesouro-nacional/resource/527ccdb1-3059-42f3-bf23-b5e3ab4c6dc6" target="_blank" rel="noopener">Fonte oficial · Tesouro Nacional ↗</a> · <a href="dataset.json" download>Dados do painel em JSON ↓</a></p><p class="muted">Atribuição: Secretaria do Tesouro Nacional. Dados sob licença <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL</a>. Este painel é uma transformação independente dos dados oficiais.</p></section>
+    <section class="notes"><p class="eyebrow">ENGENHARIA</p><h2>Da fonte ao indicador</h2><p class="pipeline">Tesouro / XLSX → Python → DuckDB → dbt → testes → JSON → este painel</p><p>A coleta preserva a planilha original e seu hash SHA-256 para identificar revisões. O dbt organiza as transformações e verifica unicidade, continuidade mensal e conciliação contábil. Testes Python comparam os indicadores com a planilha original. Esta publicação é um retrato validado; a atualização automática ainda está em desenvolvimento.</p><p id="version" class="muted"></p><p class="muted">Código do pipeline: <code>andreyncosta/brazil-fiscal-data</code> (repositório privado).</p></section>
+  </main><footer>Observatório Fiscal Brasileiro · Andrey Costa <a href="/">Voltar ao portfólio ↑</a></footer>
+</body>
+</html>
