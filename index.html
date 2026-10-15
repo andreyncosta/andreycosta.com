@@ -5,21 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Andrey Costa — Economist & Data Scientist</title>
   <meta name="description" content="Andrey Costa — Data Scientist at BRB Bank, Master's candidate at FGV. Research at the intersection of macroeconomics, data engineering, and emerging financial systems.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="icon" href="/assets/favicon.svg">
   <style>
+    /* Same visual system as /textos/ and /candidatos/: sage paper, deep green ink, Georgia headings. */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --ink:    #1C1B18;
-      --paper:  #F5F2EB;
-      --muted:  #7A7469;
-      --accent: #8B2E0F;
-      --rule:   #C8C2B4;
-      --rule-strong: #1C1B18;
-      --mono:   'DM Mono', monospace;
-      --serif:  'Cormorant Garamond', Georgia, serif;
-      --sans:   'DM Sans', sans-serif;
+      --ink:    #273e35;
+      --paper:  #f3f3ed;
+      --card:   #fffefa;
+      --muted:  #627267;
+      --accent: #2d5546;
+      --accent-soft: #456c57;
+      --rule:   #dce2d7;
+      --rule-strong: #cbd4c7;
+      --focus:  #b4773d;
+      --serif:  Georgia, "Times New Roman", serif;
+      --sans:   "Segoe UI", system-ui, sans-serif;
+      --gutter: clamp(20px, 4vw, 64px);
     }
 
     html { scroll-behavior: smooth; }
@@ -27,530 +30,261 @@
     body {
       background: var(--paper);
       color: var(--ink);
-      font-family: var(--sans);
-      font-size: 15px;
-      line-height: 1.6;
+      font: 15px/1.65 var(--sans);
       min-height: 100vh;
     }
 
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.5;
-    }
+    a { color: var(--accent); text-underline-offset: 4px; }
+    a:hover { color: #101f18; }
+    a:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
 
     /* ─── masthead ─── */
     .masthead {
-      border-bottom: 2px solid var(--ink);
-      padding: 1.2rem 3rem;
       display: flex;
       justify-content: space-between;
-      align-items: baseline;
-      position: relative;
-      z-index: 1;
+      align-items: center;
+      gap: 20px;
+      padding: 24px var(--gutter);
+      border-bottom: 1px solid var(--rule);
     }
 
-    .masthead-name {
-      font-family: var(--serif);
-      font-size: clamp(2rem, 5vw, 3.2rem);
-      font-weight: 300;
-      letter-spacing: 0.02em;
-      line-height: 1;
-    }
-
-    .masthead-name em { font-style: italic; color: var(--accent); }
-
-    .masthead-meta {
-      text-align: right;
-      font-family: var(--mono);
-      font-size: 10px;
-      font-weight: 300;
-      color: var(--muted);
-      letter-spacing: 0.08em;
-      line-height: 1.8;
-      text-transform: uppercase;
-    }
-
-    /* ─── nav strip ─── */
-    .nav-strip {
-      border-bottom: 0.5px solid var(--rule);
-      padding: 0.6rem 3rem;
+    .brand {
       display: flex;
       align-items: center;
-      gap: 2rem;
-      position: relative;
-      z-index: 1;
-    }
-
-    .nav-strip a {
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--muted);
+      gap: 10px;
+      color: var(--ink);
+      font-weight: 600;
       text-decoration: none;
-      transition: color 0.15s;
     }
 
+    .mark {
+      display: grid;
+      place-items: center;
+      width: 35px;
+      height: 35px;
+      border-radius: 10px;
+      background: var(--accent);
+      color: #fff;
+      font: 21px var(--serif);
+    }
+
+    .nav-strip { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 13px; }
+    .nav-strip a { color: var(--ink); }
     .nav-strip a:hover { color: var(--accent); }
 
-    .nav-strip .spacer { flex: 1; border-top: 0.5px solid var(--rule); }
+    /* ─── shared labels ─── */
+    .eyebrow, .stat-label, .section-tag, .research-meta-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
 
     /* ─── hero ─── */
     .hero {
       display: grid;
-      grid-template-columns: 1fr 1px 1fr;
-      min-height: 58vh;
-      position: relative;
-      z-index: 1;
-    }
-
-    .hero-divider { background: var(--rule); }
-
-    .hero-left {
-      padding: 4rem 3rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .hero-issue {
-      font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 2rem;
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      gap: 64px;
+      padding: 72px var(--gutter) 64px;
+      align-items: center;
     }
 
     .hero-headline {
-      font-family: var(--serif);
-      font-size: clamp(2.4rem, 4.5vw, 4rem);
-      font-weight: 300;
-      line-height: 1.12;
-      letter-spacing: -0.01em;
+      font: 400 clamp(42px, 5.6vw, 76px)/1.07 var(--serif);
+      letter-spacing: -.045em;
+      margin: 22px 0 28px;
     }
 
-    .hero-headline strong { font-weight: 600; display: block; }
-    .hero-headline em { font-style: italic; color: var(--accent); }
+    .hero-headline em { color: var(--accent-soft); }
 
-    .hero-byline {
-      margin-top: 2.5rem;
-      padding-top: 1.5rem;
-      border-top: 0.5px solid var(--rule);
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.7;
-      max-width: 38ch;
-    }
+    .hero-byline { max-width: 600px; font-size: 18px; color: var(--muted); }
 
     .hero-right {
-      padding: 4rem 3rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 2rem;
+      background: var(--card);
+      border: 1px solid var(--rule);
+      border-radius: 14px;
+      padding: 8px 28px;
     }
 
-    .stat-block {
-      padding-bottom: 1.8rem;
-      border-bottom: 0.5px solid var(--rule);
-    }
+    .stat-block { padding: 20px 0; border-bottom: 1px solid var(--rule); }
+    .stat-block:last-child { border-bottom: none; }
+    .stat-label { margin-bottom: 6px; }
+    .stat-value { font: 400 23px/1.2 var(--serif); letter-spacing: -.02em; }
+    .stat-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
 
-    .stat-block:last-child { border-bottom: none; padding-bottom: 0; }
-
-    .stat-label {
-      font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 0.35rem;
-    }
-
-    .stat-value {
-      font-family: var(--serif);
-      font-size: 1.45rem;
-      font-weight: 400;
-      line-height: 1.2;
-    }
-
-    .stat-value a {
-      color: var(--accent);
-      text-decoration: none;
-      transition: opacity 0.15s;
-    }
-
-    .stat-value a:hover { opacity: 0.7; }
-
-    .stat-sub {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 0.25rem;
-      font-style: italic;
-    }
-
-    /* ─── section divider ─── */
-    .section-rule {
-      border: none;
-      border-top: 2px solid var(--ink);
-      margin: 0;
-      position: relative;
-      z-index: 1;
-    }
-
+    /* ─── section headers ─── */
     .section-header {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      align-items: center;
-      gap: 1.5rem;
-      padding: 1.2rem 3rem;
-      border-bottom: 0.5px solid var(--rule);
-      position: relative;
-      z-index: 1;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 56px var(--gutter) 20px;
+      border-top: 1px solid var(--rule-strong);
     }
+
+    .section-header > div { display: flex; align-items: baseline; gap: 18px; }
 
     .section-header h2 {
-      font-family: var(--serif);
-      font-size: 1.1rem;
-      font-weight: 400;
-      letter-spacing: 0.02em;
+      font: 400 clamp(30px, 3.4vw, 42px)/1.1 var(--serif);
+      letter-spacing: -.035em;
     }
 
-    .section-header .section-tag {
-      font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-
-    .section-header hr { border: none; border-top: 0.5px solid var(--rule); }
+    .section-link { font-size: 13px; white-space: nowrap; }
 
     /* ─── projects grid ─── */
     .projects {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      border-bottom: 2px solid var(--ink);
-      position: relative;
-      z-index: 1;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 22px;
+      padding: 8px var(--gutter) 64px;
     }
 
     .project-card {
-      padding: 2.2rem 2.5rem;
-      border-right: 0.5px solid var(--rule);
       display: flex;
       flex-direction: column;
-      gap: 0.8rem;
-      text-decoration: none;
+      gap: 12px;
+      padding: 26px;
+      background: var(--card);
+      border: 1px solid var(--rule);
+      border-radius: 14px;
       color: inherit;
-      transition: background 0.2s;
-      cursor: pointer;
+      text-decoration: none;
+      transition: border-color .2s, transform .2s;
     }
 
-    .project-card:nth-child(3n), .project-card:last-child { border-right: none; }
-    .project-card:nth-child(-n+3) { border-bottom: 0.5px solid var(--rule); }
-    .project-card:hover { background: rgba(139,46,15,0.04); }
+    .project-card:hover { color: inherit; border-color: #bccdb6; transform: translateY(-2px); }
     .project-card:hover .project-arrow { transform: translateX(3px); }
 
     .project-tag {
-      font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 0.2em;
-      color: var(--accent);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .12em;
       text-transform: uppercase;
+      color: var(--accent-soft);
     }
 
-    .project-title {
-      font-family: var(--serif);
-      font-size: 1.35rem;
-      font-weight: 400;
-      line-height: 1.2;
-    }
-
-    .project-title em { font-style: italic; }
-
-    .project-desc {
-      font-size: 12.5px;
-      color: var(--muted);
-      line-height: 1.65;
-      flex: 1;
-    }
+    .project-title { font: 400 27px/1.15 var(--serif); letter-spacing: -.03em; }
+    .project-title em { color: var(--accent-soft); }
+    .project-desc { flex: 1; font-size: 13.5px; line-height: 1.7; color: var(--muted); }
 
     .project-footer {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding-top: 0.8rem;
-      border-top: 0.5px solid var(--rule);
-      margin-top: auto;
+      gap: 12px;
+      padding-top: 14px;
+      border-top: 1px solid var(--rule);
     }
 
-    .project-stack {
-      font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 0.1em;
-      color: var(--muted);
-      text-transform: uppercase;
-    }
-
-    .project-arrow {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--accent);
-      transition: transform 0.15s;
-    }
+    .project-stack { font-size: 11px; color: var(--muted); }
+    .project-arrow { color: var(--accent); font-weight: 600; transition: transform .15s; }
 
     /* ─── research section ─── */
     .research {
       display: grid;
-      grid-template-columns: 2fr 1px 1fr;
-      border-bottom: 2px solid var(--ink);
-      position: relative;
-      z-index: 1;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      gap: 64px;
+      padding: 16px var(--gutter) 72px;
     }
 
-    .research-divider { background: var(--rule); }
-
-    .research-main {
-      padding: 2.5rem 3rem;
-    }
-
-    .research-kicker {
-      font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 1rem;
-    }
+    .research-kicker { color: var(--accent-soft); margin-bottom: 14px; }
 
     .research-title {
-      font-family: var(--serif);
-      font-size: clamp(1.6rem, 2.5vw, 2.2rem);
-      font-weight: 300;
-      line-height: 1.2;
-      margin-bottom: 1.2rem;
+      font: 400 clamp(32px, 3.6vw, 48px)/1.12 var(--serif);
+      letter-spacing: -.04em;
+      margin-bottom: 22px;
     }
 
-    .research-title em { font-style: italic; color: var(--accent); }
-
-    .research-body {
-      font-size: 13.5px;
-      color: var(--muted);
-      line-height: 1.75;
-      max-width: 60ch;
-    }
+    .research-title em { color: var(--accent-soft); }
+    .research-body { max-width: 62ch; font-size: 16px; line-height: 1.75; color: var(--muted); }
+    .research-link { display: inline-block; margin-top: 24px; font-size: 13px; font-weight: 600; }
 
     .research-sidebar {
-      padding: 2.5rem 2.5rem;
       display: flex;
       flex-direction: column;
-      gap: 1.5rem;
+      gap: 20px;
+      align-self: start;
+      padding: 26px;
+      background: var(--card);
+      border: 1px solid var(--rule);
+      border-radius: 14px;
     }
 
-    .research-meta-item {}
-
-    .research-meta-label {
-      font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 0.3rem;
-    }
-
-    .research-meta-value {
-      font-size: 13px;
-      line-height: 1.5;
-      color: var(--ink);
-    }
-
-    /* ─── writing/articles section ─── */
-    .articles {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      border-bottom: 2px solid var(--ink);
-      position: relative;
-      z-index: 1;
-    }
-
-    .article-card {
-      padding: 2rem 2.5rem;
-      border-right: 0.5px solid var(--rule);
-      text-decoration: none;
-      color: inherit;
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-      transition: background 0.2s;
-    }
-
-    .article-card:last-child { border-right: none; }
-    .article-card:hover { background: rgba(139,46,15,0.03); }
-
-    .article-category {
-      font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--accent);
-    }
-
-    .article-title {
-      font-family: var(--serif);
-      font-size: 1.3rem;
-      font-weight: 400;
-      line-height: 1.25;
-    }
-
-    .article-desc {
-      font-size: 12.5px;
-      color: var(--muted);
-      line-height: 1.65;
-      flex: 1;
-    }
-
-    .article-meta {
-      font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 0.12em;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-top: 0.5rem;
-    }
+    .research-meta-label { margin-bottom: 4px; }
+    .research-meta-value { font-size: 14px; line-height: 1.55; }
 
     /* ─── footer strip ─── */
     .footer {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      align-items: center;
-      padding: 1.5rem 3rem;
-      gap: 2rem;
-      position: relative;
-      z-index: 1;
-    }
-
-    .footer-links {
       display: flex;
-      gap: 2rem;
       flex-wrap: wrap;
-    }
-
-    .footer-links a {
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px 32px;
+      padding: 30px var(--gutter);
+      border-top: 1px solid var(--rule);
+      font-size: 12px;
       color: var(--muted);
-      text-decoration: none;
-      transition: color 0.2s;
     }
 
-    .footer-links a:hover { color: var(--accent); }
-
-    .footer-mark {
-      font-family: var(--serif);
-      font-size: 1.2rem;
-      font-weight: 300;
-      font-style: italic;
-      color: var(--muted);
-      text-align: center;
-      white-space: nowrap;
-    }
-
-    .footer-copy {
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 0.1em;
-      color: var(--muted);
-      text-align: right;
-    }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 20px; }
 
     /* ─── animations ─── */
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(16px); }
+      from { opacity: 0; transform: translateY(12px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    .masthead      { animation: fadeUp 0.5s ease both; }
-    .nav-strip     { animation: fadeUp 0.5s 0.08s ease both; }
-    .hero-left     { animation: fadeUp 0.6s 0.18s ease both; }
-    .hero-right    { animation: fadeUp 0.6s 0.3s ease both; }
-    .projects      { animation: fadeUp 0.6s 0.4s ease both; }
-    .research      { animation: fadeUp 0.6s 0.5s ease both; }
-    .articles      { animation: fadeUp 0.6s 0.55s ease both; }
-    .footer        { animation: fadeUp 0.5s 0.6s ease both; }
+    .hero-left  { animation: fadeUp .6s .05s ease both; }
+    .hero-right { animation: fadeUp .6s .18s ease both; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
 
     /* ─── responsive ─── */
-    @media (max-width: 900px) {
-      .projects { grid-template-columns: 1fr 1fr; }
-      .project-card:nth-child(3n) { border-right: unset; }
-      .project-card:nth-child(-n+3) { border-bottom: unset; }
-      .project-card:nth-child(2n) { border-right: none; }
-      .project-card:nth-child(-n+4) { border-bottom: 0.5px solid var(--rule); }
+    @media (max-width: 1000px) {
+      .projects { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .hero, .research { grid-template-columns: 1fr; gap: 40px; }
     }
 
-    @media (max-width: 780px) {
-      .masthead { padding: 1rem 1.5rem; flex-direction: column; gap: 0.5rem; }
-      .masthead-meta { text-align: left; }
-      .nav-strip { padding: 0.6rem 1.5rem; gap: 1.2rem; flex-wrap: wrap; }
-      .hero { grid-template-columns: 1fr; }
-      .hero-divider { display: none; }
-      .hero-left, .hero-right { padding: 2.5rem 1.5rem; }
+    @media (max-width: 640px) {
+      .masthead { flex-direction: column; align-items: flex-start; }
+      .nav-strip { gap: 8px 16px; }
+      .hero { padding-top: 44px; }
+      .hero-byline { font-size: 16px; }
       .projects { grid-template-columns: 1fr; }
-      .project-card { border-right: none; border-bottom: 0.5px solid var(--rule); }
-      .project-card:last-child { border-bottom: none; }
-      .section-header { padding: 1rem 1.5rem; }
-      .research { grid-template-columns: 1fr; }
-      .research-divider { display: none; }
-      .research-main, .research-sidebar { padding: 2rem 1.5rem; }
-      .articles { grid-template-columns: 1fr; }
-      .article-card { border-right: none; border-bottom: 0.5px solid var(--rule); }
-      .article-card:last-child { border-bottom: none; }
-      .footer { grid-template-columns: 1fr; gap: 1rem; padding: 1.5rem; }
-      .footer-copy { text-align: left; }
+      .section-header { flex-direction: column; gap: 8px; padding-top: 44px; }
+      .footer { flex-direction: column; align-items: flex-start; }
     }
   </style>
+  <link rel="stylesheet" href="/assets/writing.css?v=20261014">
 </head>
 <body>
 
   <!-- masthead -->
   <header class="masthead">
-    <div class="masthead-name">Andrey <em>Costa</em></div>
-    <div class="masthead-meta">
-      Brasília, Brasil · EST. 2025<br>
-      Economist &amp; Data Scientist<br>
-      andreynacosta46@gmail.com
-    </div>
+    <a class="brand" href="/"><span class="mark" aria-hidden="true">ac</span>Andrey Costa</a>
+    <nav class="nav-strip" aria-label="Principal">
+      <a href="/curriculum">Curriculum</a>
+      <a href="#projects">Projects</a>
+      <a href="#research">Research</a>
+      <a href="/textos/">Textos</a>
+      <a href="https://github.com/andreyncosta" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://www.linkedin.com/in/andreyac" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="mailto:andreynacosta46@gmail.com">Contact</a>
+    </nav>
   </header>
-
-  <!-- nav -->
-  <nav class="nav-strip">
-    <a href="/curriculum">Curriculum</a>
-    <a href="#projects">Projects</a>
-    <a href="#research">Research</a>
-    <a href="#writing">Writing</a>
-    <div class="spacer"></div>
-    <a href="https://github.com/andreyncosta" target="_blank" rel="noopener">GitHub</a>
-    <a href="https://www.linkedin.com/in/andreyac" target="_blank" rel="noopener">LinkedIn</a>
-    <a href="mailto:andreynacosta46@gmail.com">Contact</a>
-  </nav>
 
   <!-- hero -->
   <section class="hero">
     <div class="hero-left">
       <div>
-        <div class="hero-issue">Personal archive — projects &amp; ideas in progress</div>
+        <div class="eyebrow">Personal archive — projects &amp; ideas in progress</div>
         <h1 class="hero-headline">
           Thinking at the<br>
           intersection of <em>economics,</em><br>
-          <strong>data &amp; the future<br>of money.</strong>
+          data &amp; the future<br>of money.
         </h1>
         <p class="hero-byline">
           Data scientist building production systems at BRB Bank,
@@ -561,7 +295,6 @@
       </div>
     </div>
 
-    <div class="hero-divider"></div>
 
     <div class="hero-right">
       <div class="stat-block">
@@ -587,14 +320,10 @@
     </div>
   </section>
 
-  <hr class="section-rule">
-
   <!-- projects section header -->
   <div class="section-header" id="projects">
-    <span class="section-tag">02 ——</span>
-    <h2>Projects</h2>
-    <hr>
-    <a href="https://github.com/andreyncosta" target="_blank" rel="noopener" style="font-family:var(--mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);text-decoration:none;white-space:nowrap;transition:color 0.15s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">github.com/andreyncosta →</a>
+    <div><h2>Projects</h2></div>
+    <a class="section-link" href="https://github.com/andreyncosta" target="_blank" rel="noopener">github.com/andreyncosta →</a>
   </div>
 
   <!-- projects grid -->
@@ -672,18 +401,14 @@
 
   </section>
 
-  <hr class="section-rule">
-
   <!-- research -->
   <div class="section-header" id="research">
-    <span class="section-tag">03 ——</span>
-    <h2>Research</h2>
-    <hr>
+    <div><h2>Research</h2></div>
   </div>
 
   <section class="research">
     <div class="research-main">
-      <div class="research-kicker">FGV EPPG · Master's Thesis in progress</div>
+      <div class="eyebrow research-kicker">FGV EPPG · Master's Thesis in progress</div>
       <h2 class="research-title">
         The <em>Bitdollar</em> Hypothesis:<br>
         Bitcoin &amp; the Dollar as<br>
@@ -692,12 +417,8 @@
       <p class="research-body">
         What happens to the international monetary system if Bitcoin becomes a sovereign reserve asset alongside — not instead of — the US dollar? This research examines the macroeconomic and institutional implications of a "bitdollar" adoption scenario: the co-existence of BTC and USD as parallel stores of value at the state level, and the structural tensions this creates for fiscal policy, seigniorage, and monetary sovereignty in emerging economies.
       </p>
-      <br>
-      <p class="research-body" style="color: var(--ink);">
-        <a href="https://github.com/andreyncosta/bitcoin-sovereign-reserve" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;">View research repo on GitHub →</a>
-      </p>
+      <a class="research-link" href="https://github.com/andreyncosta/bitcoin-sovereign-reserve" target="_blank" rel="noopener">View research repo on GitHub →</a>
     </div>
-    <div class="research-divider"></div>
     <div class="research-sidebar">
       <div class="research-meta-item">
         <div class="research-meta-label">Institution</div>
@@ -722,31 +443,20 @@
     </div>
   </section>
 
-  <hr class="section-rule">
-
   <!-- writing -->
   <div class="section-header" id="writing">
-    <span class="section-tag">04 ——</span>
-    <h2>Writing</h2>
-    <hr>
+    <div><h2>Textos &amp; ensaios</h2></div>
   </div>
-
-  <section class="articles">
-
-    <a class="article-card" href="/emendas-parlamentares">
-      <div class="article-category">Public Policy · Data Analysis</div>
-      <div class="article-title">O Painel das Emendas: rastreando R$ bilhões em alocações parlamentares</div>
-      <p class="article-desc">Relatório interativo gerado a partir dos dados abertos do Portal da Transparência. Mapas per capita por estado, execução orçamentária por partido e autor, concentração de favorecidos e classificação temática das emendas. Uma radiografia do orçamento impositivo brasileiro.</p>
-      <div class="article-meta">Interactive · PT-BR · Open data</div>
-    </a>
-
-    <div class="article-card" style="opacity:0.5;cursor:default;">
-      <div class="article-category">Labor Economics</div>
-      <div class="article-title">O Pleno Emprego de Schrödinger</div>
-      <p class="article-desc">As estatísticas de desemprego brasileiras sistematicamente distorcem a realidade do mercado de trabalho. Um argumento sobre como a PNAD Contínua oculta a precarização estrutural por trás de taxas "históricas". <em style="font-style:italic;">(Em preparação para publicação.)</em></p>
-      <div class="article-meta">Essay · PT-BR · IBGE / SIDRA data</div>
-    </div>
-
+  <section class="writing-journal" aria-labelledby="wj-title">
+    <header class="wj-intro">
+      <div><p class="wj-eyebrow">OMNIBUS FORTITUDINEM</p><h2 id="wj-title">Uma casa para<br><em>as ideias.</em></h2><p>Economia, política, cultura e as ideias que atravessam a vida em sociedade. Ensaios reunidos aqui, com tempo para ler e espaço para pensar.</p></div>
+      <div class="wj-actions"><a href="/textos/" class="wj-button">Explorar o acervo <span aria-hidden="true">↗</span></a><a href="/textos/feed.xml">Acompanhar via RSS</a></div>
+    </header>
+    <div class="wj-label"><span>Leitura em destaque</span><span>6 textos no acervo</span></div>
+    <div class="wj-feature"><article class="wj-post"><a href="/textos/a-farsa-do-pleno-emprego-ou-a-farsa/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-a-farsa-do-pleno-emprego-ou-a-farsa.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta">29 de abril de 2026 · 11 min de leitura</p><h3><a href="/textos/a-farsa-do-pleno-emprego-ou-a-farsa/">A farsa do pleno emprego ou a farsa do fim da escala 6x1</a></h3><p class="wj-description">Divagações acerca do mercado de trabalho, suas distorções e o fim da escala 6x1</p><a href="/textos/a-farsa-do-pleno-emprego-ou-a-farsa/" class="wj-read">Ler o texto <span aria-hidden="true">↗</span></a></div></article></div>
+    <div class="wj-label"><span>Mais do acervo</span><a href="/textos/">Ver todos os textos →</a></div>
+    <div class="wj-grid"><article class="wj-post"><a href="/textos/um-apelo-a-intolerancia/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-um-apelo-a-intolerancia.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta">13 de setembro de 2025 · 19 min de leitura</p><h3><a href="/textos/um-apelo-a-intolerancia/">Um Apelo à Intolerância</a></h3><p class="wj-description">Publicado em 1931 pelo Arcebispo Fulton Sheen</p><a href="/textos/um-apelo-a-intolerancia/" class="wj-read">Ler o texto <span aria-hidden="true">↗</span></a></div></article><article class="wj-post"><a href="/textos/a-economia-da-paz/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-a-economia-da-paz.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta">15 de agosto de 2025 · Registro no Substack · 10 min de leitura</p><h3><a href="/textos/a-economia-da-paz/">A Economia da Paz</a></h3><p class="wj-description">E os danos da guerra</p><a href="/textos/a-economia-da-paz/" class="wj-read">Ler o texto <span aria-hidden="true">↗</span></a></div></article><article class="wj-post"><a href="/textos/do-fim-da-historia-e-da-decadencia/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-do-fim-da-historia-e-da-decadencia.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta">7 de julho de 2025 · 12 min de leitura</p><h3><a href="/textos/do-fim-da-historia-e-da-decadencia/">Do fim da história e da decadência do ser</a></h3><p class="wj-description">Considerações acerca do que disseram caros conterrâneos</p><a href="/textos/do-fim-da-historia-e-da-decadencia/" class="wj-read">Ler o texto <span aria-hidden="true">↗</span></a></div></article><article class="wj-post"><a href="/textos/as-tribos-politicas-do-brasil-parte/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-as-tribos-politicas-do-brasil-parte.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta">2 de julho de 2025 · 6 min de leitura</p><h3><a href="/textos/as-tribos-politicas-do-brasil-parte/">As Tribos Políticas do Brasil - Parte 1</a></h3><p class="wj-description">Do cartesianismo à contemplação maravilhada</p><a href="/textos/as-tribos-politicas-do-brasil-parte/" class="wj-read">Ler o texto <span aria-hidden="true">↗</span></a></div></article><article class="wj-post"><a href="/textos/a-metastase-da-globalizacao/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-a-metastase-da-globalizacao.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta">25 de junho de 2025 · 6 min de leitura</p><h3><a href="/textos/a-metastase-da-globalizacao/">A Metástase da Globalização</a></h3><p class="wj-description">Quando a exceção vira a regra.</p><a href="/textos/a-metastase-da-globalizacao/" class="wj-read">Ler o texto <span aria-hidden="true">↗</span></a></div></article></div>
+    <aside class="wj-data"><div><p class="wj-eyebrow">TAMBÉM NO SITE · DADOS ABERTOS</p><h3><a href="/emendas-parlamentares">O Painel das Emendas</a></h3><p>Uma leitura interativa das alocações parlamentares, com dados por estado, partido e autor.</p></div><a href="/emendas-parlamentares" class="wj-read">Explorar a análise ↗</a></aside>
   </section>
 
   <!-- footer -->
@@ -757,8 +467,7 @@
       <a href="https://www.linkedin.com/in/andreyac" target="_blank" rel="noopener">LinkedIn</a>
       <a href="mailto:andreynacosta46@gmail.com">Contact</a>
     </nav>
-    <div class="footer-mark">Andrey Costa</div>
-    <div class="footer-copy">© 2025 · andreycosta.com</div>
+        <div class="footer-copy">© 2025 · andreycosta.com</div>
   </footer>
 
 </body>
