@@ -5,29 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Quiz de Perfil Fotográfico — Sua Identidade Fotográfica</title>
   <meta name="description" content="20 perguntas. Um perfil fotográfico completo. Três prompts prontos para IA, criados por um fotógrafo comercial especializado." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet" />
   <style>
     /* ─── RESET & TOKENS ──────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:        #0A0A0F;
-      --bg2:       #111118;
-      --card:      #13131A;
-      --card2:     #18181F;
-      --border:    #25252F;
-      --border2:   #2E2E3A;
-      --gold:      #C9A84C;
-      --gold-lt:   #E3C872;
-      --gold-dim:  rgba(201,168,76,0.10);
-      --gold-glow: rgba(201,168,76,0.06);
-      --text:      #EEEAE3;
-      --text2:     #B0AAA0;
-      --muted:     #6E6860;
-      --green:     #4CAF78;
-      --radius:    3px;
+      --bg:        #f3f3ed;
+      --bg2:       #ecede5;
+      --card:      #fffefa;
+      --card2:     #f7f7f1;
+      --border:    #dce2d7;
+      --border2:   #cbd4c7;
+      --gold:      #2d5546;
+      --gold-lt:   #456c57;
+      --gold-dim:  rgba(45,85,70,0.09);
+      --gold-glow: rgba(45,85,70,0.05);
+      --text:      #273e35;
+      --text2:     #4c5f54;
+      --muted:     #627267;
+      --green:     #3f8a5f;
+      --radius:    8px;
       --transition: 0.22s ease;
     }
 
@@ -36,10 +33,10 @@
     body {
       background-color: var(--bg);
       background-image:
-        radial-gradient(ellipse 60% 50% at 15% 10%, rgba(201,168,76,0.04) 0%, transparent 100%),
-        radial-gradient(ellipse 50% 40% at 85% 90%, rgba(201,168,76,0.025) 0%, transparent 100%);
+        radial-gradient(ellipse 60% 50% at 15% 10%, rgba(45,85,70,0.04) 0%, transparent 100%),
+        radial-gradient(ellipse 50% 40% at 85% 90%, rgba(45,85,70,0.025) 0%, transparent 100%);
       color: var(--text);
-      font-family: 'Inter', sans-serif;
+      font-family: "Segoe UI", system-ui, sans-serif;
       font-size: 16px;
       line-height: 1.6;
       min-height: 100vh;
@@ -61,15 +58,15 @@
       margin: 0 auto;
     }
 
-    h1, h2, h3 { font-family: 'Playfair Display', serif; font-weight: 700; line-height: 1.2; }
+    h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; letter-spacing: -0.03em; line-height: 1.2; }
 
     .btn-gold {
       display: inline-block;
       background: var(--gold);
-      color: #080808;
+      color: #fffefa;
       border: none;
       padding: 0.9rem 2.8rem;
-      font-family: 'Inter', sans-serif;
+      font-family: "Segoe UI", system-ui, sans-serif;
       font-size: 0.78rem;
       font-weight: 700;
       letter-spacing: 0.14em;
@@ -81,7 +78,7 @@
     .btn-gold:hover {
       background: var(--gold-lt);
       transform: translateY(-2px);
-      box-shadow: 0 8px 28px rgba(201,168,76,0.25);
+      box-shadow: 0 8px 28px rgba(45,85,70,0.25);
     }
     .btn-gold:active { transform: translateY(0); }
 
@@ -90,7 +87,7 @@
       border: 1px solid var(--border2);
       color: var(--muted);
       padding: 0.7rem 1.8rem;
-      font-family: 'Inter', sans-serif;
+      font-family: "Segoe UI", system-ui, sans-serif;
       font-size: 0.75rem;
       font-weight: 500;
       letter-spacing: 0.1em;
@@ -106,7 +103,7 @@
       border: 1px solid var(--gold);
       color: var(--gold);
       padding: 0.7rem 1.8rem;
-      font-family: 'Inter', sans-serif;
+      font-family: "Segoe UI", system-ui, sans-serif;
       font-size: 0.75rem;
       font-weight: 500;
       letter-spacing: 0.1em;
@@ -115,7 +112,7 @@
       border-radius: var(--radius);
       transition: background var(--transition), color var(--transition);
     }
-    .btn-gold-outline:hover { background: var(--gold); color: #080808; }
+    .btn-gold-outline:hover { background: var(--gold); color: #fffefa; }
 
     /* ─── INTRO SCREEN ────────────────────────────────────── */
     #screen-intro { min-height: 100vh; }
@@ -188,7 +185,7 @@
     .progress-header {
       position: sticky;
       top: 0;
-      background: rgba(10,10,15,0.92);
+      background: rgba(243,243,237,0.94);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       padding: 1.1rem 0 1rem;
@@ -220,7 +217,7 @@
     }
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, #9A6E1A, var(--gold), var(--gold-lt));
+      background: linear-gradient(90deg, #1f3d32, var(--gold), var(--gold-lt));
       border-radius: 2px;
       transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
     }
@@ -244,7 +241,7 @@
       margin-bottom: 0.6rem;
     }
     .q-text {
-      font-family: 'Playfair Display', serif;
+      font-family: Georgia, "Times New Roman", serif;
       font-size: clamp(1.25rem, 3.5vw, 1.65rem);
       font-weight: 600;
       color: var(--text);
@@ -271,7 +268,7 @@
         transform 0.15s ease;
     }
     .opt-card:hover {
-      border-color: rgba(201,168,76,0.5);
+      border-color: rgba(45,85,70,0.5);
       background: var(--gold-glow);
       transform: translateX(2px);
     }
@@ -282,11 +279,11 @@
     .opt-card.selected .opt-badge {
       border-color: var(--gold);
       color: var(--gold);
-      background: rgba(201,168,76,0.12);
+      background: rgba(45,85,70,0.12);
     }
     .opt-card:hover .opt-badge {
-      border-color: rgba(201,168,76,0.6);
-      color: rgba(201,168,76,0.8);
+      border-color: rgba(45,85,70,0.6);
+      color: rgba(45,85,70,0.8);
     }
 
     .opt-badge {
@@ -347,7 +344,7 @@
     /* ── Identity Card ── */
     .id-card {
       position: relative;
-      background: linear-gradient(135deg, #15151E 0%, #0D0D14 100%);
+      background: var(--card);
       border: 1px solid var(--gold);
       border-radius: var(--radius);
       padding: 2rem 1.75rem 1.75rem;
@@ -358,7 +355,7 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(201,168,76,0.07) 0%, transparent 70%);
+      background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(45,85,70,0.07) 0%, transparent 70%);
       pointer-events: none;
     }
     .id-card-label {
@@ -376,7 +373,7 @@
       content: '';
       flex: 1;
       height: 1px;
-      background: linear-gradient(90deg, rgba(201,168,76,0.3), transparent);
+      background: linear-gradient(90deg, rgba(45,85,70,0.3), transparent);
     }
     .id-grid {
       display: grid;
@@ -401,7 +398,7 @@
     /* ── Section ── */
     .section { margin-bottom: 2.5rem; }
     .section-head {
-      font-family: 'Playfair Display', serif;
+      font-family: Georgia, "Times New Roman", serif;
       font-size: 1.15rem;
       font-weight: 600;
       color: var(--text);
@@ -438,7 +435,7 @@
     }
     .prompt-body {
       font-size: 0.82rem;
-      color: #B8B2AA;
+      color: #627267;
       line-height: 1.75;
       font-weight: 300;
       word-break: break-word;
@@ -453,7 +450,7 @@
       color: var(--muted);
       padding: 0.45rem 1rem;
       font-size: 0.7rem;
-      font-family: 'Inter', sans-serif;
+      font-family: "Segoe UI", system-ui, sans-serif;
       font-weight: 500;
       letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -471,7 +468,7 @@
     /* ── Director Note ── */
     .director-note {
       border-left: 2px solid var(--gold);
-      background: rgba(201,168,76,0.04);
+      background: rgba(45,85,70,0.04);
       padding: 1.4rem 1.5rem 1.4rem 1.75rem;
       border-radius: 0 var(--radius) var(--radius) 0;
       font-style: italic;
@@ -494,8 +491,8 @@
       padding: 1.1rem 1.1rem 1rem;
       transition: border-color var(--transition);
     }
-    .tool-card.top { border-color: var(--gold); background: rgba(201,168,76,0.04); }
-    .tool-card.second { border-color: rgba(201,168,76,0.35); }
+    .tool-card.top { border-color: var(--gold); background: rgba(45,85,70,0.04); }
+    .tool-card.second { border-color: rgba(45,85,70,0.35); }
 
     .tool-rec-badge {
       font-size: 0.55rem;
@@ -538,8 +535,19 @@
       .id-grid { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
+  <link rel="stylesheet" href="/assets/site.css" />
+  <link rel="icon" href="/assets/favicon.svg" />
 </head>
 <body>
+<header class="site-bar">
+  <a class="site-brand" href="/"><span class="site-mark" aria-hidden="true">ac</span>Andrey Costa</a>
+  <nav class="site-nav" aria-label="Site">
+    <a href="/">Início</a>
+    <a href="/#projects">Projetos</a>
+    <a href="/textos/">Textos</a>
+    <a href="/curriculum">Curriculum</a>
+  </nav>
+</header>
 
 <!-- ════════════════════════════════════════
      INTRO SCREEN

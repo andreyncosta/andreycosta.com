@@ -1,0 +1,10 @@
+/* Shared brand layer for every page: tokens plus the "ac" site bar. Prefixed to avoid clashing with page styles. */
+:root{--brand-ink:#273e35;--brand-paper:#f3f3ed;--brand-card:#fffefa;--brand-muted:#627267;--brand-accent:#2d5546;--brand-accent-soft:#456c57;--brand-rule:#dce2d7;--brand-focus:#b4773d;--brand-serif:Georgia,"Times New Roman",serif;--brand-sans:"Segoe UI",system-ui,sans-serif}
+.site-bar{display:flex;justify-content:space-between;align-items:center;gap:16px 20px;flex-wrap:wrap;padding:20px clamp(20px,4vw,64px);border-bottom:1px solid var(--brand-rule);background:var(--brand-paper);color:var(--brand-ink);font:13px/1.5 var(--brand-sans)}
+.site-brand{display:flex;align-items:center;gap:10px;color:var(--brand-ink);font-weight:600;font-size:15px;text-decoration:none}
+.site-mark{display:grid;place-items:center;flex:none;width:35px;height:35px;border-radius:10px;background:var(--brand-accent);color:#fff;font:21px/1 var(--brand-serif)}
+.site-nav{display:flex;flex-wrap:wrap;gap:8px 22px}
+.site-nav a{color:var(--brand-ink);text-underline-offset:4px}
+.site-nav a:hover{color:var(--brand-accent)}
+.site-bar a:focus-visible{outline:3px solid var(--brand-focus);outline-offset:4px}
+@media print{.site-bar{display:none}}

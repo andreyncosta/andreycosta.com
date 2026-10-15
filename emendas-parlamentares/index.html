@@ -4,20 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Emendas Parlamentares — Painel Analítico</title>
+<link rel="icon" href="/assets/favicon.svg">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#f7f7f8;
-  --surface:#ffffff;
-  --border:#e4e4e7;
-  --border-strong:#d4d4d8;
-  --text:#18181b;
-  --text-2:#52525b;
-  --text-3:#a1a1aa;
-  --accent:#2563eb;
-  --accent-strong:#1d4ed8;
-  --accent-soft:#eff6ff;
+  --bg:#f3f3ed;
+  --surface:#fffefa;
+  --border:#dce2d7;
+  --border-strong:#cbd4c7;
+  --text:#273e35;
+  --text-2:#627267;
+  --text-3:#97a39a;
+  --accent:#2d5546;
+  --accent-strong:#1f3d32;
+  --accent-soft:#e7efe8;
   --green:#059669;
   --orange:#d97706;
   --red:#dc2626;
@@ -25,12 +26,13 @@
   --radius-sm:9px;
   --sidebar-w:248px;
   --topbar-h:56px;
-  --font:ui-sans-serif,-apple-system,"Inter","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --serif:Georgia,"Times New Roman",serif;
 }
 html{scroll-behavior:smooth}
 body{font-family:var(--font);background:var(--bg);color:var(--text);
   line-height:1.55;font-size:15px;-webkit-font-smoothing:antialiased}
-::selection{background:#bfdbfe}
+::selection{background:#cfe0d2}
 
 /* ── Progress bar ── */
 #top-progress{position:fixed;top:0;left:0;z-index:200;height:3px;width:0;
@@ -38,30 +40,31 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);
 
 /* ── Sidebar ── */
 .sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);
-  background:#0b0e14;display:flex;flex-direction:column;z-index:100;
+  background:#23382f;display:flex;flex-direction:column;z-index:100;
   padding:22px 14px 18px}
 .brand{display:flex;align-items:center;gap:10px;padding:0 10px 20px}
 .brand-mark{width:30px;height:30px;border-radius:8px;flex-shrink:0;
-  background:linear-gradient(135deg,#2563eb,#7c3aed);
+  background:#456c57;
   display:flex;align-items:center;justify-content:center;
-  color:#fff;font-weight:800;font-size:.85rem;letter-spacing:-.03em}
-.brand-name{color:#fafafa;font-weight:700;font-size:.95rem;letter-spacing:-.015em}
-.brand-sub{color:#52525b;font-size:.68rem;margin-top:1px}
+  color:#fff;font:400 1.15rem/1 var(--serif)}
+.brand{text-decoration:none}
+.brand-name{color:#fffefa;font-weight:700;font-size:.95rem;letter-spacing:-.015em}
+.brand-sub{color:#97ab9e;font-size:.68rem;margin-top:1px}
 .side-nav{flex:1;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
 .side-nav a{display:flex;align-items:center;gap:10px;text-decoration:none;
-  color:#9ca3af;font-size:.83rem;font-weight:500;padding:8px 10px;
+  color:#b9c7bd;font-size:.83rem;font-weight:500;padding:8px 10px;
   border-radius:8px;transition:background .12s,color .12s}
-.side-nav a:hover{background:rgba(255,255,255,.05);color:#e5e7eb}
-.side-nav a.active{background:rgba(37,99,235,.16);color:#93c5fd}
+.side-nav a:hover{background:rgba(255,254,250,.06);color:#fffefa}
+.side-nav a.active{background:rgba(255,254,250,.12);color:#fffefa}
 .side-nav a .ico{width:17px;text-align:center;font-size:.85rem;opacity:.85}
 .side-foot{padding:14px 10px 0;border-top:1px solid rgba(255,255,255,.07);
-  color:#52525b;font-size:.68rem;line-height:1.5}
-.side-foot a{color:#71717a}
+  color:#97ab9e;font-size:.68rem;line-height:1.5}
+.side-foot a{color:#b9c7bd}
 
 /* ── Main / topbar ── */
 .main{margin-left:var(--sidebar-w);min-height:100vh}
 .topbar{position:sticky;top:0;z-index:90;
-  background:rgba(247,247,248,.86);backdrop-filter:blur(10px);
+  background:rgba(243,243,237,.88);backdrop-filter:blur(10px);
   -webkit-backdrop-filter:blur(10px);
   border-bottom:1px solid var(--border)}
 .topbar-row{display:flex;align-items:center;gap:10px;
@@ -71,9 +74,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);
 #active-chips{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:1}
 .chip{display:inline-flex;align-items:center;gap:6px;cursor:pointer;
   background:var(--accent-soft);color:var(--accent-strong);
-  border:1px solid #bfdbfe;border-radius:99px;padding:3px 11px;
+  border:1px solid #cfe0d2;border-radius:99px;padding:3px 11px;
   font-size:.76rem;font-weight:600;transition:background .12s}
-.chip:hover{background:#dbeafe}
+.chip:hover{background:#dce9de}
 .chip .remove{font-size:.95rem;line-height:1;opacity:.65}
 .chip:hover .remove{opacity:1}
 .no-filters{font-size:.78rem;color:var(--text-3);font-style:italic}
@@ -98,7 +101,7 @@ select,.search-input{font-family:var(--font);width:100%;
   cursor:pointer;transition:border-color .12s}
 select:hover{border-color:var(--text-3)}
 select:focus,.search-input:focus{outline:none;border-color:var(--accent);
-  box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+  box-shadow:0 0 0 3px rgba(45,85,70,.14)}
 
 /* ── Content ── */
 .content{max-width:1180px;margin:0 auto;padding:0 32px 48px}
@@ -106,8 +109,8 @@ section[id]{scroll-margin-top:calc(var(--topbar-h) + 16px)}
 
 /* ── Hero ── */
 .hero{padding:42px 0 10px}
-.hero h1{font-size:clamp(1.6rem,3vw,2.1rem);font-weight:800;
-  letter-spacing:-.03em;line-height:1.15}
+.hero h1{font-family:var(--serif);font-size:clamp(2rem,3.6vw,2.7rem);font-weight:400;
+  letter-spacing:-.035em;line-height:1.1}
 .hero p{color:var(--text-2);margin-top:8px;font-size:.95rem;max-width:640px}
 .hero-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
 .pill{display:inline-flex;align-items:center;gap:6px;
@@ -118,7 +121,7 @@ section[id]{scroll-margin-top:calc(var(--topbar-h) + 16px)}
 /* ── Sections ── */
 .sec{margin-top:46px}
 .sec-head{margin-bottom:18px}
-.sec-head h2{font-size:1.18rem;font-weight:700;letter-spacing:-.02em;
+.sec-head h2{font-family:var(--serif);font-size:1.45rem;font-weight:400;letter-spacing:-.025em;
   display:flex;align-items:center;gap:10px}
 .sec-head p{color:var(--text-2);font-size:.85rem;margin-top:3px}
 .sec-head .badge{font-size:.68rem;font-weight:700;background:var(--accent-soft);
@@ -178,7 +181,7 @@ td.num.soft{font-weight:400;color:var(--text-2)}
   background:#f4f4f5;color:var(--text);border-left:3px solid var(--text-3)}
 .setor-badge{display:inline-block;border-radius:6px;padding:2px 8px;
   font-size:.68rem;font-weight:600;white-space:nowrap}
-.setor-badge.Público{background:#eff6ff;color:#1d4ed8}
+.setor-badge.Público{background:#e7efe8;color:#2d5546}
 .setor-badge.Privado{background:#fefce8;color:#a16207}
 .setor-badge.Terceiro{background:#f0fdf4;color:#15803d}
 .setor-badge.Outros,.setor-badge.Não{background:#f4f4f5;color:var(--text-2)}
@@ -222,7 +225,7 @@ tr.sem-exec td:first-child{box-shadow:inset 3px 0 0 var(--red)}
   padding:8px 13px;border-radius:9px;font-size:.78rem;line-height:1.45;
   pointer-events:none;opacity:0;transition:opacity .15s;z-index:300;max-width:230px}
 .legend-scale{height:10px;border-radius:5px;margin:14px 0 5px;
-  background:linear-gradient(to right,#dbeafe,#1e40af)}
+  background:linear-gradient(to right,#e7efe8,#2d5546)}
 .legend-labels{display:flex;justify-content:space-between;font-size:.7rem;color:var(--text-3)}
 #map-top-ufs{list-style:none}
 #map-top-ufs li{display:flex;justify-content:space-between;align-items:center;
@@ -286,13 +289,13 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);
 <div id="top-progress"></div>
 
 <aside class="sidebar">
-  <div class="brand">
-    <div class="brand-mark">E</div>
+  <a class="brand" href="/" title="Voltar para andreycosta.com">
+    <div class="brand-mark">ac</div>
     <div>
       <div class="brand-name">Emendas BR</div>
       <div class="brand-sub">Painel analítico</div>
     </div>
-  </div>
+  </a>
   <nav class="side-nav" id="side-nav">
     <a href="#overview" class="active"><span class="ico">◈</span>Visão Geral</a>
     <a href="#categorias"><span class="ico">◐</span>Categorias</a>
@@ -667,7 +670,7 @@ DATA.brazil_states.forEach(s=>{ NAME_TO_ABBR[s.name]=s.uf; });
 /* ── Chart.js defaults ── */
 Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
 Chart.defaults.font.size = 11;
-Chart.defaults.color = '#71717a';
+Chart.defaults.color = '#627267';
 
 /* ── Formatters ── */
 const fmt = (n) => {
@@ -846,7 +849,7 @@ function renderPartidos(parties) {
     type:'bar',
     data:{ labels:top.map(p=>p.sigla),
       datasets:[{ data:top.map(p=>p.empenhado/1e9),
-        backgroundColor:top.map(p=>PARTY_COLORS[p.sigla]||'#2563eb'),
+        backgroundColor:top.map(p=>PARTY_COLORS[p.sigla]||'#2d5546'),
         borderRadius:4 }] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ display:false },
@@ -914,7 +917,7 @@ function renderTendencia() {
   const datasets = [];
   if(yoyA && ms[yoyA]) datasets.push({
     label:yoyA, data:ms[yoyA].map(v=>v/1e6),
-    borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,.08)',
+    borderColor:'#2d5546', backgroundColor:'rgba(45,85,70,.08)',
     fill:true, tension:.3, borderWidth:2, pointRadius:3 });
   if(yoyB && ms[yoyB] && yoyB!==yoyA) datasets.push({
     label:yoyB, data:ms[yoyB].map(v=>v/1e6),
@@ -925,7 +928,7 @@ function renderTendencia() {
     const y = years[years.length-1];
     if(y && ms[y]) datasets.push({
       label:y, data:ms[y].map(v=>v/1e6),
-      borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,.08)',
+      borderColor:'#2d5546', backgroundColor:'rgba(45,85,70,.08)',
       fill:true, tension:.3, borderWidth:2, pointRadius:3 });
   }
   if(tendChart){ tendChart.destroy(); tendChart=null; }
@@ -994,7 +997,7 @@ function renderConvenios() {
     type:'bar',
     data:{ labels:c.por_funcao.map(f=>f.nome),
       datasets:[{ data:c.por_funcao.map(f=>f.total/1e9),
-        backgroundColor:'#2563eb', borderRadius:4 }] },
+        backgroundColor:'#2d5546', borderRadius:4 }] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ display:false },
         tooltip:{ callbacks:{ label:(ctx)=>'R$ '+ctx.parsed.x.toFixed(2).replace('.',',')+' bi' } } },
@@ -1026,11 +1029,11 @@ function renderMap() {
   const minVal = values.length ? Math.min(...values) : 0;
 
   function blueColor(val) {
-    if(!val||val<=0) return '#e4e4e7';
+    if(!val||val<=0) return '#dce2d7';
     const t = Math.pow((val-minVal)/(maxVal-minVal||1), 0.45);
-    const r = Math.round(219 + (30-219)*t);
-    const g = Math.round(234 + (64-234)*t);
-    const b = Math.round(246 + (175-246)*t);
+    const r = Math.round(231 + (45-231)*t);
+    const g = Math.round(239 + (85-239)*t);
+    const b = Math.round(232 + (70-232)*t);
     return 'rgb('+r+','+g+','+b+')';
   }
 

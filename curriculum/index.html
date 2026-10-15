@@ -4,41 +4,41 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Andrey Costa – CV</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --accent: #185FA5;
-      --accent-light: #E6F1FB;
-      --accent-mid: #378ADD;
-      --text-main: #1a1a1a;
-      --text-muted: #6b7280;
-      --border: #e5e7eb;
-      --bg: #ffffff;
+      --accent: #2d5546;
+      --accent-light: #e7efe8;
+      --accent-mid: #456c57;
+      --text-main: #273e35;
+      --text-muted: #627267;
+      --border: #dce2d7;
+      --bg: #fffefa;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #f5f5f3; min-height: 100vh; display: flex; justify-content: center; padding: 2rem 1rem; }
+    body { background: #f3f3ed; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+    body > .site-bar { align-self: stretch; }
     #cv-root {
-      font-family: 'DM Sans', sans-serif;
+      font-family: "Segoe UI", system-ui, sans-serif;
       font-size: 14px;
       line-height: 1.65;
       color: var(--text-main);
       background: var(--bg);
       max-width: 860px;
-      width: 100%;
+      width: calc(100% - 2rem);
+      margin: 2rem 0;
       padding: 3rem 3.5rem;
       border-radius: 4px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.08);
     }
     .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-    .lang-btn { display: flex; background: #fff; border: 0.5px solid #d1d5db; border-radius: 20px; overflow: hidden; cursor: pointer; }
+    .lang-btn { display: flex; background: #fffefa; border: 0.5px solid #cbd4c7; border-radius: 20px; overflow: hidden; cursor: pointer; }
     .lang-btn span { padding: 6px 20px; font-size: 12px; font-weight: 500; letter-spacing: 0.05em; color: var(--text-muted); transition: all 0.2s; cursor: pointer; user-select: none; }
     .lang-btn span.active { background: var(--accent); color: #fff; border-radius: 20px; }
     .download-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px; font-size: 12px; font-weight: 500; color: var(--accent); background: var(--accent-light); border: none; border-radius: 20px; cursor: pointer; text-decoration: none; transition: opacity 0.2s; }
     .download-btn:hover { opacity: 0.8; }
     .download-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
     .cv-header { display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: start; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 0.5px solid var(--border); }
-    .cv-name { font-family: 'Playfair Display', serif; font-size: 38px; font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; color: var(--text-main); }
+    .cv-name { font-family: Georgia, "Times New Roman", serif; font-size: 38px; font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; color: var(--text-main); }
     .cv-title { font-size: 12px; font-weight: 400; color: var(--accent-mid); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 8px; }
     .cv-contacts { text-align: right; font-size: 12px; color: var(--text-muted); line-height: 1.9; }
     .cv-contacts a { color: var(--accent); text-decoration: none; }
@@ -54,7 +54,7 @@
     .job-company { font-size: 12px; color: var(--accent-mid); margin-bottom: 5px; }
     .job-desc { font-size: 12.5px; color: var(--text-muted); line-height: 1.65; }
     .sidebar-section { margin-bottom: 1.75rem; }
-    .skill-tag { display: inline-block; background: var(--accent-light); color: #0C447C; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 4px; margin: 3px 3px 3px 0; }
+    .skill-tag { display: inline-block; background: var(--accent-light); color: #2d5546; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 4px; margin: 3px 3px 3px 0; }
     .edu-item { margin-bottom: 1rem; }
     .edu-degree { font-weight: 500; font-size: 12.5px; color: var(--text-main); }
     .edu-school { font-size: 12px; color: var(--accent-mid); }
@@ -73,8 +73,19 @@
       .cv-body { grid-template-columns: 1fr; }
     }
   </style>
+  <link rel="stylesheet" href="/assets/site.css">
+  <link rel="icon" href="/assets/favicon.svg">
 </head>
 <body>
+<header class="site-bar">
+  <a class="site-brand" href="/"><span class="site-mark" aria-hidden="true">ac</span>Andrey Costa</a>
+  <nav class="site-nav" aria-label="Site">
+    <a href="/">Início</a>
+    <a href="/#projects">Projetos</a>
+    <a href="/textos/">Textos</a>
+    <a href="/curriculum">Curriculum</a>
+  </nav>
+</header>
 <div id="cv-root">
 
   <div class="top-bar">

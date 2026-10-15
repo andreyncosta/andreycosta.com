@@ -39,7 +39,7 @@ function drawChart(rows) {
     svgNode("path", {d: path, fill: "none", stroke: s.color, "stroke-width": 2, "vector-effect": "non-scaling-stroke"});
     if (rows.length === 1 && rows[0][s.key] != null) svgNode("circle", {cx: x(0), cy: y(rows[0][s.key]), r: 4, fill: s.color});
   });
-  const cursor = svgNode("line", {x1: 0, x2: 0, y1: 25, y2: 275, stroke: "#e6e1d6", opacity: 0});
+  const cursor = svgNode("line", {x1: 0, x2: 0, y1: 25, y2: 275, stroke: "#dce2d7", opacity: 0});
   const detail = index => {const r = rows[index]; el("chart-detail").textContent = `${monthLabel(r.month)} · ${series.map(s => `${s.label}: ${money(r[s.key])}`).join(" · ")}`;};
   detail(rows.length - 1);
   el("chart").onpointermove = event => {
