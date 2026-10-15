@@ -1,10 +1,16 @@
 "use strict";
 const el = id => document.getElementById(id);
-const money = value => value == null ? "—" : `${value < 0 ? "−" : ""}R$ ${Math.abs(value / 1000).toLocaleString("pt-BR", {minimumFractionDigits: 2, maximumFractionDigits: 2})} bi`;
-const number = value => value == null ? "—" : value.toLocaleString("pt-BR", {minimumFractionDigits: 2, maximumFractionDigits: 2});
-const monthLabel = month => new Date(`${month.slice(0, 7)}-15T12:00:00Z`).toLocaleDateString("pt-BR", {month: "short", year: "numeric", timeZone: "UTC"});
+const t = (pt, en) => window.siteLang ? window.siteLang.t(pt, en) : pt;
+const locale = () => t("pt-BR", "en-US");
+// Official Treasury line items, shown in English when the site is in English.
+const CATEGORY_EN = {"1.1": "Revenue administered by the Federal Revenue Service", "1.2": "Tax incentives", "1.3": "Net social security (RGPS) collections", "1.4": "Revenue not administered by the Federal Revenue Service", "4.1": "Social security benefits", "4.2": "Personnel and payroll charges", "4.3": "Other mandatory spending", "4.4": "Executive spending subject to financial programming"};
+const money = value => value == null ? "—" : `${value < 0 ? "−" : ""}R$ ${Math.abs(value / 1000).toLocaleString(locale(), {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${t("bi", "bn")}`;
+const number = value => value == null ? "—" : value.toLocaleString(locale(), {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const monthLabel = month => new Date(`${month.slice(0, 7)}-15T12:00:00Z`).toLocaleDateString(locale(), {month: "short", year: "numeric", timeZone: "UTC"});
 const ns = "http://www.w3.org/2000/svg";
 let dataset, selected = [];
+// Unit strings come from the dataset in Portuguese ("R$ Milhões - Valores Correntes").
+const unitLabel = text => t(text, text.replace("R$ Milhões", "R$ millions").replace("Valores Correntes", "Current values").replace("Valores a preços de", "Values at prices of").replace("Valores de", "Values at").replace("Valores Constantes", "Constant values"));
 function svgNode(tag, attrs = {}, text) {
   const node = document.createElementNS(ns, tag);
   Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value));
@@ -14,10 +20,10 @@ function svgNode(tag, attrs = {}, text) {
 }
 function drawChart(rows) {
   el("chart").replaceChildren();
-  svgNode("desc", {id: "chart-description"}, "Dados mensais em bilhões de reais. Consulte a tabela para acessar todos os valores.");
+  svgNode("desc", {id: "chart-description"}, t("Dados mensais em bilhões de reais. Consulte a tabela para acessar todos os valores.", "Monthly data in billions of reais. See the table for every value."));
   const view = el("view").value;
-  const series = view === "flows" ? [{key: "net_revenue", label: "Receita líquida", color: "#72d2b1"}, {key: "expense", label: "Despesa", color: "#efac75"}] : [{key: view === "rolling" ? "primary_balance_12m" : "primary_balance", label: view === "rolling" ? "Resultado em 12 meses" : "Resultado mensal", color: "#72d2b1"}];
-  el("chart-title").textContent = view === "flows" ? "Receita líquida e despesa" : series[0].label;
+  const series = view === "flows" ? [{key: "net_revenue", label: t("Receita líquida", "Net revenue"), color: "#72d2b1"}, {key: "expense", label: t("Despesa", "Expenditure"), color: "#efac75"}] : [{key: view === "rolling" ? "primary_balance_12m" : "primary_balance", label: view === "rolling" ? t("Resultado em 12 meses", "12-month balance") : t("Resultado mensal", "Monthly balance"), color: "#72d2b1"}];
+  el("chart-title").textContent = view === "flows" ? t("Receita líquida e despesa", "Net revenue and expenditure") : series[0].label;
   el("legend").replaceChildren();
   series.forEach(s => {const item = document.createElement("span"); const mark = document.createElement("i"); mark.style.background = s.color; item.append(mark, document.createTextNode(s.label)); el("legend").append(item);});
   const values = rows.flatMap(r => series.map(s => r[s.key])).filter(v => v != null).map(v => v / 1000);
@@ -28,7 +34,7 @@ function drawChart(rows) {
   for (let i = 0; i <= 4; i++) {
     const v = min + (max - min) * i / 4, yy = y(v * 1000);
     svgNode("line", {x1: 74, x2: 974, y1: yy, y2: yy, stroke: "#3d494d", "stroke-width": 1});
-    svgNode("text", {x: 64, y: yy + 4, "text-anchor": "end"}, v.toLocaleString("pt-BR", {maximumFractionDigits: 0}));
+    svgNode("text", {x: 64, y: yy + 4, "text-anchor": "end"}, v.toLocaleString(locale(), {maximumFractionDigits: 0}));
   }
   svgNode("line", {x1: 74, x2: 974, y1: y(0), y2: y(0), stroke: "#819097", "stroke-dasharray": "4 5"});
   const ticks = [...new Set([0, Math.floor((rows.length - 1) / 2), rows.length - 1])];
@@ -55,8 +61,8 @@ function bars(target, prefix, denominator, row) {
     const share = c.value == null || denominator === 0 ? null : c.value / denominator * 100;
     const item = document.createElement("div"); item.className = "bar-row";
     const line = document.createElement("div"); line.className = "bar-label";
-    const label = document.createElement("span"); label.textContent = c.label.replace(/^[\d.]+\s*-?\s*/, "").replace(/\s+\d+\/$/, "");
-    const amount = document.createElement("span"); amount.textContent = share == null ? "—" : `${share.toLocaleString("pt-BR", {maximumFractionDigits: 1})}%`;
+    const label = document.createElement("span"); label.textContent = t(c.label.replace(/^[\d.]+\s*-?\s*/, "").replace(/\s+\d+\/$/, ""), CATEGORY_EN[c.code] || c.label);
+    const amount = document.createElement("span"); amount.textContent = share == null ? "—" : `${share.toLocaleString(locale(), {maximumFractionDigits: 1})}%`;
     amount.title = money(c.value); line.append(label, amount);
     const track = document.createElement("div"); track.className = "bar-track";
     const fill = document.createElement("div"); fill.className = "bar-fill"; fill.style.width = `${Math.min(100, Math.max(0, share || 0))}%`;
@@ -72,12 +78,12 @@ function render() {
   const latest = selected[selected.length - 1];
   el("revenue").textContent = money(latest.net_revenue); el("expense").textContent = money(latest.expense);
   el("balance").textContent = money(latest.primary_balance); el("rolling").textContent = money(latest.primary_balance_12m);
-  el("balance-label").textContent = `${latest.primary_balance >= 0 ? "Superávit" : "Déficit"} · ${monthLabel(latest.month)}`;
-  el("units").textContent = `Gráfico em R$ bilhões · ${latest.unit_description.replace("R$ Milhões - ", "")}`;
-  el("provenance").textContent = `Tesouro Nacional / RTN · ${monthLabel(dataset.metadata.first_month)} a ${monthLabel(dataset.metadata.last_month)} · Indicadores: ${monthLabel(latest.month)} · Coleta: ${new Date(dataset.metadata.extracted_at).toLocaleDateString("pt-BR", {timeZone: "America/Sao_Paulo"})}`;
+  el("balance-label").textContent = `${latest.primary_balance >= 0 ? t("Superávit", "Surplus") : t("Déficit", "Deficit")} · ${monthLabel(latest.month)}`;
+  el("units").textContent = `${t("Gráfico em R$ bilhões", "Chart in R$ billions")} · ${unitLabel(latest.unit_description.replace("R$ Milhões - ", ""))}`;
+  el("provenance").textContent = `${t("Tesouro Nacional", "National Treasury")} / RTN · ${monthLabel(dataset.metadata.first_month)} ${t("a", "to")} ${monthLabel(dataset.metadata.last_month)} · ${t("Indicadores", "Indicators")}: ${monthLabel(latest.month)} · ${t("Coleta", "Collected")}: ${new Date(dataset.metadata.extracted_at).toLocaleDateString(locale(), {timeZone: "America/Sao_Paulo"})}`;
   drawChart(selected); bars("revenue-bars", "1.", latest.gross_revenue, latest); bars("expense-bars", "4.", latest.expense, latest);
-  el("table-count").textContent = `· ${selected.length} meses`;
-  el("table-caption").textContent = `${latest.unit_description}. Último mês primeiro.`;
+  el("table-count").textContent = `· ${selected.length} ${t("meses", "months")}`;
+  el("table-caption").textContent = `${unitLabel(latest.unit_description)}. ${t("Último mês primeiro.", "Latest month first.")}`;
   el("table-body").replaceChildren();
   [...selected].reverse().forEach(r => {
     const tr = document.createElement("tr");
@@ -98,6 +104,7 @@ fetch("dataset.json").then(response => {if (!response.ok) throw new Error("Dados
   const first = data.metadata.first_month.slice(0, 7), last = data.metadata.last_month.slice(0, 7);
   ["start", "end"].forEach(id => {el(id).min = first; el(id).max = last;});
   el("start").value = `${Math.max(Number(first.slice(0, 4)), Number(last.slice(0, 4)) - 5)}-01`; el("end").value = last;
-  el("version").textContent = `Versão da fonte (SHA-256): ${data.metadata.version.slice(0, 16)}… · Cobertura e base de preços vinculadas à planilha coletada.`;
-  render();
-}).catch(error => {el("provenance").textContent = "Não foi possível carregar os dados. Tente novamente mais tarde ou consulte a fonte oficial abaixo."; el("download").disabled = true; console.error(error);});
+  const version = () => {el("version").textContent = `${t("Versão da fonte", "Source version")} (SHA-256): ${data.metadata.version.slice(0, 16)}… · ${t("Cobertura e base de preços vinculadas à planilha coletada.", "Coverage and price base tied to the collected spreadsheet.")}`;};
+  version(); render();
+  if (window.siteLang) window.siteLang.on(() => {version(); render();});
+}).catch(error => {el("provenance").textContent = t("Não foi possível carregar os dados. Tente novamente mais tarde ou consulte a fonte oficial abaixo.", "The data could not be loaded. Please try again later or see the official source below."); el("download").disabled = true; console.error(error);});

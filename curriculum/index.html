@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-lang="pt" data-pt-title="Andrey Costa — Currículo" data-en-title="Andrey Costa — Curriculum Vitae">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -74,24 +74,28 @@
     }
   </style>
   <link rel="stylesheet" href="/assets/site.css">
+  <script src="/assets/i18n.js"></script>
   <link rel="icon" href="/assets/favicon.svg">
 </head>
 <body>
 <header class="site-bar">
   <a class="site-brand" href="/"><span class="site-mark" aria-hidden="true">ac</span>Andrey Costa</a>
-  <nav class="site-nav" aria-label="Site">
-    <a href="/">Início</a>
-    <a href="/#projects">Projetos</a>
-    <a href="/textos/">Textos</a>
-    <a href="/curriculum">Curriculum</a>
-  </nav>
+  <div class="site-tools">
+    <nav class="site-nav" aria-label="Site">
+      <a href="/"><span lang="pt">Início</span><span lang="en">Home</span></a>
+      <a href="/#projects"><span lang="pt">Projetos</span><span lang="en">Projects</span></a>
+      <a href="/textos/"><span lang="pt">Textos</span><span lang="en">Essays</span></a>
+      <a href="/curriculum"><span lang="pt">Currículo</span><span lang="en">Curriculum</span></a>
+    </nav>
+    <div class="lang-switch" role="group" aria-label="Idioma / Language"><button type="button" data-set-lang="pt" aria-pressed="true">PT</button><button type="button" data-set-lang="en" aria-pressed="false">EN</button></div>
+  </div>
 </header>
 <div id="cv-root">
 
   <div class="top-bar">
     <div class="lang-btn">
-      <span id="btn-pt" class="active" onclick="setLang('pt')">PT</span>
-      <span id="btn-en" onclick="setLang('en')">EN</span>
+      <span id="btn-pt" class="active" data-set-lang="pt">PT</span>
+      <span id="btn-en" data-set-lang="en">EN</span>
     </div>
     <a id="download-btn" class="download-btn" href="https://andreycosta.com/curriculum/download/ptbr.pdf" download>
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -295,8 +299,10 @@ function setLang(lang) {
   document.getElementById('btn-pt').classList.toggle('active', lang === 'pt');
   document.getElementById('btn-en').classList.toggle('active', lang === 'en');
   document.getElementById('download-btn').href = c.downloadUrl;
-  document.documentElement.lang = lang === 'pt' ? 'pt-BR' : 'en';
 }
+// The site-wide switch (assets/i18n.js) owns the language; the CV just follows it.
+setLang(window.siteLang ? window.siteLang.get() : 'pt');
+if (window.siteLang) window.siteLang.on(setLang);
 </script>
 </body>
 </html>

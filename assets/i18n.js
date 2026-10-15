@@ -14,8 +14,10 @@
     for (var i = 0; i < els.length; i++) {
       var names = els[i].getAttribute('data-i18n-attr').split(',');
       for (var j = 0; j < names.length; j++) {
-        var v = els[i].getAttribute('data-' + lang + '-' + names[j].trim());
-        if (v !== null) els[i].setAttribute(names[j].trim(), v);
+        var name = names[j].trim(), v = els[i].getAttribute('data-' + lang + '-' + name);
+        if (v === null) continue;
+        // "text" swaps textContent, for elements that cannot hold lang spans (<option>, <title>).
+        if (name === 'text') els[i].textContent = v; else els[i].setAttribute(name, v);
       }
     }
     var btns = document.querySelectorAll('[data-set-lang]');

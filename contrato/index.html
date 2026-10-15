@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-lang="pt" data-pt-title="Gerador de Contrato de Aluguel — Andrey Costa" data-en-title="Rental Agreement Generator — Andrey Costa">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -93,64 +93,68 @@
     }
   </style>
   <link rel="stylesheet" href="/assets/site.css">
+  <script src="/assets/i18n.js"></script>
   <link rel="icon" href="/assets/favicon.svg">
 </head>
 <body>
 
 <header class="site-bar">
   <a class="site-brand" href="/"><span class="site-mark" aria-hidden="true">ac</span>Andrey Costa</a>
-  <nav class="site-nav" aria-label="Site">
-    <a href="/">Início</a>
-    <a href="/#projects">Projetos</a>
-    <a href="/textos/">Textos</a>
-    <a href="/curriculum">Curriculum</a>
-  </nav>
+  <div class="site-tools">
+    <nav class="site-nav" aria-label="Site">
+      <a href="/"><span lang="pt">Início</span><span lang="en">Home</span></a>
+      <a href="/#projects"><span lang="pt">Projetos</span><span lang="en">Projects</span></a>
+      <a href="/textos/"><span lang="pt">Textos</span><span lang="en">Essays</span></a>
+      <a href="/curriculum"><span lang="pt">Currículo</span><span lang="en">Curriculum</span></a>
+    </nav>
+    <div class="lang-switch" role="group" aria-label="Idioma / Language"><button type="button" data-set-lang="pt" aria-pressed="true">PT</button><button type="button" data-set-lang="en" aria-pressed="false">EN</button></div>
+  </div>
 </header>
-<div class="banner-rule"><hr><span>Gerador de Contrato de Aluguel</span><hr></div>
+<div class="banner-rule"><hr><span><span lang="pt">Gerador de Contrato de Aluguel</span><span lang="en">Rental Agreement Generator</span></span><hr></div>
 
 <div class="main">
   <!-- FORMULÁRIO -->
   <div class="form-panel">
-    <div class="form-section-title">Documento</div>
-    <div class="form-title">Contrato<br><em>de Aluguel</em></div>
-    <p class="form-subtitle">Preencha os campos e clique em Gerar. O contrato é montado localmente — nenhum dado é enviado para servidores externos.</p>
+    <div class="form-section-title"><span lang="pt">Documento</span><span lang="en">Document</span></div>
+    <div class="form-title"><span lang="pt">Contrato<br><em>de Aluguel</em></span><span lang="en">Rental<br><em>Agreement</em></span></div>
+    <p class="form-subtitle"><span lang="pt">Preencha os campos e clique em Gerar. O contrato é montado localmente — nenhum dado é enviado para servidores externos.</span><span lang="en">Fill in the fields and click Generate. The agreement is assembled in your browser — no data is sent to any server. The contract itself is written in Portuguese, as it follows Brazilian law (Lei 8.245/91); fill in the fields in Portuguese.</span></p>
 
-    <div class="form-section-title">01 — Locadora (proprietário)</div>
-    <div class="field"><label>Nome completo</label><input type="text" id="loc_nome" placeholder="Maria Clarete Nunes Costa"></div>
+    <div class="form-section-title"><span lang="pt">01 — Locadora (proprietário)</span><span lang="en">01 — Landlord (owner)</span></div>
+    <div class="field"><label><span lang="pt">Nome completo</span><span lang="en">Full name</span></label><input type="text" id="loc_nome" placeholder="Maria Clarete Nunes Costa"></div>
     <div class="field-row">
-      <div class="field"><label>Estado civil</label><select id="loc_ec"><option>solteiro(a)</option><option>casado(a)</option><option selected>divorciado(a)</option><option>viúvo(a)</option><option>separado(a)</option></select></div>
-      <div class="field"><label>Nacionalidade</label><input type="text" id="loc_nac" value="brasileira"></div>
+      <div class="field"><label><span lang="pt">Estado civil</span><span lang="en">Marital status</span></label><select id="loc_ec"><option>solteiro(a)</option><option>casado(a)</option><option selected>divorciado(a)</option><option>viúvo(a)</option><option>separado(a)</option></select></div>
+      <div class="field"><label><span lang="pt">Nacionalidade</span><span lang="en">Nationality</span></label><input type="text" id="loc_nac" value="brasileira"></div>
     </div>
-    <div class="field"><label>Profissão</label><input type="text" id="loc_prof" placeholder="aposentada"></div>
+    <div class="field"><label><span lang="pt">Profissão</span><span lang="en">Occupation</span></label><input type="text" id="loc_prof" placeholder="aposentada"></div>
     <div class="field-row">
-      <div class="field"><label>RG nº</label><input type="text" id="loc_rg" placeholder="492.841"></div>
-      <div class="field"><label>Órgão emissor</label><input type="text" id="loc_rg_org" placeholder="SSP-PI"></div>
+      <div class="field"><label><span lang="pt">RG nº</span><span lang="en">ID (RG) no.</span></label><input type="text" id="loc_rg" placeholder="492.841"></div>
+      <div class="field"><label><span lang="pt">Órgão emissor</span><span lang="en">Issuing agency</span></label><input type="text" id="loc_rg_org" placeholder="SSP-PI"></div>
     </div>
-    <div class="field"><label>CPF nº</label><input type="text" id="loc_cpf" placeholder="000.000.000-00"></div>
-    <div class="field"><label>Endereço residencial completo</label><input type="text" id="loc_end" placeholder="Rua X, nº 10, Bairro Y, Cidade, UF, CEP"></div>
+    <div class="field"><label><span lang="pt">CPF nº</span><span lang="en">CPF (taxpayer ID) no.</span></label><input type="text" id="loc_cpf" placeholder="000.000.000-00"></div>
+    <div class="field"><label><span lang="pt">Endereço residencial completo</span><span lang="en">Full home address</span></label><input type="text" id="loc_end" placeholder="Rua X, nº 10, Bairro Y, Cidade, UF, CEP"></div>
 
-    <div class="form-section-title">02 — Locatário (inquilino)</div>
-    <div class="field"><label>Nome completo</label><input type="text" id="lat_nome" placeholder="Francisco Lamonnier de Sousa Nunes"></div>
+    <div class="form-section-title"><span lang="pt">02 — Locatário (inquilino)</span><span lang="en">02 — Tenant</span></div>
+    <div class="field"><label><span lang="pt">Nome completo</span><span lang="en">Full name</span></label><input type="text" id="lat_nome" placeholder="Francisco Lamonnier de Sousa Nunes"></div>
     <div class="field-row">
-      <div class="field"><label>Estado civil</label><select id="lat_ec"><option>solteiro(a)</option><option selected>casado(a)</option><option>divorciado(a)</option><option>viúvo(a)</option><option>separado(a)</option></select></div>
-      <div class="field"><label>Nacionalidade</label><input type="text" id="lat_nac" value="brasileira"></div>
+      <div class="field"><label><span lang="pt">Estado civil</span><span lang="en">Marital status</span></label><select id="lat_ec"><option>solteiro(a)</option><option selected>casado(a)</option><option>divorciado(a)</option><option>viúvo(a)</option><option>separado(a)</option></select></div>
+      <div class="field"><label><span lang="pt">Nacionalidade</span><span lang="en">Nationality</span></label><input type="text" id="lat_nac" value="brasileira"></div>
     </div>
-    <div class="field"><label>Profissão</label><input type="text" id="lat_prof" placeholder="comerciante"></div>
+    <div class="field"><label><span lang="pt">Profissão</span><span lang="en">Occupation</span></label><input type="text" id="lat_prof" placeholder="comerciante"></div>
     <div class="field-row">
-      <div class="field"><label>RG nº</label><input type="text" id="lat_rg" placeholder="2387579"></div>
-      <div class="field"><label>Órgão emissor</label><input type="text" id="lat_rg_org" placeholder="SSP-PI"></div>
+      <div class="field"><label><span lang="pt">RG nº</span><span lang="en">ID (RG) no.</span></label><input type="text" id="lat_rg" placeholder="2387579"></div>
+      <div class="field"><label><span lang="pt">Órgão emissor</span><span lang="en">Issuing agency</span></label><input type="text" id="lat_rg_org" placeholder="SSP-PI"></div>
     </div>
-    <div class="field"><label>CPF nº</label><input type="text" id="lat_cpf" placeholder="000.000.000-00"></div>
-    <div class="field"><label>Endereço residencial completo</label><input type="text" id="lat_end" placeholder="Rua X, nº 10, Bairro Y, Cidade, UF, CEP"></div>
+    <div class="field"><label><span lang="pt">CPF nº</span><span lang="en">CPF (taxpayer ID) no.</span></label><input type="text" id="lat_cpf" placeholder="000.000.000-00"></div>
+    <div class="field"><label><span lang="pt">Endereço residencial completo</span><span lang="en">Full home address</span></label><input type="text" id="lat_end" placeholder="Rua X, nº 10, Bairro Y, Cidade, UF, CEP"></div>
 
-    <div class="form-section-title">03 — Testemunha (opcional)</div>
-    <div class="field"><label>Nome completo</label><input type="text" id="test_nome" placeholder="Deixe em branco para omitir"></div>
-    <div class="field"><label>CPF nº</label><input type="text" id="test_cpf" placeholder="000.000.000-00"></div>
+    <div class="form-section-title"><span lang="pt">03 — Testemunha (opcional)</span><span lang="en">03 — Witness (optional)</span></div>
+    <div class="field"><label><span lang="pt">Nome completo</span><span lang="en">Full name</span></label><input type="text" id="test_nome" placeholder="Deixe em branco para omitir" data-i18n-attr="placeholder" data-pt-placeholder="Deixe em branco para omitir" data-en-placeholder="Leave blank to omit"></div>
+    <div class="field"><label><span lang="pt">CPF nº</span><span lang="en">CPF (taxpayer ID) no.</span></label><input type="text" id="test_cpf" placeholder="000.000.000-00"></div>
 
-    <div class="form-section-title">04 — Imóvel</div>
-    <div class="field"><label>Endereço completo do imóvel</label><input type="text" id="im_end" placeholder="Praça X, nº 26-A, Bairro Y, Cidade, UF, CEP"></div>
-    <div class="field"><label>Descrição do imóvel</label><textarea id="im_desc" placeholder="Ex: casa de rua com quintal, dois quartos, sala, cozinha e banheiro, sem pintura recente"></textarea></div>
-    <div class="field"><label>Finalidade</label>
+    <div class="form-section-title"><span lang="pt">04 — Imóvel</span><span lang="en">04 — Property</span></div>
+    <div class="field"><label><span lang="pt">Endereço completo do imóvel</span><span lang="en">Full property address</span></label><input type="text" id="im_end" placeholder="Praça X, nº 26-A, Bairro Y, Cidade, UF, CEP"></div>
+    <div class="field"><label><span lang="pt">Descrição do imóvel</span><span lang="en">Property description</span></label><textarea id="im_desc" placeholder="Ex: casa de rua com quintal, dois quartos, sala, cozinha e banheiro, sem pintura recente" data-i18n-attr="placeholder" data-pt-placeholder="Ex: casa de rua com quintal, dois quartos, sala, cozinha e banheiro, sem pintura recente" data-en-placeholder="e.g. casa de rua com quintal, dois quartos… (in Portuguese)"></textarea></div>
+    <div class="field"><label><span lang="pt">Finalidade</span><span lang="en">Purpose</span></label>
       <select id="im_fin">
         <option value="residencial">Residencial</option>
         <option value="comercial">Comercial</option>
@@ -158,61 +162,61 @@
       </select>
     </div>
 
-    <div class="form-section-title">05 — Valores e prazos</div>
+    <div class="form-section-title"><span lang="pt">05 — Valores e prazos</span><span lang="en">05 — Amounts and terms</span></div>
     <div class="field-row">
-      <div class="field"><label>Aluguel mensal (R$)</label><input type="number" id="v_aluguel" placeholder="600" min="0" step="0.01"></div>
-      <div class="field"><label>Vencimento (dia útil)</label><input type="number" id="v_venc" placeholder="5" min="1" max="28"></div>
+      <div class="field"><label><span lang="pt">Aluguel mensal (R$)</span><span lang="en">Monthly rent (R$)</span></label><input type="number" id="v_aluguel" placeholder="600" min="0" step="0.01"></div>
+      <div class="field"><label><span lang="pt">Vencimento (dia útil)</span><span lang="en">Due date (business day)</span></label><input type="number" id="v_venc" placeholder="5" min="1" max="28"></div>
     </div>
     <div class="field-row">
-      <div class="field"><label>Desconto inicial (R$)</label><input type="number" id="v_desc" placeholder="0" min="0" step="0.01"></div>
-      <div class="field"><label>Nº de parcelas com desconto</label><input type="number" id="v_desc_n" placeholder="0" min="0"></div>
+      <div class="field"><label><span lang="pt">Desconto inicial (R$)</span><span lang="en">Initial discount (R$)</span></label><input type="number" id="v_desc" placeholder="0" min="0" step="0.01"></div>
+      <div class="field"><label><span lang="pt">Nº de parcelas com desconto</span><span lang="en">No. of discounted payments</span></label><input type="number" id="v_desc_n" placeholder="0" min="0"></div>
     </div>
     <div class="field-row">
-      <div class="field"><label>Multa de mora (%)</label><input type="number" id="v_multa" placeholder="3" min="0" step="0.1"></div>
-      <div class="field"><label>Juro de mora (% ao dia)</label><input type="number" id="v_juros" placeholder="1" min="0" step="0.1"></div>
+      <div class="field"><label><span lang="pt">Multa de mora (%)</span><span lang="en">Late fee (%)</span></label><input type="number" id="v_multa" placeholder="3" min="0" step="0.1"></div>
+      <div class="field"><label><span lang="pt">Juro de mora (% ao dia)</span><span lang="en">Late interest (% per day)</span></label><input type="number" id="v_juros" placeholder="1" min="0" step="0.1"></div>
     </div>
     <div class="field-row">
-      <div class="field"><label>Prazo (meses)</label><input type="number" id="p_meses" placeholder="24" min="1"></div>
-      <div class="field"><label>Índice de reajuste</label>
+      <div class="field"><label><span lang="pt">Prazo (meses)</span><span lang="en">Term (months)</span></label><input type="number" id="p_meses" placeholder="24" min="1"></div>
+      <div class="field"><label><span lang="pt">Índice de reajuste</span><span lang="en">Adjustment index</span></label>
         <select id="p_indice"><option>IGP-M</option><option>IPCA</option><option>INPC</option><option>IPC-A</option></select>
       </div>
     </div>
-    <div class="field"><label>Data de início</label><input type="date" id="p_inicio"></div>
+    <div class="field"><label><span lang="pt">Data de início</span><span lang="en">Start date</span></label><input type="date" id="p_inicio"></div>
 
-    <div class="form-section-title">06 — Assinatura</div>
+    <div class="form-section-title"><span lang="pt">06 — Assinatura</span><span lang="en">06 — Signing</span></div>
     <div class="field-row">
-      <div class="field"><label>Cidade</label><input type="text" id="a_cidade" placeholder="Floriano"></div>
-      <div class="field"><label>Estado (UF)</label><input type="text" id="a_uf" placeholder="PI" maxlength="2"></div>
+      <div class="field"><label><span lang="pt">Cidade</span><span lang="en">City</span></label><input type="text" id="a_cidade" placeholder="Floriano"></div>
+      <div class="field"><label><span lang="pt">Estado (UF)</span><span lang="en">State (UF)</span></label><input type="text" id="a_uf" placeholder="PI" maxlength="2"></div>
     </div>
-    <div class="field"><label>Data de assinatura</label><input type="date" id="a_data"></div>
-    <div class="field"><label>Foro competente (comarca)</label><input type="text" id="a_foro" placeholder="Floriano, Piauí"></div>
+    <div class="field"><label><span lang="pt">Data de assinatura</span><span lang="en">Signing date</span></label><input type="date" id="a_data"></div>
+    <div class="field"><label><span lang="pt">Foro competente (comarca)</span><span lang="en">Jurisdiction (court district)</span></label><input type="text" id="a_foro" placeholder="Floriano, Piauí"></div>
 
-    <div class="form-section-title">07 — Cláusulas opcionais</div>
+    <div class="form-section-title"><span lang="pt">07 — Cláusulas opcionais</span><span lang="en">07 — Optional clauses</span></div>
     <div class="clauses-list">
-      <label class="clause-item"><input type="checkbox" id="cl_sub" checked><div class="clause-item-text"><strong>Vedação à sublocação</strong><span>Proíbe sublocar, ceder ou emprestar sem autorização.</span></div></label>
-      <label class="clause-item"><input type="checkbox" id="cl_benf" checked><div class="clause-item-text"><strong>Benfeitorias sem indenização</strong><span>Melhorias não geram direito a retenção ou ressarcimento.</span></div></label>
-      <label class="clause-item"><input type="checkbox" id="cl_pref" checked><div class="clause-item-text"><strong>Direito de preferência na venda</strong><span>Locatário tem 30 dias para exercer direito de compra.</span></div></label>
-      <label class="clause-item"><input type="checkbox" id="cl_vis"><div class="clause-item-text"><strong>Laudo de vistoria inicial</strong><span>Vistoria formal obrigatória na entrega das chaves.</span></div></label>
-      <label class="clause-item"><input type="checkbox" id="cl_fiad"><div class="clause-item-text"><strong>Exigência de fiador solidário</strong><span>Garantia por fiador com responsabilidade solidária.</span></div></label>
-      <label class="clause-item"><input type="checkbox" id="cl_anim"><div class="clause-item-text"><strong>Vedação a animais de estimação</strong><span>Proibido sem autorização expressa e escrita.</span></div></label>
-      <label class="clause-item"><input type="checkbox" id="cl_pint"><div class="clause-item-text"><strong>Pintura ao final do contrato</strong><span>Locatário devolve o imóvel pintado nas cores originais.</span></div></label>
+      <label class="clause-item"><input type="checkbox" id="cl_sub" checked><div class="clause-item-text"><strong><span lang="pt">Vedação à sublocação</span><span lang="en">No subletting</span></strong><span><span lang="pt">Proíbe sublocar, ceder ou emprestar sem autorização.</span><span lang="en">Forbids subletting, assigning or lending without permission.</span></span></div></label>
+      <label class="clause-item"><input type="checkbox" id="cl_benf" checked><div class="clause-item-text"><strong><span lang="pt">Benfeitorias sem indenização</span><span lang="en">Improvements without compensation</span></strong><span><span lang="pt">Melhorias não geram direito a retenção ou ressarcimento.</span><span lang="en">Improvements give no right to retention or reimbursement.</span></span></div></label>
+      <label class="clause-item"><input type="checkbox" id="cl_pref" checked><div class="clause-item-text"><strong><span lang="pt">Direito de preferência na venda</span><span lang="en">Right of first refusal on sale</span></strong><span><span lang="pt">Locatário tem 30 dias para exercer direito de compra.</span><span lang="en">Tenant has 30 days to exercise the right to buy.</span></span></div></label>
+      <label class="clause-item"><input type="checkbox" id="cl_vis"><div class="clause-item-text"><strong><span lang="pt">Laudo de vistoria inicial</span><span lang="en">Initial inspection report</span></strong><span><span lang="pt">Vistoria formal obrigatória na entrega das chaves.</span><span lang="en">Formal inspection required at key handover.</span></span></div></label>
+      <label class="clause-item"><input type="checkbox" id="cl_fiad"><div class="clause-item-text"><strong><span lang="pt">Exigência de fiador solidário</span><span lang="en">Joint guarantor required</span></strong><span><span lang="pt">Garantia por fiador com responsabilidade solidária.</span><span lang="en">Guarantee by a jointly liable guarantor.</span></span></div></label>
+      <label class="clause-item"><input type="checkbox" id="cl_anim"><div class="clause-item-text"><strong><span lang="pt">Vedação a animais de estimação</span><span lang="en">No pets</span></strong><span><span lang="pt">Proibido sem autorização expressa e escrita.</span><span lang="en">Forbidden without express written permission.</span></span></div></label>
+      <label class="clause-item"><input type="checkbox" id="cl_pint"><div class="clause-item-text"><strong><span lang="pt">Pintura ao final do contrato</span><span lang="en">Repainting at the end</span></strong><span><span lang="pt">Locatário devolve o imóvel pintado nas cores originais.</span><span lang="en">Tenant returns the property painted in the original colors.</span></span></div></label>
     </div>
 
-    <div class="form-section-title">08 — Condições especiais</div>
-    <div class="field"><label>Cláusulas adicionais livres (opcional)</label><textarea id="obs" placeholder="Ex: o imóvel será entregue com portão eletrônico instalado e em funcionamento." style="min-height:80px;"></textarea></div>
+    <div class="form-section-title"><span lang="pt">08 — Condições especiais</span><span lang="en">08 — Special conditions</span></div>
+    <div class="field"><label><span lang="pt">Cláusulas adicionais livres (opcional)</span><span lang="en">Additional free-text clauses (optional)</span></label><textarea id="obs" placeholder="Ex: o imóvel será entregue com portão eletrônico instalado e em funcionamento." data-i18n-attr="placeholder" data-pt-placeholder="Ex: o imóvel será entregue com portão eletrônico instalado e em funcionamento." data-en-placeholder="e.g. o imóvel será entregue com portão eletrônico… (in Portuguese)" style="min-height:80px;"></textarea></div>
 
     <button class="btn-generate" onclick="gerar()">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 6H9V2M9 2L13 6M9 2H4a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V6"/></svg>
-      Gerar Contrato
+      <span lang="pt">Gerar Contrato</span><span lang="en">Generate Agreement</span>
     </button>
-    <button class="btn-print" id="btn-print" onclick="window.print()">⎙ Imprimir / Salvar PDF</button>
+    <button class="btn-print" id="btn-print" onclick="window.print()">⎙ <span lang="pt">Imprimir / Salvar PDF</span><span lang="en">Print / Save PDF</span></button>
   </div>
 
   <!-- PREVIEW -->
   <div class="preview-panel">
     <div class="preview-empty" id="preview-empty">
       <div class="preview-empty-icon">§</div>
-      <p>Preencha os dados e clique em Gerar Contrato</p>
+      <p><span lang="pt">Preencha os dados e clique em Gerar Contrato</span><span lang="en">Fill in the details and click Generate Agreement</span></p>
     </div>
     <div class="contract-wrapper" id="contract-wrapper"></div>
   </div>
@@ -294,7 +298,7 @@ function gerar() {
   const aluguel = v('v_aluguel');
 
   if (!locNome || !latNome || !imEnd || !aluguel) {
-    alert('Preencha ao menos: nome da locadora, nome do locatário, endereço do imóvel e valor do aluguel.');
+    alert(window.siteLang ? siteLang.t('Preencha ao menos: nome da locadora, nome do locatário, endereço do imóvel e valor do aluguel.', 'Please fill in at least: landlord name, tenant name, property address and rent amount.') : 'Preencha ao menos: nome da locadora, nome do locatário, endereço do imóvel e valor do aluguel.');
     return;
   }
 
