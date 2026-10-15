@@ -26,6 +26,22 @@ Auto-deployed to Hostinger on every push to `main`.
 
 ---
 
+## Languages (PT / EN)
+
+Every public page is bilingual on the same URL. `assets/i18n.js` (loaded in `<head>`, no `defer`)
+picks the language from `?lang=pt|en`, then the visitor's saved choice, then the browser, and
+`assets/site.css` hides the inactive copy:
+
+- Static text: write both copies, `<span lang="pt">…</span><span lang="en">…</span>` (or whole blocks with `lang`).
+- Attributes and `<option>`/`<title>` text: `data-i18n-attr="placeholder"` + `data-pt-placeholder` / `data-en-placeholder` (`text` swaps textContent).
+- Page title: `data-pt-title` / `data-en-title` on `<html>`.
+- Script-built text: `siteLang.t(pt, en)`, and re-render on `siteLang.on(fn)`.
+- Toggle: any `[data-set-lang="pt|en"]` button.
+
+The rental contract text stays in Portuguese (Brazilian law); AI prompts in the photo quiz stay in English.
+
+---
+
 ## Pages
 
 ### `/observatorio-fiscal/` — Brazilian Fiscal Observatory

@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-lang="pt" data-pt-title="Emendas Parlamentares — Painel Analítico" data-en-title="Parliamentary Amendments — Analytical Dashboard">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Emendas Parlamentares — Painel Analítico</title>
 <link rel="icon" href="/assets/favicon.svg">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/i18n.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -60,6 +62,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);
 .side-foot{padding:14px 10px 0;border-top:1px solid rgba(255,255,255,.07);
   color:#97ab9e;font-size:.68rem;line-height:1.5}
 .side-foot a{color:#b9c7bd}
+.side-lang{margin-top:12px}
+.side-lang .lang-switch{background:transparent;border-color:rgba(255,254,250,.2)}
+.side-lang .lang-switch button{color:#b9c7bd}
+.side-lang .lang-switch button[aria-pressed="true"]{background:#fffefa;color:#23382f}
 
 /* ── Main / topbar ── */
 .main{margin-left:var(--sidebar-w);min-height:100vh}
@@ -121,6 +127,7 @@ section[id]{scroll-margin-top:calc(var(--topbar-h) + 16px)}
 /* ── Sections ── */
 .sec{margin-top:46px}
 .sec-head{margin-bottom:18px}
+.sec-head h2 .badge{font-family:var(--font)}
 .sec-head h2{font-family:var(--serif);font-size:1.45rem;font-weight:400;letter-spacing:-.025em;
   display:flex;align-items:center;gap:10px}
 .sec-head p{color:var(--text-2);font-size:.85rem;margin-top:3px}
@@ -289,28 +296,28 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);
 <div id="top-progress"></div>
 
 <aside class="sidebar">
-  <a class="brand" href="/" title="Voltar para andreycosta.com">
+  <a class="brand" href="/" title="andreycosta.com">
     <div class="brand-mark">ac</div>
     <div>
       <div class="brand-name">Emendas BR</div>
-      <div class="brand-sub">Painel analítico</div>
+      <div class="brand-sub"><span lang="pt">Painel analítico</span><span lang="en">Analytical dashboard</span></div>
     </div>
   </a>
   <nav class="side-nav" id="side-nav">
-    <a href="#overview" class="active"><span class="ico">◈</span>Visão Geral</a>
-    <a href="#categorias"><span class="ico">◐</span>Categorias</a>
-    <a href="#partidos"><span class="ico">▤</span>Partidos</a>
-    <a href="#autores"><span class="ico">✦</span>Autores</a>
-    <a href="#execucao"><span class="ico">▥</span>Execução</a>
-    <a href="#favorecidos"><span class="ico">◎</span>Favorecidos</a>
-    <a href="#convenios"><span class="ico">⧉</span>Convênios</a>
-    <a href="#mapa"><span class="ico">⬡</span>Mapa</a>
-    <a href="#anomalias"><span class="ico">▲</span>Anomalias</a>
-    <a href="#emendas"><span class="ico">≣</span>Tabela</a>
+    <a href="#overview" class="active"><span class="ico">◈</span><span lang="pt">Visão Geral</span><span lang="en">Overview</span></a>
+    <a href="#categorias"><span class="ico">◐</span><span lang="pt">Categorias</span><span lang="en">Categories</span></a>
+    <a href="#partidos"><span class="ico">▤</span><span lang="pt">Partidos</span><span lang="en">Parties</span></a>
+    <a href="#autores"><span class="ico">✦</span><span lang="pt">Autores</span><span lang="en">Authors</span></a>
+    <a href="#execucao"><span class="ico">▥</span><span lang="pt">Execução</span><span lang="en">Execution</span></a>
+    <a href="#favorecidos"><span class="ico">◎</span><span lang="pt">Favorecidos</span><span lang="en">Recipients</span></a>
+    <a href="#convenios"><span class="ico">⧉</span><span lang="pt">Convênios</span><span lang="en">Agreements</span></a>
+    <a href="#mapa"><span class="ico">⬡</span><span lang="pt">Mapa</span><span lang="en">Map</span></a>
+    <a href="#anomalias"><span class="ico">▲</span><span lang="pt">Anomalias</span><span lang="en">Anomalies</span></a>
+    <a href="#emendas"><span class="ico">≣</span><span lang="pt">Tabela</span><span lang="en">Table</span></a>
   </nav>
   <div class="side-foot">
-    Fonte: Portal da Transparência.<br>
-    Partidos: dados abertos da Câmara e do Senado.
+    <span lang="pt">Fonte: Portal da Transparência.<br>Partidos: dados abertos da Câmara e do Senado.</span><span lang="en">Source: Portal da Transparência.<br>Parties: Chamber and Senate open data.</span>
+    <div class="side-lang"><div class="lang-switch" role="group" aria-label="Idioma / Language"><button type="button" data-set-lang="pt" aria-pressed="true">PT</button><button type="button" data-set-lang="en" aria-pressed="false">EN</button></div></div>
   </div>
 </aside>
 
@@ -318,34 +325,34 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);
 
   <div class="topbar">
     <div class="topbar-row">
-      <span class="topbar-label">Filtros</span>
-      <div id="active-chips"><span class="no-filters">Nenhum filtro ativo</span></div>
-      <button class="btn" id="btn-edit-filters">Editar filtros</button>
+      <span class="topbar-label"><span lang="pt">Filtros</span><span lang="en">Filters</span></span>
+      <div id="active-chips"></div>
+      <button class="btn" id="btn-edit-filters"></button>
     </div>
     <div class="filter-panel" id="filter-panel">
       <div class="filter-panel-inner">
         <div class="filter-group">
-          <label for="f-ano">Ano</label>
-          <select id="f-ano"><option value="">Todos</option></select>
+          <label for="f-ano"><span lang="pt">Ano</span><span lang="en">Year</span></label>
+          <select id="f-ano"><option value="" data-i18n-attr="text" data-pt-text="Todos" data-en-text="All">Todos</option></select>
         </div>
         <div class="filter-group">
-          <label for="f-uf">UF</label>
-          <select id="f-uf"><option value="">Todas</option></select>
+          <label for="f-uf"><span lang="pt">UF</span><span lang="en">State</span></label>
+          <select id="f-uf"><option value="" data-i18n-attr="text" data-pt-text="Todas" data-en-text="All">Todas</option></select>
         </div>
         <div class="filter-group">
-          <label for="f-tipo">Tipo</label>
-          <select id="f-tipo"><option value="">Todos</option></select>
+          <label for="f-tipo"><span lang="pt">Tipo</span><span lang="en">Type</span></label>
+          <select id="f-tipo"><option value="" data-i18n-attr="text" data-pt-text="Todos" data-en-text="All">Todos</option></select>
         </div>
         <div class="filter-group">
-          <label for="f-cat">Categoria</label>
-          <select id="f-cat"><option value="">Todas</option></select>
+          <label for="f-cat"><span lang="pt">Categoria</span><span lang="en">Category</span></label>
+          <select id="f-cat"><option value="" data-i18n-attr="text" data-pt-text="Todas" data-en-text="All">Todas</option></select>
         </div>
         <div class="filter-group">
-          <label for="f-partido">Partido</label>
-          <select id="f-partido"><option value="">Todos</option></select>
+          <label for="f-partido"><span lang="pt">Partido</span><span lang="en">Party</span></label>
+          <select id="f-partido"><option value="" data-i18n-attr="text" data-pt-text="Todos" data-en-text="All">Todos</option></select>
         </div>
         <div class="filter-group">
-          <button class="btn btn-danger" id="btn-clear-filters" style="width:100%">Limpar todos</button>
+          <button class="btn btn-danger" id="btn-clear-filters" style="width:100%"><span lang="pt">Limpar todos</span><span lang="en">Clear all</span></button>
         </div>
       </div>
     </div>
@@ -356,35 +363,35 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);
     <!-- ═══ Visão Geral ═══ -->
     <section id="overview">
       <div class="hero">
-        <h1>Emendas Parlamentares</h1>
-        <p id="header-sub">Carregando dados…</p>
+        <h1><span lang="pt">Emendas Parlamentares</span><span lang="en">Parliamentary Amendments</span></h1>
+        <p id="header-sub"><span lang="pt">Carregando dados…</span><span lang="en">Loading data…</span></p>
         <div class="hero-meta">
-          <span class="pill">Período <b>2014–2026</b></span>
-          <span class="pill">Fonte <b>Portal da Transparência</b></span>
-          <span class="pill" id="pill-exec">Execução mediana <b>—</b></span>
+          <span class="pill"><span lang="pt">Período</span><span lang="en">Period</span> <b>2014–2026</b></span>
+          <span class="pill"><span lang="pt">Fonte</span><span lang="en">Source</span> <b>Portal da Transparência</b></span>
+          <span class="pill" id="pill-exec">—</span>
         </div>
       </div>
 
       <div class="stats-grid">
-        <div class="stat"><div class="stat-label">Emendas</div>
+        <div class="stat"><div class="stat-label"><span lang="pt">Emendas</span><span lang="en">Amendments</span></div>
           <div class="stat-value" id="kpi-emendas">—</div></div>
-        <div class="stat"><div class="stat-label">Autores</div>
+        <div class="stat"><div class="stat-label"><span lang="pt">Autores</span><span lang="en">Authors</span></div>
           <div class="stat-value" id="kpi-autores">—</div></div>
-        <div class="stat"><div class="stat-label">UFs</div>
+        <div class="stat"><div class="stat-label"><span lang="pt">UFs</span><span lang="en">States</span></div>
           <div class="stat-value" id="kpi-ufs">—</div>
-          <div class="stat-sub" id="kpi-ufs-sub">26 estados + DF</div></div>
-        <div class="stat"><div class="stat-label">Municípios</div>
+          <div class="stat-sub" id="kpi-ufs-sub"><span lang="pt">26 estados + DF</span><span lang="en">26 states + Federal District</span></div></div>
+        <div class="stat"><div class="stat-label"><span lang="pt">Municípios</span><span lang="en">Municipalities</span></div>
           <div class="stat-value" id="kpi-municipios">—</div></div>
       </div>
       <div class="stats-grid">
-        <div class="stat accent"><div class="stat-label">Total Empenhado</div>
+        <div class="stat accent"><div class="stat-label"><span lang="pt">Total Empenhado</span><span lang="en">Total Committed</span></div>
           <div class="stat-value money" id="kpi-empenhado">—</div></div>
-        <div class="stat"><div class="stat-label">Total Liquidado</div>
+        <div class="stat"><div class="stat-label"><span lang="pt">Total Liquidado</span><span lang="en">Total Accrued</span></div>
           <div class="stat-value money" id="kpi-liquidado">—</div></div>
-        <div class="stat"><div class="stat-label">Pago Efetivo</div>
+        <div class="stat"><div class="stat-label"><span lang="pt">Pago Efetivo</span><span lang="en">Actually Paid</span></div>
           <div class="stat-value money" id="kpi-pago">—</div>
           <div class="stat-sub" id="kpi-pago-sub"></div></div>
-        <div class="stat warn"><div class="stat-label">Execução Mediana</div>
+        <div class="stat warn"><div class="stat-label"><span lang="pt">Execução Mediana</span><span lang="en">Median Execution</span></div>
           <div class="stat-value" id="kpi-exec">—</div>
           <div class="stat-sub" id="kpi-exec-sub"></div></div>
       </div>
@@ -393,8 +400,8 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);
     <!-- ═══ Categorias ═══ -->
     <section id="categorias" class="sec">
       <div class="sec-head">
-        <h2>Distribuição por Categoria</h2>
-        <p>Classificação automática por TF-IDF sobre função, programa, ação e plano orçamentário.</p>
+        <h2><span lang="pt">Distribuição por Categoria</span><span lang="en">Distribution by Category</span></h2>
+        <p><span lang="pt">Classificação automática por TF-IDF sobre função, programa, ação e plano orçamentário.</span><span lang="en">Automatic TF-IDF classification over budget function, program, action and plan.</span></p>
       </div>
       <div class="card">
         <div class="cat-chart-wrap">
@@ -407,20 +414,19 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);
     <!-- ═══ Partidos ═══ -->
     <section id="partidos" class="sec">
       <div class="sec-head">
-        <h2>Partidos <span class="badge">valor empenhado</span></h2>
-        <p>Partido conforme dados abertos da Câmara e do Senado (legislaturas 54–57).
-           Emendas de bancada, comissão e relator não têm autor individual.</p>
+        <h2><span lang="pt">Partidos</span><span lang="en">Parties</span> <span class="badge"><span lang="pt">valor empenhado</span><span lang="en">committed amount</span></span></h2>
+        <p><span lang="pt">Partido conforme dados abertos da Câmara e do Senado (legislaturas 54–57). Emendas de bancada, comissão e relator não têm autor individual.</span><span lang="en">Party as recorded in Chamber and Senate open data (legislatures 54–57). State-caucus, committee and rapporteur amendments have no individual author.</span></p>
       </div>
       <div class="grid-2">
         <div class="card">
-          <h3>Top 15 partidos por valor empenhado</h3>
+          <h3><span lang="pt">Top 15 partidos por valor empenhado</span><span lang="en">Top 15 parties by committed amount</span></h3>
           <div style="height:360px;position:relative"><canvas id="partido-chart"></canvas></div>
         </div>
         <div class="card tbl-wrap" style="max-height:432px;padding:0 6px">
           <table>
             <thead><tr>
-              <th>Partido</th><th class="num">Emendas</th><th class="num">Empenhado</th>
-              <th class="num" title="Inclui Restos a Pagar pagos">Pago Total</th><th class="num">Execução</th>
+              <th><span lang="pt">Partido</span><span lang="en">Party</span></th><th class="num"><span lang="pt">Emendas</span><span lang="en">Amendments</span></th><th class="num"><span lang="pt">Empenhado</span><span lang="en">Committed</span></th>
+              <th class="num"><span lang="pt">Pago Total</span><span lang="en">Total Paid</span></th><th class="num"><span lang="pt">Execução</span><span lang="en">Execution</span></th>
             </tr></thead>
             <tbody id="partido-tbody"></tbody>
           </table>
@@ -431,15 +437,15 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);
     <!-- ═══ Autores ═══ -->
     <section id="autores" class="sec">
       <div class="sec-head">
-        <h2>Top Autores <span class="badge">parlamentares individuais</span></h2>
-        <p>Os 25 parlamentares com maior valor empenhado em emendas individuais.</p>
+        <h2><span lang="pt">Top Autores</span><span lang="en">Top Authors</span> <span class="badge"><span lang="pt">parlamentares individuais</span><span lang="en">individual legislators</span></span></h2>
+        <p><span lang="pt">Os 25 parlamentares com maior valor empenhado em emendas individuais.</span><span lang="en">The 25 legislators with the largest committed amounts in individual amendments.</span></p>
       </div>
       <div class="card tbl-wrap" style="padding:0 6px">
         <table>
           <thead><tr>
-            <th></th><th>Autor</th><th>Partido</th><th>Casa</th><th>UF</th>
-            <th class="num">Emendas</th><th class="num">Empenhado</th>
-            <th class="num" title="Inclui Restos a Pagar pagos">Pago Total</th><th class="num">Execução</th>
+            <th></th><th><span lang="pt">Autor</span><span lang="en">Author</span></th><th><span lang="pt">Partido</span><span lang="en">Party</span></th><th><span lang="pt">Casa</span><span lang="en">House</span></th><th><span lang="pt">UF</span><span lang="en">State</span></th>
+            <th class="num"><span lang="pt">Emendas</span><span lang="en">Amendments</span></th><th class="num"><span lang="pt">Empenhado</span><span lang="en">Committed</span></th>
+            <th class="num"><span lang="pt">Pago Total</span><span lang="en">Total Paid</span></th><th class="num"><span lang="pt">Execução</span><span lang="en">Execution</span></th>
           </tr></thead>
           <tbody id="autores-tbody"></tbody>
         </table>
@@ -449,23 +455,22 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);
     <!-- ═══ Execução ═══ -->
     <section id="execucao" class="sec">
       <div class="sec-head">
-        <h2>Execução Orçamentária</h2>
-        <p>Absorção do orçamento por ano e distribuição mensal dos pagamentos a favorecidos.
-           Emendas costumam ser pagas em anos seguintes via Restos a Pagar — incluídos aqui.</p>
+        <h2><span lang="pt">Execução Orçamentária</span><span lang="en">Budget Execution</span></h2>
+        <p><span lang="pt">Absorção do orçamento por ano e distribuição mensal dos pagamentos a favorecidos. Emendas costumam ser pagas em anos seguintes via Restos a Pagar — incluídos aqui.</span><span lang="en">Budget absorption by year and monthly distribution of payments to recipients. Amendments are often paid in later years as carried-over commitments (Restos a Pagar) — included here.</span></p>
       </div>
       <div class="grid-2">
         <div class="card">
-          <h3>Empenhado × Liquidado × Pago por ano</h3>
+          <h3><span lang="pt">Empenhado × Liquidado × Pago por ano</span><span lang="en">Committed × Accrued × Paid by year</span></h3>
           <canvas id="exec-chart"></canvas>
         </div>
         <div class="card">
-          <h3>Distribuição mensal de pagamentos
-            <span style="font-weight:500;color:var(--text-3);font-size:.72rem">— base de favorecidos, não filtrada</span></h3>
+          <h3><span lang="pt">Distribuição mensal de pagamentos</span><span lang="en">Monthly distribution of payments</span>
+            <span style="font-weight:500;color:var(--text-3);font-size:.72rem">— <span lang="pt">base de favorecidos, não filtrada</span><span lang="en">recipients base, unfiltered</span></span></h3>
           <div class="yoy-controls">
-            <label for="yoy-a">Ano A</label>
-            <select id="yoy-a"><option value="">Selecione</option></select>
-            <label for="yoy-b">Ano B</label>
-            <select id="yoy-b"><option value="">Selecione</option></select>
+            <label for="yoy-a"><span lang="pt">Ano A</span><span lang="en">Year A</span></label>
+            <select id="yoy-a"><option value="" data-i18n-attr="text" data-pt-text="Selecione" data-en-text="Select">Selecione</option></select>
+            <label for="yoy-b"><span lang="pt">Ano B</span><span lang="en">Year B</span></label>
+            <select id="yoy-b"><option value="" data-i18n-attr="text" data-pt-text="Selecione" data-en-text="Select">Selecione</option></select>
           </div>
           <canvas id="tendencia-chart"></canvas>
         </div>
@@ -475,31 +480,30 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);
     <!-- ═══ Favorecidos ═══ -->
     <section id="favorecidos" class="sec">
       <div class="sec-head">
-        <h2>Top Favorecidos <span class="badge">por valor recebido</span></h2>
-        <p>Quem efetivamente recebeu os pagamentos — 788 mil registros agregados por favorecido.
-           Base própria de pagamentos: não é afetada pelos filtros.</p>
+        <h2><span lang="pt">Top Favorecidos</span><span lang="en">Top Recipients</span> <span class="badge"><span lang="pt">por valor recebido</span><span lang="en">by amount received</span></span></h2>
+        <p><span lang="pt">Quem efetivamente recebeu os pagamentos — 788 mil registros agregados por favorecido. Base própria de pagamentos: não é afetada pelos filtros.</span><span lang="en">Who actually received the payments — 788 thousand records aggregated by recipient. Separate payments base: not affected by the filters.</span></p>
       </div>
       <div class="grid-fav">
         <div class="card tbl-wrap" style="padding:0 6px">
           <table>
             <thead><tr>
-              <th></th><th>Favorecido</th><th>Setor</th><th>UF</th><th class="num">Total Recebido</th>
+              <th></th><th><span lang="pt">Favorecido</span><span lang="en">Recipient</span></th><th><span lang="pt">Setor</span><span lang="en">Sector</span></th><th><span lang="pt">UF</span><span lang="en">State</span></th><th class="num"><span lang="pt">Total Recebido</span><span lang="en">Total Received</span></th>
             </tr></thead>
             <tbody id="fav-tbody"></tbody>
           </table>
         </div>
         <div style="display:flex;flex-direction:column;gap:14px">
           <div class="card">
-            <h3>Por setor</h3>
+            <h3><span lang="pt">Por setor</span><span lang="en">By sector</span></h3>
             <div id="sector-breakdown"></div>
           </div>
           <div class="card">
-            <h3>Índice de concentração</h3>
-            <div class="conc-row"><span>Top 10 favorecidos</span>
+            <h3><span lang="pt">Índice de concentração</span><span lang="en">Concentration index</span></h3>
+            <div class="conc-row"><span><span lang="pt">Top 10 favorecidos</span><span lang="en">Top 10 recipients</span></span>
               <span class="conc-val" id="conc-10">—</span></div>
-            <div class="conc-row"><span>Top 100 favorecidos</span>
+            <div class="conc-row"><span><span lang="pt">Top 100 favorecidos</span><span lang="en">Top 100 recipients</span></span>
               <span class="conc-val" id="conc-100">—</span></div>
-            <div class="note">Percentual do total de pagamentos registrados na base.</div>
+            <div class="note"><span lang="pt">Percentual do total de pagamentos registrados na base.</span><span lang="en">Share of all payments recorded in the base.</span></div>
           </div>
         </div>
       </div>
@@ -508,22 +512,21 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);
     <!-- ═══ Convênios ═══ -->
     <section id="convenios" class="sec">
       <div class="sec-head">
-        <h2>Convênios <span class="badge">execução via convênio</span></h2>
-        <p>Instrumentos firmados para execução das emendas e seus principais convenentes.
-           Base própria de convênios: não é afetada pelos filtros.</p>
+        <h2><span lang="pt">Convênios</span><span lang="en">Agreements</span> <span class="badge"><span lang="pt">execução via convênio</span><span lang="en">execution via agreement</span></span></h2>
+        <p><span lang="pt">Instrumentos firmados para execução das emendas e seus principais convenentes. Base própria de convênios: não é afetada pelos filtros.</span><span lang="en">Agreements signed to execute the amendments and their main counterparties. Separate agreements base: not affected by the filters.</span></p>
       </div>
       <div class="kpi-trio" id="conv-kpis"></div>
       <div class="grid-2">
         <div class="card tbl-wrap" style="max-height:420px;padding:0 6px">
           <table>
             <thead><tr>
-              <th></th><th>Convenente</th><th class="num">Convênios</th><th class="num">Valor Total</th>
+              <th></th><th><span lang="pt">Convenente</span><span lang="en">Counterparty</span></th><th class="num"><span lang="pt">Convênios</span><span lang="en">Agreements</span></th><th class="num"><span lang="pt">Valor Total</span><span lang="en">Total Value</span></th>
             </tr></thead>
             <tbody id="conv-tbody"></tbody>
           </table>
         </div>
         <div class="card">
-          <h3>Convênios por função</h3>
+          <h3><span lang="pt">Convênios por função</span><span lang="en">Agreements by budget function</span></h3>
           <div style="height:340px;position:relative"><canvas id="conv-chart"></canvas></div>
         </div>
       </div>
@@ -533,13 +536,13 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);
     <section id="mapa" class="sec">
       <div class="sec-head">
         <h2 style="justify-content:space-between">
-          <span>Distribuição Geográfica <span class="badge">valor empenhado</span></span>
+          <span><span lang="pt">Distribuição Geográfica</span><span lang="en">Geographic Distribution</span> <span class="badge"><span lang="pt">valor empenhado</span><span lang="en">committed amount</span></span></span>
           <span class="seg">
             <button id="map-mode-total" class="active">Total</button>
             <button id="map-mode-percapita">Per capita</button>
           </span>
         </h2>
-        <p>Clique em um estado para filtrar todo o painel. Per capita usa o Censo IBGE 2022.</p>
+        <p><span lang="pt">Clique em um estado para filtrar todo o painel. Per capita usa o Censo IBGE 2022.</span><span lang="en">Click a state to filter the whole dashboard. Per capita uses the 2022 IBGE Census.</span></p>
       </div>
       <div class="grid-map">
         <div class="card" style="padding:18px">
@@ -549,30 +552,28 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);
             </svg>
           </div>
           <div class="legend-scale"></div>
-          <div class="legend-labels"><span>Menor</span><span>Maior</span></div>
+          <div class="legend-labels"><span><span lang="pt">Menor</span><span lang="en">Lower</span></span><span><span lang="pt">Maior</span><span lang="en">Higher</span></span></div>
         </div>
         <div style="display:flex;flex-direction:column;gap:14px">
           <div class="card">
-            <h3>Top UFs</h3>
+            <h3><span lang="pt">Top UFs</span><span lang="en">Top States</span></h3>
             <ul id="map-top-ufs"></ul>
           </div>
           <div class="card">
-            <h3>UF selecionada</h3>
-            <div id="map-selected-info" style="font-size:.83rem;color:var(--text-2)">
-              Clique em um estado para filtrar
-            </div>
+            <h3><span lang="pt">UF selecionada</span><span lang="en">Selected state</span></h3>
+            <div id="map-selected-info" style="font-size:.83rem;color:var(--text-2)"></div>
           </div>
         </div>
       </div>
       <h3 style="font-size:.95rem;font-weight:700;margin:26px 0 12px">
-        Ranking per capita por UF
-        <span class="badge" style="margin-left:6px">Censo IBGE 2022</span>
+        <span lang="pt">Ranking per capita por UF</span><span lang="en">Per capita ranking by state</span>
+        <span class="badge" style="margin-left:6px"><span lang="pt">Censo IBGE 2022</span><span lang="en">2022 IBGE Census</span></span>
       </h3>
       <div class="card tbl-wrap" style="padding:0 6px;max-height:560px">
         <table>
           <thead><tr>
-            <th></th><th>UF</th><th class="num">População</th>
-            <th class="num">Empenhado</th><th class="num">R$ por habitante</th>
+            <th></th><th><span lang="pt">UF</span><span lang="en">State</span></th><th class="num"><span lang="pt">População</span><span lang="en">Population</span></th>
+            <th class="num"><span lang="pt">Empenhado</span><span lang="en">Committed</span></th><th class="num"><span lang="pt">R$ por habitante</span><span lang="en">R$ per resident</span></th>
             <th style="width:30%"></th>
           </tr></thead>
           <tbody id="percapita-tbody"></tbody>
@@ -586,16 +587,15 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);
     <!-- ═══ Anomalias ═══ -->
     <section id="anomalias" class="sec">
       <div class="sec-head">
-        <h2>Anomalias Detectadas</h2>
-        <p>Emendas com valor empenhado mas nenhum pagamento — nem direto, nem via
-           Restos a Pagar — e nenhuma liquidação registrada.</p>
+        <h2><span lang="pt">Anomalias Detectadas</span><span lang="en">Detected Anomalies</span></h2>
+        <p><span lang="pt">Emendas com valor empenhado mas nenhum pagamento — nem direto, nem via Restos a Pagar — e nenhuma liquidação registrada.</span><span lang="en">Amendments with a committed amount but no payment — neither direct nor via Restos a Pagar — and no accrual recorded.</span></p>
       </div>
       <div class="kpi-trio" id="anomaly-summary"></div>
       <div class="card tbl-wrap" style="max-height:340px;padding:0 6px">
         <table>
           <thead><tr>
-            <th>Ano</th><th>Autor</th><th>UF</th><th>Função</th>
-            <th>Categoria</th><th class="num">Empenhado</th><th>Situação</th>
+            <th><span lang="pt">Ano</span><span lang="en">Year</span></th><th><span lang="pt">Autor</span><span lang="en">Author</span></th><th><span lang="pt">UF</span><span lang="en">State</span></th><th><span lang="pt">Função</span><span lang="en">Function</span></th>
+            <th><span lang="pt">Categoria</span><span lang="en">Category</span></th><th class="num"><span lang="pt">Empenhado</span><span lang="en">Committed</span></th><th><span lang="pt">Situação</span><span lang="en">Status</span></th>
           </tr></thead>
           <tbody id="anomaly-tbody"></tbody>
         </table>
@@ -605,21 +605,21 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);
     <!-- ═══ Tabela ═══ -->
     <section id="emendas" class="sec">
       <div class="sec-head">
-        <h2>Emendas <span class="badge" id="table-badge">—</span></h2>
-        <p>Top 15.000 emendas por valor empenhado. Use a busca e os filtros para refinar.</p>
+        <h2><span lang="pt">Emendas</span><span lang="en">Amendments</span> <span class="badge" id="table-badge">—</span></h2>
+        <p><span lang="pt">Top 15.000 emendas por valor empenhado. Use a busca e os filtros para refinar.</span><span lang="en">Top 15,000 amendments by committed amount. Use search and filters to narrow down.</span></p>
       </div>
       <div class="table-controls">
         <input class="search-input" id="search-input" type="search"
-          placeholder="Buscar por autor, município, função…">
+          placeholder="Buscar por autor, município, função…" data-i18n-attr="placeholder" data-pt-placeholder="Buscar por autor, município, função…" data-en-placeholder="Search by author, municipality, function…">
         <span class="table-info" id="table-info"></span>
       </div>
       <div class="card tbl-wrap" style="padding:0 6px">
         <table>
           <thead><tr>
-            <th>Ano</th><th>Tipo</th><th>Autor</th><th>UF</th>
-            <th>Município</th><th>Função</th>
-            <th class="num">Empenhado</th><th class="num">Liquidado</th>
-            <th class="num" title="Pago no exercício + Restos a Pagar pagos">Pago Total</th><th>Categoria</th>
+            <th><span lang="pt">Ano</span><span lang="en">Year</span></th><th><span lang="pt">Tipo</span><span lang="en">Type</span></th><th><span lang="pt">Autor</span><span lang="en">Author</span></th><th><span lang="pt">UF</span><span lang="en">State</span></th>
+            <th><span lang="pt">Município</span><span lang="en">Municipality</span></th><th><span lang="pt">Função</span><span lang="en">Function</span></th>
+            <th class="num"><span lang="pt">Empenhado</span><span lang="en">Committed</span></th><th class="num"><span lang="pt">Liquidado</span><span lang="en">Accrued</span></th>
+            <th class="num"><span lang="pt">Pago Total</span><span lang="en">Total Paid</span></th><th><span lang="pt">Categoria</span><span lang="en">Category</span></th>
           </tr></thead>
           <tbody id="main-tbody"></tbody>
         </table>
@@ -628,9 +628,7 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);
     </section>
 
     <footer>
-      Dados: Portal da Transparência — Emendas Parlamentares · Partidos: dados abertos
-      da Câmara dos Deputados e do Senado Federal (legislaturas 54–57) ·
-      População: Censo IBGE 2022 · Relatório gerado automaticamente, arquivo único e auto-contido.
+      <span lang="pt">Dados: Portal da Transparência — Emendas Parlamentares · Partidos: dados abertos da Câmara dos Deputados e do Senado Federal (legislaturas 54–57) · População: Censo IBGE 2022 · Relatório gerado automaticamente, arquivo único e auto-contido.</span><span lang="en">Data: Portal da Transparência — Parliamentary Amendments · Parties: open data from the Chamber of Deputies and the Federal Senate (legislatures 54–57) · Population: 2022 IBGE Census · Automatically generated report, single self-contained file.</span>
     </footer>
 
   </div><!-- /.content -->
@@ -643,6 +641,27 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);
 
 const DATA = JSON.parse(document.getElementById('data-json').textContent);
 const DS = DATA.dataset;
+
+/* ── Language (site-wide switch in assets/i18n.js) ── */
+const T = (pt,en) => window.siteLang ? window.siteLang.t(pt,en) : pt;
+const isEN = () => !!window.siteLang && window.siteLang.get()==='en';
+const comma = () => isEN() ? '.' : ',';
+// Display names for Portuguese labels that come from the data (budget categories, functions, sectors, types).
+const EN_LABELS = {
+  'Assistência Social':'Social Assistance','Saúde':'Health','Infraestrutura':'Infrastructure','Outros':'Other','Direitos e Cidadania':'Rights and Citizenship',
+  'Agropecuária':'Agriculture','Trabalho e Emprego':'Labor and Employment','Esporte e Lazer':'Sports and Leisure','Educação':'Education',
+  'Segurança e Defesa':'Security and Defense','Meio Ambiente':'Environment','Ciência e Tecnologia':'Science and Technology','Cultura':'Culture',
+  'Assistência social':'Social assistance','Urbanismo':'Urban development','Múltiplo':'Multiple','Agricultura':'Agriculture','Comércio e serviços':'Trade and services',
+  'Desporto e lazer':'Sports and leisure','Administração':'Administration','Encargos especiais':'Special charges','Defesa nacional':'National defense',
+  'Segurança pública':'Public security','Previdência social':'Social security','Transporte':'Transportation','Gestão ambiental':'Environmental management',
+  'Indústria':'Industry','Direitos da cidadania':'Citizenship rights','Saneamento':'Sanitation','Organização agrária':'Land organization',
+  'Comunicações':'Communications','Trabalho':'Labor','Habitação':'Housing','Energia':'Energy','Essencial à justiça':'Essential to justice',
+  'Relações exteriores':'Foreign relations','Sem informação':'No information',
+  'Relator':'Rapporteur','Comissão':'Committee','Bancada':'State caucus','Ind. Especial':'Ind. Special transfer','Ind. Finalidade':'Ind. Earmarked',
+  'Senador':'Senator','Deputado':'Deputy','S/Partido':'No party',
+  'Público':'Public','Privado':'Private','Não identificado':'Unidentified','Terceiro Setor':'Third Sector',
+};
+const tx = (s) => (isEN() && EN_LABELS[s]) || s;
 const ROWS = DS.rows;
 
 /* Row layout:
@@ -675,13 +694,13 @@ Chart.defaults.color = '#627267';
 /* ── Formatters ── */
 const fmt = (n) => {
   if(n==null||isNaN(n))return'—';
-  if(Math.abs(n)>=1e9)return'R$ '+(n/1e9).toFixed(2).replace('.',',')+' bi';
-  if(Math.abs(n)>=1e6)return'R$ '+(n/1e6).toFixed(2).replace('.',',')+' mi';
-  if(Math.abs(n)>=1e3)return'R$ '+(n/1e3).toFixed(1).replace('.',',')+' mil';
-  return'R$ '+n.toFixed(2).replace('.',',');
+  if(Math.abs(n)>=1e9)return'R$ '+(n/1e9).toFixed(2).replace('.',comma())+T(' bi',' bn');
+  if(Math.abs(n)>=1e6)return'R$ '+(n/1e6).toFixed(2).replace('.',comma())+T(' mi',' mn');
+  if(Math.abs(n)>=1e3)return'R$ '+(n/1e3).toFixed(1).replace('.',comma())+T(' mil','k');
+  return'R$ '+n.toFixed(2).replace('.',comma());
 };
-const fmtN = (n) => n.toLocaleString('pt-BR');
-const fmtPerCapita = (v) => 'R$ '+v.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,'.')+' /hab';
+const fmtN = (n) => n.toLocaleString(T('pt-BR','en-US'));
+const fmtPerCapita = (v) => 'R$ '+v.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,T('.',','))+T(' /hab',' /resident');
 
 const CAT_COLORS = {
   'Saúde':'#2563eb','Educação':'#059669','Infraestrutura':'#7c3aed',
@@ -801,25 +820,25 @@ function renderKPIs(k) {
   document.getElementById('kpi-liquidado').textContent = fmt(k.total_liquidado);
   document.getElementById('kpi-pago').textContent = fmt(k.total_pago_efetivo);
   document.getElementById('kpi-pago-sub').textContent =
-    fmt(k.total_rap_pagos)+' via Restos a Pagar';
-  const execPct = (k.median_exec_rate*100).toFixed(1).replace('.',',');
+    fmt(k.total_rap_pagos)+T(' via Restos a Pagar',' via carried-over commitments');
+  const execPct = (k.median_exec_rate*100).toFixed(1).replace('.',comma());
   document.getElementById('kpi-exec').textContent = execPct+' %';
   document.getElementById('kpi-exec-sub').textContent =
-    fmtN(k.sem_execucao_count)+' emendas sem execução';
+    fmtN(k.sem_execucao_count)+T(' emendas sem execução',' amendments with no execution');
   document.getElementById('header-sub').textContent =
-    fmtN(k.total_emendas)+' emendas de '+fmtN(k.total_autores)+
-    ' autores, somando '+fmt(k.total_empenhado)+' em valores empenhados.';
+    fmtN(k.total_emendas)+T(' emendas de ',' amendments by ')+fmtN(k.total_autores)+
+    T(' autores, somando ',' authors, totaling ')+fmt(k.total_empenhado)+T(' em valores empenhados.',' in committed amounts.');
   document.getElementById('pill-exec').innerHTML =
-    'Execução mediana <b>'+execPct+' %</b>';
+    T('Execução mediana','Median execution')+' <b>'+execPct+' %</b>';
 }
 
 /* ── Category donut ── */
 let catChart = null;
 function renderCategoryChart(cats) {
   const sorted = Object.entries(cats).sort((a,b)=>b[1]-a[1]);
-  const labels = sorted.map(e=>e[0]);
+  const labels = sorted.map(e=>tx(e[0]));
   const values = sorted.map(e=>e[1]);
-  const colors = labels.map(l=>CAT_COLORS[l]||'#a1a1aa');
+  const colors = sorted.map(e=>CAT_COLORS[e[0]]||'#a1a1aa');
   const total = values.reduce((a,b)=>a+b,0)||1;
 
   if(catChart){ catChart.destroy(); catChart=null; }
@@ -833,9 +852,9 @@ function renderCategoryChart(cats) {
 
   document.getElementById('cat-list').innerHTML = sorted.map(([cat,cnt])=>
     '<li><span class="cat-dot" style="background:'+(CAT_COLORS[cat]||'#a1a1aa')+'"></span>'+
-    '<span class="cat-name">'+cat+'</span>'+
+    '<span class="cat-name">'+tx(cat)+'</span>'+
     '<span class="cat-count">'+fmtN(cnt)+'</span>'+
-    '<span class="cat-pct">'+(cnt/total*100).toFixed(1).replace('.',',')+'%</span></li>'
+    '<span class="cat-pct">'+(cnt/total*100).toFixed(1).replace('.',comma())+'%</span></li>'
   ).join('');
 }
 
@@ -853,20 +872,20 @@ function renderPartidos(parties) {
         borderRadius:4 }] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ display:false },
-        tooltip:{ callbacks:{ label:(c)=>'R$ '+c.parsed.x.toFixed(2).replace('.',',')+' bi' } } },
+        tooltip:{ callbacks:{ label:(c)=>'R$ '+c.parsed.x.toFixed(2).replace('.',comma())+T(' bi',' bn') } } },
       scales:{
-        x:{ grid:{ color:'#f1f1f3' }, ticks:{ callback:v=>v+' bi' } },
+        x:{ grid:{ color:'#f1f1f3' }, ticks:{ callback:v=>v+T(' bi',' bn') } },
         y:{ grid:{ display:false }, ticks:{ font:{ weight:'600' } } } } }
   });
 
   document.getElementById('partido-tbody').innerHTML = parties.map(p=>{
     const inst = p.institucional ? ' style="opacity:.6;font-style:italic"' : '';
-    return '<tr'+inst+'><td style="font-weight:650">'+p.sigla+'</td>'+
+    return '<tr'+inst+'><td style="font-weight:650">'+tx(p.sigla)+'</td>'+
       '<td class="num soft">'+fmtN(p.emendas)+'</td>'+
       '<td class="num">'+fmt(p.empenhado)+'</td>'+
       '<td class="num soft">'+fmt(p.pago)+'</td>'+
-      '<td class="num">'+p.exec_pct.toFixed(1).replace('.',',')+' %</td></tr>';
-  }).join('') || '<tr><td colspan="5" style="color:var(--text-3);padding:16px">Nenhum resultado para os filtros atuais</td></tr>';
+      '<td class="num">'+p.exec_pct.toFixed(1).replace('.',comma())+' %</td></tr>';
+  }).join('') || '<tr><td colspan="5" style="color:var(--text-3);padding:16px">'+T('Nenhum resultado para os filtros atuais','No results for the current filters')+'</td></tr>';
 }
 
 /* ── Top Autores ── */
@@ -876,12 +895,12 @@ function renderAutores(authors) {
     '<tr><td class="rank">'+(i+1)+'</td>'+
     '<td class="ellip" style="max-width:220px" title="'+a.nome+'">'+a.nome+'</td>'+
     '<td><span class="party-badge" style="border-left-color:'+(PARTY_COLORS[a.partido]||'#a1a1aa')+'">'+a.partido+'</span></td>'+
-    '<td>'+a.casa+'</td><td>'+(a.uf||'—')+'</td>'+
+    '<td>'+tx(a.casa)+'</td><td>'+(a.uf||'—')+'</td>'+
     '<td class="num soft">'+fmtN(a.emendas)+'</td>'+
     '<td class="num">'+fmt(a.empenhado)+'</td>'+
     '<td class="num soft">'+fmt(a.pago)+'</td>'+
-    '<td class="num">'+a.exec_pct.toFixed(1).replace('.',',')+' %</td></tr>'
-  ).join('') || '<tr><td colspan="9" style="color:var(--text-3);padding:16px">Nenhum autor individual para os filtros atuais</td></tr>';
+    '<td class="num">'+a.exec_pct.toFixed(1).replace('.',comma())+' %</td></tr>'
+  ).join('') || '<tr><td colspan="9" style="color:var(--text-3);padding:16px">'+T('Nenhum autor individual para os filtros atuais','No individual authors for the current filters')+'</td></tr>';
 }
 
 /* ── Stacked execution chart ── */
@@ -892,24 +911,25 @@ function renderExecChart(byYear) {
   execChart = new Chart(document.getElementById('exec-chart'),{
     type:'bar',
     data:{ labels:anos, datasets:[
-      { label:'Pago no exercício', data:anos.map(a=>byYear[a].pago/1e6),
+      { label:T('Pago no exercício','Paid in the year'), data:anos.map(a=>byYear[a].pago/1e6),
         backgroundColor:'#059669', stack:'s' },
-      { label:'Pago via Restos a Pagar', data:anos.map(a=>byYear[a].rap/1e6),
+      { label:T('Pago via Restos a Pagar','Paid via carried-over commitments'), data:anos.map(a=>byYear[a].rap/1e6),
         backgroundColor:'#14b8a6', stack:'s' },
-      { label:'Empenhado não pago', data:anos.map(a=>Math.max(0,(byYear[a].emp-byYear[a].pago-byYear[a].rap))/1e6),
+      { label:T('Empenhado não pago','Committed, unpaid'), data:anos.map(a=>Math.max(0,(byYear[a].emp-byYear[a].pago-byYear[a].rap))/1e6),
         backgroundColor:'#d4d4d8', stack:'s' },
     ] },
     options:{ responsive:true, maintainAspectRatio:true,
       plugins:{ legend:{ position:'bottom' } },
       scales:{
         x:{ grid:{ display:false } },
-        y:{ stacked:true, grid:{ color:'#f1f1f3' }, ticks:{ callback:v=>v+'M' } } } }
+        y:{ stacked:true, grid:{ color:'#f1f1f3' }, ticks:{ callback:v=>v+T('M','M') } } } }
   });
 }
 
 /* ── Tendency / YoY (base de favorecidos — global, não filtrada) ── */
 let tendChart = null;
-const MONTH_LABELS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const MONTH_LABELS_PT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const MONTH_LABELS_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function renderTendencia() {
   const yoyA = document.getElementById('yoy-a').value;
   const yoyB = document.getElementById('yoy-b').value;
@@ -934,7 +954,7 @@ function renderTendencia() {
   if(tendChart){ tendChart.destroy(); tendChart=null; }
   tendChart = new Chart(document.getElementById('tendencia-chart'),{
     type:'line',
-    data:{ labels:MONTH_LABELS, datasets },
+    data:{ labels:isEN()?MONTH_LABELS_EN:MONTH_LABELS_PT, datasets },
     options:{ responsive:true, maintainAspectRatio:true,
       interaction:{ mode:'index', intersect:false },
       plugins:{ legend:{ position:'bottom' } },
@@ -951,7 +971,7 @@ function renderFavorecidos() {
     const sectorClass = f.setor.split(' ')[0];
     return '<tr><td class="rank">'+(i+1)+'</td>'+
       '<td style="max-width:240px;word-break:break-word">'+f.nome+'</td>'+
-      '<td><span class="setor-badge '+sectorClass+'">'+f.setor+'</span></td>'+
+      '<td><span class="setor-badge '+sectorClass+'">'+tx(f.setor)+'</span></td>'+
       '<td>'+(f.uf||'—')+'</td>'+
       '<td class="num">'+fmt(f.total)+'</td></tr>';
   }).join('');
@@ -960,16 +980,16 @@ function renderFavorecidos() {
   const sectors = Object.entries(st).sort((a,b)=>b[1]-a[1]);
   const maxVal = sectors.length ? sectors[0][1] : 1;
   document.getElementById('sector-breakdown').innerHTML = sectors.map(([s,v])=>
-    '<div class="sector-row"><span>'+s+'</span>'+
+    '<div class="sector-row"><span>'+tx(s)+'</span>'+
     '<span style="font-weight:650;font-variant-numeric:tabular-nums">'+fmt(v)+'</span></div>'+
     '<div class="sector-bar-wrap"><div class="sector-bar" style="width:'+
     (v/maxVal*100).toFixed(1)+'%"></div></div>'
   ).join('');
 
   document.getElementById('conc-10').textContent =
-    DATA.conc_10_pct.toFixed(1).replace('.',',')+' %';
+    DATA.conc_10_pct.toFixed(1).replace('.',comma())+' %';
   document.getElementById('conc-100').textContent =
-    DATA.conc_100_pct.toFixed(1).replace('.',',')+' %';
+    DATA.conc_100_pct.toFixed(1).replace('.',comma())+' %';
 }
 
 /* ── Convênios (global) ── */
@@ -977,11 +997,11 @@ let convChart = null;
 function renderConvenios() {
   const c = DATA.convenios;
   document.getElementById('conv-kpis').innerHTML =
-    '<div class="stat"><div class="stat-label">Convênios firmados</div>'+
+    '<div class="stat"><div class="stat-label">'+T('Convênios firmados','Agreements signed')+'</div>'+
     '<div class="stat-value">'+fmtN(c.total_qtd)+'</div></div>'+
-    '<div class="stat accent"><div class="stat-label">Valor total</div>'+
+    '<div class="stat accent"><div class="stat-label">'+T('Valor total','Total value')+'</div>'+
     '<div class="stat-value money">'+fmt(c.total_valor)+'</div></div>'+
-    '<div class="stat"><div class="stat-label">Convenentes únicos</div>'+
+    '<div class="stat"><div class="stat-label">'+T('Convenentes únicos','Unique counterparties')+'</div>'+
     '<div class="stat-value">'+fmtN(c.convenentes_unicos)+'</div></div>';
 
   document.getElementById('conv-tbody').innerHTML =
@@ -995,14 +1015,14 @@ function renderConvenios() {
   if(convChart){ convChart.destroy(); convChart=null; }
   convChart = new Chart(document.getElementById('conv-chart'),{
     type:'bar',
-    data:{ labels:c.por_funcao.map(f=>f.nome),
+    data:{ labels:c.por_funcao.map(f=>tx(f.nome)),
       datasets:[{ data:c.por_funcao.map(f=>f.total/1e9),
         backgroundColor:'#2d5546', borderRadius:4 }] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ display:false },
-        tooltip:{ callbacks:{ label:(ctx)=>'R$ '+ctx.parsed.x.toFixed(2).replace('.',',')+' bi' } } },
+        tooltip:{ callbacks:{ label:(ctx)=>'R$ '+ctx.parsed.x.toFixed(2).replace('.',comma())+T(' bi',' bn') } } },
       scales:{
-        x:{ grid:{ color:'#f1f1f3' }, ticks:{ callback:v=>v+' bi' } },
+        x:{ grid:{ color:'#f1f1f3' }, ticks:{ callback:v=>v+T(' bi',' bn') } },
         y:{ grid:{ display:false }, ticks:{ font:{ size:10 } } } } }
   });
 }
@@ -1080,14 +1100,14 @@ function renderMap() {
       if(selectedUF===st.uf){
         selectedUF=null;
         setFilter('uf','');
-        document.getElementById('map-selected-info').textContent='Clique em um estado para filtrar';
+        document.getElementById('map-selected-info').textContent=T('Clique em um estado para filtrar','Click a state to filter');
       } else {
         selectedUF=st.uf;
         const idx = UF_NAME_TO_IDX[st.name];
         setFilter('uf', idx==null ? '' : String(idx));
         const pop = DATA.uf_population[st.uf]||0;
         document.getElementById('map-selected-info').innerHTML =
-          '<strong>'+st.name+'</strong><br>'+fmt(totalAbs)+' empenhados<br>'+
+          '<strong>'+st.name+'</strong><br>'+fmt(totalAbs)+T(' empenhados',' committed')+'<br>'+
           fmtPerCapita(pop>0?totalAbs/pop:0);
       }
     });
@@ -1106,7 +1126,7 @@ function renderMap() {
     '<div class="uf-bar-wrap"><div class="uf-bar" style="width:'+
     (p[1]/maxTop*100).toFixed(1)+'%"></div></div>'+
     '<span class="uf-val">'+fmtMapVal(p[1])+'</span></li>'
-  ).join('') || '<li style="color:var(--text-3)">Sem dados para os filtros atuais</li>';
+  ).join('') || '<li style="color:var(--text-3)">'+T('Sem dados para os filtros atuais','No data for the current filters')+'</li>';
 }
 
 function initMapModeToggle() {
@@ -1143,7 +1163,7 @@ function renderPerCapitaRanking() {
   const brRow =
     '<tr style="background:var(--accent-soft);font-weight:700">'+
     '<td class="rank">—</td>'+
-    '<td>BRASIL <span style="font-weight:500;color:var(--text-3);font-size:.72rem">média nacional</span></td>'+
+    '<td>'+T('BRASIL','BRAZIL')+' <span style="font-weight:500;color:var(--text-3);font-size:.72rem">'+T('média nacional','national average')+'</span></td>'+
     '<td class="num">'+fmtN(totalPop)+'</td>'+
     '<td class="num">'+fmt(attribTotal)+'</td>'+
     '<td class="num">'+fmtPerCapita(brPercap)+'</td>'+
@@ -1164,10 +1184,10 @@ function renderPerCapitaRanking() {
   const totalEmp = currentAgg ? currentAgg.kpis.total_empenhado : 0;
   const nonAttrib = Math.max(0, totalEmp - attribTotal);
   document.getElementById('percapita-note').textContent =
-    'Barras azuis: UFs acima da média nacional. '+
-    fmt(nonAttrib)+' em emendas "Múltiplo" ou "Sem informação" não são atribuíveis '+
-    'a uma UF e ficam fora deste ranking (mas compõem os totais do painel). '+
-    'O ranking reflete os filtros ativos.';
+    T('Barras verdes: UFs acima da média nacional. ','Green bars: states above the national average. ')+
+    fmt(nonAttrib)+T(' em emendas "Múltiplo" ou "Sem informação" não são atribuíveis a uma UF e ficam fora deste ranking (mas compõem os totais do painel). ',
+      ' in "Multiple" or "No information" amendments cannot be attributed to a state and are left out of this ranking (but count in the dashboard totals). ')+
+    T('O ranking reflete os filtros ativos.','The ranking reflects the active filters.');
 }
 
 /* ── Anomalias (reflects current filters) ── */
@@ -1176,25 +1196,25 @@ function renderAnomalies(agg) {
   const totalRows = agg.kpis.total_emendas||1;
   const sampleEmp = agg.anomalies.reduce((s,r)=>s+r[6],0);
   document.getElementById('anomaly-summary').innerHTML =
-    '<div class="stat"><div class="stat-label">Emendas sem execução</div>'+
+    '<div class="stat"><div class="stat-label">'+T('Emendas sem execução','Amendments with no execution')+'</div>'+
     '<div class="stat-value" style="color:var(--red)">'+fmtN(semExec)+'</div></div>'+
-    '<div class="stat"><div class="stat-label">Empenhado bloqueado</div>'+
+    '<div class="stat"><div class="stat-label">'+T('Empenhado bloqueado','Committed, stalled')+'</div>'+
     '<div class="stat-value money" style="color:var(--red)">'+fmt(sampleEmp)+'</div>'+
-    '<div class="stat-sub">amostra: top 200 por valor</div></div>'+
-    '<div class="stat"><div class="stat-label">% das emendas filtradas</div>'+
+    '<div class="stat-sub">'+T('amostra: top 200 por valor','sample: top 200 by amount')+'</div></div>'+
+    '<div class="stat"><div class="stat-label">'+T('% das emendas filtradas','% of filtered amendments')+'</div>'+
     '<div class="stat-value" style="color:var(--red)">'+
-    (semExec/totalRows*100).toFixed(1).replace('.',',')+' %</div></div>';
+    (semExec/totalRows*100).toFixed(1).replace('.',comma())+' %</div></div>';
 
   document.getElementById('anomaly-tbody').innerHTML =
     agg.anomalies.map(r=>{
       const autor = DS.autores[r[2]];
       return '<tr><td>'+DS.anos[r[0]]+'</td>'+
       '<td class="ellip" style="max-width:180px" title="'+autor+'">'+(autor||'—')+'</td>'+
-      '<td>'+(DS.ufs[r[3]]||'—')+'</td><td>'+(DS.funcoes[r[5]]||'—')+'</td>'+
-      '<td><span class="cat-badge">'+DS.cats[r[9]]+'</span></td>'+
+      '<td>'+(tx(DS.ufs[r[3]])||'—')+'</td><td>'+(tx(DS.funcoes[r[5]])||'—')+'</td>'+
+      '<td><span class="cat-badge">'+tx(DS.cats[r[9]])+'</span></td>'+
       '<td class="num">'+fmt(r[6])+'</td>'+
-      '<td><span class="flag-danger">Sem execução</span></td></tr>';
-    }).join('') || '<tr><td colspan="7" style="color:var(--text-3);padding:16px">Nenhuma anomalia para os filtros atuais</td></tr>';
+      '<td><span class="flag-danger">'+T('Sem execução','No execution')+'</span></td></tr>';
+    }).join('') || '<tr><td colspan="7" style="color:var(--text-3);padding:16px">'+T('Nenhuma anomalia para os filtros atuais','No anomalies for the current filters')+'</td></tr>';
 }
 
 /* ── Filter state ── */
@@ -1203,13 +1223,14 @@ let filteredRows = ROWS;
 let searchTerm = '';
 let currentPage = 0;
 const PAGE_SIZE = 50;
-const FILTER_LABELS = { ano:'Ano', uf:'UF', tipo:'Tipo', cat:'Categoria', partido:'Partido' };
+const FILTER_LABELS_PT = { ano:'Ano', uf:'UF', tipo:'Tipo', cat:'Categoria', partido:'Partido' };
+const FILTER_LABELS_EN = { ano:'Year', uf:'State', tipo:'Type', cat:'Category', partido:'Party' };
 const FILTER_DICTS = { ano:'anos', uf:'ufs', tipo:'tipos', cat:'cats', partido:'partidos' };
 
 function filterDisplay(key, val) {
   const dict = DS[FILTER_DICTS[key]];
   const name = dict[parseInt(val)];
-  return name===undefined ? val : name;
+  return name===undefined ? val : tx(name);
 }
 
 function setFilter(key, val) {
@@ -1221,7 +1242,7 @@ function setFilter(key, val) {
     const name = val==='' ? null : DS.ufs[parseInt(val)];
     selectedUF = name ? (NAME_TO_ABBR[name]||null) : null;
     if(!selectedUF)
-      document.getElementById('map-selected-info').textContent='Clique em um estado para filtrar';
+      document.getElementById('map-selected-info').textContent=T('Clique em um estado para filtrar','Click a state to filter');
   }
   applyFilters();
   renderFilterChips();
@@ -1231,11 +1252,11 @@ function renderFilterChips() {
   const container = document.getElementById('active-chips');
   const active = Object.entries(filterState).filter(e=>e[1]!=='');
   if(active.length===0){
-    container.innerHTML='<span class="no-filters">Nenhum filtro ativo</span>';
+    container.innerHTML='<span class="no-filters">'+T('Nenhum filtro ativo','No active filters')+'</span>';
     return;
   }
   container.innerHTML = active.map(e=>
-    '<span class="chip" data-key="'+e[0]+'">'+FILTER_LABELS[e[0]]+': '+
+    '<span class="chip" data-key="'+e[0]+'">'+(isEN()?FILTER_LABELS_EN:FILTER_LABELS_PT)[e[0]]+': '+
     filterDisplay(e[0],e[1])+' <span class="remove">×</span></span>'
   ).join('');
   container.querySelectorAll('.chip').forEach(chip=>{
@@ -1289,25 +1310,25 @@ function renderTable() {
   const page = filteredRows.slice(start, start+PAGE_SIZE);
   document.getElementById('main-tbody').innerHTML = page.map(r=>{
     const rowClass = r[11] ? ' class="sem-exec"' : '';
-    const cat2 = r[10]>=0 ? ' <span class="cat-badge secondary">'+DS.cats[r[10]]+'</span>' : '';
+    const cat2 = r[10]>=0 ? ' <span class="cat-badge secondary">'+tx(DS.cats[r[10]])+'</span>' : '';
     const autor = DS.autores[r[2]], mun = DS.municipios[r[4]];
     return '<tr'+rowClass+'><td>'+DS.anos[r[0]]+'</td>'+
-      '<td style="white-space:nowrap">'+DS.tipos[r[1]]+'</td>'+
+      '<td style="white-space:nowrap">'+tx(DS.tipos[r[1]])+'</td>'+
       '<td class="ellip" style="max-width:150px" title="'+autor+'">'+(autor||'—')+'</td>'+
-      '<td>'+(DS.ufs[r[3]]||'—')+'</td>'+
+      '<td>'+(tx(DS.ufs[r[3]])||'—')+'</td>'+
       '<td class="ellip" style="max-width:130px" title="'+mun+'">'+(mun||'—')+'</td>'+
-      '<td>'+(DS.funcoes[r[5]]||'—')+'</td>'+
+      '<td>'+(tx(DS.funcoes[r[5]])||'—')+'</td>'+
       '<td class="num">'+fmt(r[6])+'</td>'+
       '<td class="num soft">'+fmt(r[7])+'</td>'+
       '<td class="num soft">'+fmt(r[8])+'</td>'+
-      '<td><span class="cat-badge">'+DS.cats[r[9]]+'</span>'+cat2+'</td></tr>';
+      '<td><span class="cat-badge">'+tx(DS.cats[r[9]])+'</span>'+cat2+'</td></tr>';
   }).join('');
 
   const total = filteredRows.length;
   document.getElementById('table-badge').textContent = fmtN(total);
   document.getElementById('table-info').textContent = total===0
-    ? 'Nenhum resultado'
-    : 'Mostrando '+fmtN(start+1)+'–'+fmtN(Math.min(start+PAGE_SIZE,total))+' de '+fmtN(total);
+    ? T('Nenhum resultado','No results')
+    : T('Mostrando ','Showing ')+fmtN(start+1)+'–'+fmtN(Math.min(start+PAGE_SIZE,total))+T(' de ',' of ')+fmtN(total);
   renderPagination(total);
 }
 
@@ -1315,7 +1336,7 @@ function renderPagination(total) {
   const pages = Math.ceil(total/PAGE_SIZE);
   const pg = document.getElementById('pagination');
   if(pages<=1){ pg.innerHTML=''; return; }
-  let html = '<button class="page-btn" id="prev-btn" '+(currentPage===0?'disabled':'')+'>‹ Anterior</button>';
+  let html = '<button class="page-btn" id="prev-btn" '+(currentPage===0?'disabled':'')+'>‹ '+T('Anterior','Previous')+'</button>';
   const w = 2;
   for(let i=0;i<pages;i++){
     if(i===0||i===pages-1||Math.abs(i-currentPage)<=w){
@@ -1324,7 +1345,7 @@ function renderPagination(total) {
       html+='<span style="padding:0 4px;color:var(--text-3)">…</span>';
     }
   }
-  html+='<button class="page-btn" id="next-btn" '+(currentPage===pages-1?'disabled':'')+'>Próximo ›</button>';
+  html+='<button class="page-btn" id="next-btn" '+(currentPage===pages-1?'disabled':'')+'>'+T('Próximo','Next')+' ›</button>';
   pg.innerHTML = html;
   pg.querySelectorAll('[data-page]').forEach(btn=>{
     btn.addEventListener('click',function(){
@@ -1343,7 +1364,7 @@ function addOptions(selId, pairs) {
   const sel = document.getElementById(selId);
   pairs.forEach(p=>{
     const opt = document.createElement('option');
-    opt.value=String(p[0]); opt.textContent=p[1];
+    opt.value=String(p[0]); opt.textContent=tx(p[1]); opt.dataset.label=p[1];
     sel.appendChild(opt);
   });
 }
@@ -1373,7 +1394,7 @@ function initFilters() {
   document.getElementById('btn-edit-filters').addEventListener('click',function(){
     const panel = document.getElementById('filter-panel');
     panel.classList.toggle('open');
-    this.textContent = panel.classList.contains('open') ? 'Fechar filtros' : 'Editar filtros';
+    this.textContent = panel.classList.contains('open') ? T('Fechar filtros','Close filters') : T('Editar filtros','Edit filters');
   });
 
   ['f-ano','f-uf','f-tipo','f-cat','f-partido'].forEach(id=>{
@@ -1391,7 +1412,7 @@ function initFilters() {
     searchTerm='';
     document.getElementById('search-input').value='';
     selectedUF=null;
-    document.getElementById('map-selected-info').textContent='Clique em um estado para filtrar';
+    document.getElementById('map-selected-info').textContent=T('Clique em um estado para filtrar','Click a state to filter');
     applyFilters();
     renderFilterChips();
   });
@@ -1424,6 +1445,14 @@ function initScrollspy() {
   sections.forEach(s=>obs.observe(s));
 }
 
+/* ── Labels set once from code (re-applied when the language changes) ── */
+function applyStaticLabels() {
+  const panel = document.getElementById('filter-panel');
+  document.getElementById('btn-edit-filters').textContent =
+    panel.classList.contains('open') ? T('Fechar filtros','Close filters') : T('Editar filtros','Edit filters');
+  if(!selectedUF) document.getElementById('map-selected-info').textContent=T('Clique em um estado para filtrar','Click a state to filter');
+}
+
 /* ── Boot ── */
 function boot() {
   fullAgg = aggregateRows(ROWS);
@@ -1433,7 +1462,17 @@ function boot() {
   renderFavorecidos();
   renderConvenios();
   applyFilters();        // renders all filter-aware sections from fullAgg
+  renderFilterChips();
+  applyStaticLabels();
   initScrollspy();
+  if(window.siteLang) window.siteLang.on(function(){
+    // Re-render everything that builds text from code; filters and page stay as they are.
+    document.querySelectorAll('#filter-panel option[data-label]').forEach(o=>{ o.textContent=tx(o.dataset.label); });
+    applyStaticLabels();
+    renderTendencia(); renderFavorecidos(); renderConvenios();
+    const page=currentPage; applyFilters(); currentPage=page; renderTable();
+    renderFilterChips();
+  });
 }
 
 document.addEventListener('DOMContentLoaded', boot);
