@@ -381,6 +381,46 @@ const M = {
   },
 };
 
+
+/* ──────────────────────────────────────────
+   ENGLISH COPY — questions and display labels
+   (the site-wide PT/EN switch picks the language;
+   AI prompts are always in English)
+────────────────────────────────────────── */
+const QS_EN = {
+  1:['Main purpose of your photo',{A:'Corporate / LinkedIn',B:'Personal branding & social media',C:'Speaker / event bio',D:'Creative / artistic portfolio',E:'Press / media & publications'}],
+  2:['Gender presentation',{A:'Male',B:'Female',C:'Androgynous / non-binary',D:'Prefer not to say'}],
+  3:['Skin tone',{A:'Very fair / porcelain',B:'Fair / beige',C:'Medium / warm olive',D:'Tan / caramel',E:'Deep brown',F:'Very dark / ebony'}],
+  4:['Hair',{A:'Short and dark (black/dark brown)',B:'Short and light (blonde/grey/white)',C:'Medium, straight and dark',D:'Medium, curly/wavy',E:'Long and straight',F:'Long and curly / voluminous',G:'Shaved / bald / very short'}],
+  5:['Industry / profession',{A:'Technology & startups',B:'Finance, law or consulting',C:'Creative, design or media',D:'Health or science',E:'Education or academia',F:'Executive / C-suite leadership',G:'Entrepreneur / founder'}],
+  6:['Desired level of formality',{A:'Ultra-formal (suit & tie / haute couture)',B:'Business formal (structured blazer)',C:'Business casual (polished but relaxed)',D:'Smart casual (clean, modern)',E:'Creative casual (expressive, artistic)'}],
+  7:['The impression you want to make',{A:'Authoritative and commanding',B:'Approachable and warm',C:'Creative and innovative',D:'Trustworthy and solid',E:'Dynamic and energetic',F:'Sophisticated and elegant'}],
+  8:['Background / setting',{A:'Modern office interior, blurred',B:'Contemporary urban exterior',C:'Nature / lush greenery',D:'Clean studio backdrop (white / light grey)',E:'Dark dramatic backdrop (charcoal / deep tones)',F:'Architecture / geometric / brutalist'}],
+  9:['Lighting mood',{A:'Bright and clean — natural, airy',B:'Soft and warm — golden-hour glow',C:'Dramatic — high contrast, deep shadows',D:'Cool and modern — blue-white tones',E:'Cinematic — film color science'}],
+  10:['Wardrobe color palette',{A:'Neutrals (white, grey, black, navy)',B:'Earth tones (beige, brown, rust, olive)',C:'Saturated colors (cobalt, emerald, crimson)',D:'Pastels (blush, sky blue, lavender)',E:'Monochrome (tonal look in one color)'}],
+  11:['Framing / crop',{A:'Tight headshot (face and upper shoulders)',B:'Half-body (waist up)',C:'Three-quarter',D:'Full body',E:'Candid / in motion'}],
+  12:['Your age range',{A:'18–25',B:'26–35',C:'36–45',D:'46–55',E:'56 or older'}],
+  13:['Facial expression / emotion',{A:'Confident closed-mouth smile',B:'Warm open smile (teeth showing)',C:'Serious and composed — no smile',D:'Thoughtful / contemplative look',E:'Power pose — strong, intense'}],
+  14:['Reference style archetype',{A:'Fortune 500 executive (classic, institutional)',B:'Tech founder (smart casual, minimalist)',C:'Creative director (editorial, fashion-forward)',D:'Academic intellectual (understated, credible)',E:'Luxury professional (refined, high-end)'}],
+  15:['Body type / build (for body shots — pick the closest)',{A:'Slim / lean',B:'Athletic / muscular',C:'Average / medium build',D:'Curvy / full-figured',E:'Plus size / large frame'}],
+  16:['Accessories',{A:'None — clean minimalism',B:'Classic glasses (tortoiseshell / metal frame)',C:'Fashion glasses (bold frames)',D:'Subtle jewelry (fine chains, small earrings)',E:'Statement piece (watch, necklace, bold earrings)'}],
+  17:['Camera angle',{A:'Eye level — neutral, honest',B:'Slightly low — powerful, commanding',C:'Slightly high — approachable, soft',D:'Dynamic / slight tilt — creative energy'}],
+  18:['Post-production / editing style',{A:'Natural and clean — minimal retouching',B:'High-fashion editorial — polished, flawless',C:'Cinematic — grain, color grading',D:'Documentary — raw, authentic',E:'Artistic / stylized — creative treatment'}],
+  19:['Main distribution platform',{A:'LinkedIn & professional networks',B:'Instagram & personal social media',C:'Company website / team page',D:'Speaker bureau & event materials',E:'Book, press kit or publication'}],
+  20:['Special element to include',{A:'Work-related prop (laptop, instrument, tool)',B:'Brand colors or visual identity element',C:'Cultural or heritage visual element',D:'Seasonal or location-specific mood',E:'None — pure, clean portrait'}],
+};
+const LBL_EN = {
+  formalityLbl:  {A:'Ultra-Formal', B:'Business Formal', C:'Business Casual', D:'Smart Casual', E:'Creative Casual'},
+  paletteLbl:    {A:'Neutrals', B:'Earth Tones', C:'Saturated', D:'Pastels', E:'Monochrome'},
+  lightingLbl:   {A:'Bright & Clean', B:'Soft & Warm', C:'Dramatic', D:'Cool & Modern', E:'Cinematic'},
+  framingLbl:    {A:'Tight Headshot', B:'Half-Body', C:'Three-Quarter', D:'Full Body', E:'Candid / In Motion'},
+  angleLbl:      {A:'Eye Level', B:'Low Angle', C:'High Angle', D:'Creative Tilt'},
+  postProcessLbl:{A:'Natural & Clean', B:'High-Fashion Editorial', C:'Cinematic', D:'Documentary', E:'Artistic / Stylized'},
+  platformLbl:   {A:'LinkedIn & Professional Networks', B:'Instagram & Social Media', C:'Company Website', D:'Speaker Bureau', E:'Press Kit / Publication'},
+};
+function T(pt, en) { return window.siteLang ? window.siteLang.t(pt, en) : pt; }
+function isEN() { return !!window.siteLang && window.siteLang.get() === 'en'; }
+
 /* ──────────────────────────────────────────
    STATE
 ────────────────────────────────────────── */
@@ -418,15 +458,15 @@ function renderQ() {
   document.getElementById('prog-fill').style.width = pct + '%';
 
   var html = '<div class="question-block">'
-    + '<div class="q-number">Pergunta ' + q.n + '  /  ' + total + '</div>'
-    + '<h2 class="q-text">' + q.text + '</h2>'
+    + '<div class="q-number">' + T('Pergunta', 'Question') + ' ' + q.n + '  /  ' + total + '</div>'
+    + '<h2 class="q-text">' + (isEN() ? QS_EN[q.n][0] : q.text) + '</h2>'
     + '<div class="options-stack">';
 
   q.opts.forEach(function(o) {
     var sel = ans[q.n] === o.id ? ' selected' : '';
     html += '<div class="opt-card' + sel + '" data-pick="' + o.id + '" id="opt-' + o.id + '">'
       + '<div class="opt-badge">' + o.id + '</div>'
-      + '<div class="opt-text">' + o.t + '</div>'
+      + '<div class="opt-text">' + (isEN() ? QS_EN[q.n][1][o.id] : o.t) + '</div>'
       + '</div>';
   });
 
@@ -483,6 +523,7 @@ function loadHash() {
 function profile() {
   var a = ans;
   var fk = a[11] || 'A';
+  var lbl = function(name, key, fallback) { return (isEN() ? LBL_EN[name] : M[name])[key] || fallback; };
   return {
     gender:         M.gender[a[2]]         || 'person',
     genderPoss:     M.genderPoss[a[2]]     || 'their',
@@ -490,30 +531,30 @@ function profile() {
     hair:           M.hair[a[4]]           || 'hair',
     age:            M.age[a[12]]           || 'adult',
     formality:      M.formality[a[6]]      || 'professional attire',
-    formalityLbl:   M.formalityLbl[a[6]]   || 'Professional',
+    formalityLbl:   lbl('formalityLbl', a[6], 'Professional'),
     palette:        M.palette[a[10]]       || 'neutral palette',
-    paletteLbl:     M.paletteLbl[a[10]]    || 'Neutros',
+    paletteLbl:     lbl('paletteLbl', a[10], 'Neutros'),
     bg:             M.bg[a[8]]             || 'studio backdrop',
     bgLbl:          M.bgLbl[a[8]]          || 'Studio',
-    bgLblPT:        M.bgLblPT[a[8]]        || 'Estúdio',
+    bgLblPT:        (isEN() ? M.bgLbl : M.bgLblPT)[a[8]] || 'Estúdio',
     lighting:       M.lighting[a[9]]       || 'studio lighting',
-    lightingLbl:    M.lightingLbl[a[9]]    || 'Claro & Limpo',
+    lightingLbl:    lbl('lightingLbl', a[9], 'Claro & Limpo'),
     impression:     M.impression[a[7]]     || 'professional presence',
     expression:     M.expression[a[13]]    || 'composed expression',
     framing:        M.framing[fk]          || 'portrait',
-    framingLbl:     M.framingLbl[fk]       || 'Headshot Fechado',
+    framingLbl:     lbl('framingLbl', fk, 'Headshot Fechado'),
     framingKey:     fk,
     lens:           M.lens[fk]             || '85mm f/1.8',
     lensShort:      M.lensShort[fk]        || '85mm f/1.8',
     angle:          M.angle[a[17]]         || 'eye level',
-    angleLbl:       M.angleLbl[a[17]]      || 'Nível dos Olhos',
+    angleLbl:       lbl('angleLbl', a[17], 'Nível dos Olhos'),
     postProcess:    M.postProcess[a[18]]   || 'natural edit',
-    postProcessLbl: M.postProcessLbl[a[18]]|| 'Natural & Limpo',
+    postProcessLbl: lbl('postProcessLbl', a[18], 'Natural & Limpo'),
     archetype:      M.archetype[a[14]]     || 'Professional',
     archetypeDesc:  M.archetypeDesc[a[14]] || 'professional quality',
     industry:       M.industry[a[5]]       || 'professional field',
     purposeLbl:     M.purposeLbl[a[1]]     || 'Professional',
-    platformLbl:    M.platformLbl[a[19]]   || 'Plataforma Profissional',
+    platformLbl:    lbl('platformLbl', a[19], 'Plataforma Profissional'),
     body:           M.body[a[15]]          || 'medium build',
     accessory:      M.accessory[a[16]]     || '',
     special:        M.special[a[20]]       || '',
@@ -550,8 +591,8 @@ function promptA(p) {
 }
 
 function promptB(p) {
-  /* lightingLbl is now in PT — compare against PT strings */
-  var editLight = (p.lightingLbl === 'Dramático' || p.lightingLbl === 'Cinematográfico')
+  /* compare the answer key, not the display label, which changes with the language */
+  var editLight = (ans[9] === 'C' || ans[9] === 'E')
     ? p.lighting
     : 'hard directional single-source key light with dramatic shadow fall-off, fashion-editorial contrast';
   /* bgLbl stays English — compare and interpolate against EN strings */
@@ -597,6 +638,12 @@ function promptC(p) {
    NOTA DE DIREÇÃO DO FOTÓGRAFO  (PT)
 ────────────────────────────────────────── */
 function dirNote(p) {
+  if (isEN()) {
+    return 'For this <strong>' + p.archetype + '</strong> portrait — intended for <strong>' + p.platformLbl + '</strong> — every frame should convey <strong>' + p.impression + '</strong>. '
+      + 'We will shoot on a <strong>' + p.lensShort + '</strong> lens, ' + p.angleLbl.toLowerCase() + ', under <strong>' + p.lightingLbl.toLowerCase() + ' lighting</strong> (' + p.lighting.split('—')[0].trim() + '). '
+      + 'The subject will wear a ' + p.formalityLbl.toLowerCase() + ' look in ' + p.paletteLbl.toLowerCase() + ' — the wardrobe should sit with the "' + p.bgLblPT + '" setting without color clashes. '
+      + 'All post-production should aim for a <strong>' + p.postProcessLbl.toLowerCase() + '</strong> result — conveying ' + p.archetypeDesc + ', without excess or artificiality.';
+  }
   var imp       = M.impressionPT[ans[7]]    || p.impression;
   var archDescPT = M.archetypeDescPT[ans[14]] || p.archetypeDesc;
   return 'Para este retrato de <strong>' + p.archetype + '</strong> — destinado a <strong>' + p.platformLbl + '</strong> — o objetivo é transmitir em cada frame: <strong>' + imp + '</strong>. '
@@ -623,6 +670,13 @@ function scoredTools() {
     'Stable Diffusion + ControlNet': 'Controle preciso de pose corporal via mapas de profundidade — essencial para retratos de corpo inteiro e estruturas físicas não-padrão.',
   };
 
+  var descsEN = {
+    'Midjourney': 'The reference for editorial, fashion-forward and cinematic portrait aesthetics. Excellent at mood and atmosphere.',
+    'DALL·E 3': 'Great for clean, natural corporate headshots. Simple prompts, reliable results for LinkedIn and team pages.',
+    'Flux (FLUX.1 dev)': 'State-of-the-art photorealism. Ideal for documentary and lifestyle shots that need to look like real photographs.',
+    'Stable Diffusion + ControlNet': 'Precise body-pose control via depth maps — essential for full-body portraits and non-standard builds.',
+  };
+
   if (['C','E'].indexOf(a[14]) !== -1) scores['Midjourney'] += 3;
   if (['C','E'].indexOf(a[9])  !== -1) scores['Midjourney'] += 2;
   if (['B','E'].indexOf(a[18]) !== -1) scores['Midjourney'] += 2;
@@ -647,13 +701,13 @@ function scoredTools() {
 
   return Object.keys(scores)
     .sort(function(x, y) { return scores[y] - scores[x]; })
-    .map(function(name, i) { return { name: name, desc: descs[name], rank: i }; });
+    .map(function(name, i) { return { name: name, desc: isEN() ? descsEN[name] : descs[name], rank: i }; });
 }
 
 /* ──────────────────────────────────────────
    RENDER RESULTADOS
 ────────────────────────────────────────── */
-function buildResults() {
+function buildResults(keepScroll) {
   var p = profile();
   var pA = promptA(p);
   var pB = promptB(p);
@@ -664,9 +718,9 @@ function buildResults() {
   var toolsHTML = tools.map(function(t) {
     var cls = t.rank === 0 ? 'tool-card top' : t.rank === 1 ? 'tool-card second' : 'tool-card';
     var badge = t.rank === 0
-      ? '<span class="tool-rec-badge">★ Recomendação Principal</span>'
+      ? '<span class="tool-rec-badge">★ ' + T('Recomendação Principal', 'Top Recommendation') + '</span>'
       : t.rank === 1
-        ? '<span class="tool-rec-badge" style="color:var(--text2)">◆ Forte Alternativa</span>'
+        ? '<span class="tool-rec-badge" style="color:var(--text2)">◆ ' + T('Forte Alternativa', 'Strong Alternative') + '</span>'
         : '';
     return '<div class="' + cls + '">' + badge
       + '<div class="tool-name">' + t.name + '</div>'
@@ -676,63 +730,63 @@ function buildResults() {
   document.getElementById('results-root').innerHTML =
     '<div class="results-header">'
     + '<div class="gold-rule" style="margin-bottom:1.2rem"></div>'
-    + '<div class="results-eyebrow">✶ Seus Resultados</div>'
-    + '<h2 class="results-title">Seu Perfil Fotográfico</h2>'
-    + '<p class="results-desc">Seu blueprint profissional de retrato — pronto para geração por IA.</p>'
+    + '<div class="results-eyebrow">✶ ' + T('Seus Resultados', 'Your Results') + '</div>'
+    + '<h2 class="results-title">' + T('Seu Perfil Fotográfico', 'Your Photographic Profile') + '</h2>'
+    + '<p class="results-desc">' + T('Seu blueprint profissional de retrato — pronto para geração por IA.', 'Your professional portrait blueprint — ready for AI generation.') + '</p>'
     + '</div>'
 
     + '<div class="id-card">'
-    + '<div class="id-card-label">✶ Cartão de Identidade Fotográfica</div>'
+    + '<div class="id-card-label">✶ ' + T('Cartão de Identidade Fotográfica', 'Photographic Identity Card') + '</div>'
     + '<div class="id-grid">'
-    + '<div class="id-item"><div class="id-item-label">Objetivo</div><div class="id-item-value">' + p.purposeLbl + '</div></div>'
-    + '<div class="id-item"><div class="id-item-label">Arquétipo</div><div class="id-item-value">' + p.archetype + '</div></div>'
-    + '<div class="id-item"><div class="id-item-label">Iluminação</div><div class="id-item-value">' + p.lightingLbl + '</div></div>'
-    + '<div class="id-item"><div class="id-item-label">Cenário</div><div class="id-item-value">' + p.bgLblPT + '</div></div>'
-    + '<div class="id-item"><div class="id-item-label">Paleta</div><div class="id-item-value">' + p.paletteLbl + '</div></div>'
-    + '<div class="id-item"><div class="id-item-label">Enquadramento</div><div class="id-item-value">' + p.framingLbl + '</div></div>'
-    + '<div class="id-item"><div class="id-item-label">Formalidade</div><div class="id-item-value">' + p.formalityLbl + '</div></div>'
-    + '<div class="id-item"><div class="id-item-label">Plataforma</div><div class="id-item-value">' + p.platformLbl + '</div></div>'
+    + '<div class="id-item"><div class="id-item-label">' + T('Objetivo', 'Purpose') + '</div><div class="id-item-value">' + p.purposeLbl + '</div></div>'
+    + '<div class="id-item"><div class="id-item-label">' + T('Arquétipo', 'Archetype') + '</div><div class="id-item-value">' + p.archetype + '</div></div>'
+    + '<div class="id-item"><div class="id-item-label">' + T('Iluminação', 'Lighting') + '</div><div class="id-item-value">' + p.lightingLbl + '</div></div>'
+    + '<div class="id-item"><div class="id-item-label">' + T('Cenário', 'Setting') + '</div><div class="id-item-value">' + p.bgLblPT + '</div></div>'
+    + '<div class="id-item"><div class="id-item-label">' + T('Paleta', 'Palette') + '</div><div class="id-item-value">' + p.paletteLbl + '</div></div>'
+    + '<div class="id-item"><div class="id-item-label">' + T('Enquadramento', 'Framing') + '</div><div class="id-item-value">' + p.framingLbl + '</div></div>'
+    + '<div class="id-item"><div class="id-item-label">' + T('Formalidade', 'Formality') + '</div><div class="id-item-value">' + p.formalityLbl + '</div></div>'
+    + '<div class="id-item"><div class="id-item-label">' + T('Plataforma', 'Platform') + '</div><div class="id-item-value">' + p.platformLbl + '</div></div>'
     + '</div></div>'
 
     + '<div class="section">'
-    + '<div class="section-head">Prompts para IA</div>'
-    + '<p style="font-size:0.72rem;color:var(--muted);margin:-0.5rem 0 1.2rem;letter-spacing:0.03em;">em inglês — as ferramentas de IA funcionam melhor com prompts em inglês</p>'
+    + '<div class="section-head">' + T('Prompts para IA', 'AI Prompts') + '</div>'
+    + '<p style="font-size:0.72rem;color:var(--muted);margin:-0.5rem 0 1.2rem;letter-spacing:0.03em;">' + T('em inglês — as ferramentas de IA funcionam melhor com prompts em inglês', 'AI image tools respond best to English prompts') + '</p>'
 
     + '<div class="prompt-card">'
-    + '<div class="prompt-label">Prompt A &mdash; Principal &middot; Midjourney / DALL&middot;E 3 / Flux</div>'
+    + '<div class="prompt-label">Prompt A &mdash; ' + T('Principal', 'Primary') + ' &middot; Midjourney / DALL&middot;E 3 / Flux</div>'
     + '<div class="prompt-body" id="pA">' + pA + '</div>'
-    + '<button class="copy-btn" data-copy="pA">&#x2398; Copiar Prompt A</button>'
+    + '<button class="copy-btn" data-copy="pA">&#x2398; ' + T('Copiar', 'Copy') + ' Prompt A</button>'
     + '</div>'
 
     + '<div class="prompt-card">'
-    + '<div class="prompt-label">Prompt B &mdash; Variante Editorial</div>'
+    + '<div class="prompt-label">Prompt B &mdash; ' + T('Variante Editorial', 'Editorial Variant') + '</div>'
     + '<div class="prompt-body" id="pB">' + pB + '</div>'
-    + '<button class="copy-btn" data-copy="pB">&#x2398; Copiar Prompt B</button>'
+    + '<button class="copy-btn" data-copy="pB">&#x2398; ' + T('Copiar', 'Copy') + ' Prompt B</button>'
     + '</div>'
 
     + '<div class="prompt-card">'
-    + '<div class="prompt-label">Prompt C &mdash; Variante Candid / Lifestyle</div>'
+    + '<div class="prompt-label">Prompt C &mdash; ' + T('Variante Candid / Lifestyle', 'Candid / Lifestyle Variant') + '</div>'
     + '<div class="prompt-body" id="pC">' + pC + '</div>'
-    + '<button class="copy-btn" data-copy="pC">&#x2398; Copiar Prompt C</button>'
+    + '<button class="copy-btn" data-copy="pC">&#x2398; ' + T('Copiar', 'Copy') + ' Prompt C</button>'
     + '</div>'
     + '</div>'
 
     + '<div class="section">'
-    + '<div class="section-head">Nota de Direção do Fotógrafo</div>'
+    + '<div class="section-head">' + T('Nota de Direção do Fotógrafo', 'Photographer&#39;s Direction Note') + '</div>'
     + '<div class="director-note">' + note + '</div>'
     + '</div>'
 
     + '<div class="section">'
-    + '<div class="section-head">Ferramentas de IA Recomendadas</div>'
+    + '<div class="section-head">' + T('Ferramentas de IA Recomendadas', 'Recommended AI Tools') + '</div>'
     + '<div class="tools-grid">' + toolsHTML + '</div>'
     + '</div>'
 
     + '<div class="action-bar">'
-    + '<button class="btn-outline" id="btn-retake">&larr; Refazer o Quiz</button>'
-    + '<button class="btn-gold-outline" id="btn-share">Compartilhar Resultados &nearr;</button>'
+    + '<button class="btn-outline" id="btn-retake">&larr; ' + T('Refazer o Quiz', 'Retake the Quiz') + '</button>'
+    + '<button class="btn-gold-outline" id="btn-share">' + T('Compartilhar Resultados', 'Share Results') + ' &nearr;</button>'
     + '</div>';
 
-  show('screen-results');
+  if (!keepScroll) show('screen-results');
 }
 
 /* ──────────────────────────────────────────
@@ -742,7 +796,7 @@ function doCopy(elId, btn) {
   var text = document.getElementById(elId).textContent;
   var orig = btn.textContent;
   function confirm() {
-    btn.textContent = '✓ Copiado!';
+    btn.textContent = T('✓ Copiado!', '✓ Copied!');
     btn.classList.add('copied');
     setTimeout(function() { btn.textContent = orig; btn.classList.remove('copied'); }, 2600);
   }
@@ -768,7 +822,7 @@ function doShare(btn) {
   var orig = btn.textContent;
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(url).then(function() {
-      btn.textContent = '✓ Link copiado!';
+      btn.textContent = T('✓ Link copiado!', '✓ Link copied!');
       setTimeout(function() { btn.textContent = orig; }, 2600);
     });
   }
@@ -801,6 +855,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (btn.id === 'btn-retake') { retake(); return; }
     if (btn.id === 'btn-share')  { doShare(btn); return; }
     if (btn.dataset.copy)        { doCopy(btn.dataset.copy, btn); }
+  });
+
+  // Re-render whatever is on screen when the site language changes
+  if (window.siteLang) window.siteLang.on(function() {
+    if (document.getElementById('screen-quiz').style.display === 'block') renderQ();
+    else if (document.getElementById('screen-results').style.display === 'block') buildResults(true);
   });
 
   // Carregar do hash da URL ou mostrar a intro

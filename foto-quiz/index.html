@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-lang="pt" data-pt-title="Quiz de Perfil Fotográfico — Sua Identidade Fotográfica" data-en-title="Photo Profile Quiz — Your Photographic Identity">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -166,7 +166,7 @@
       letter-spacing: 0.07em;
       animation: fadeUp 0.7s 0.75s ease both;
     }
-    .intro-meta span { color: var(--border2); margin: 0 0.4rem; }
+    .intro-meta span:not([lang]) { color: var(--border2); margin: 0 0.4rem; }
 
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(18px); }
@@ -536,17 +536,21 @@
     }
   </style>
   <link rel="stylesheet" href="/assets/site.css" />
+  <script src="/assets/i18n.js"></script>
   <link rel="icon" href="/assets/favicon.svg" />
 </head>
 <body>
 <header class="site-bar">
   <a class="site-brand" href="/"><span class="site-mark" aria-hidden="true">ac</span>Andrey Costa</a>
-  <nav class="site-nav" aria-label="Site">
-    <a href="/">Início</a>
-    <a href="/#projects">Projetos</a>
-    <a href="/textos/">Textos</a>
-    <a href="/curriculum">Curriculum</a>
-  </nav>
+  <div class="site-tools">
+    <nav class="site-nav" aria-label="Site">
+      <a href="/"><span lang="pt">Início</span><span lang="en">Home</span></a>
+      <a href="/#projects"><span lang="pt">Projetos</span><span lang="en">Projects</span></a>
+      <a href="/textos/"><span lang="pt">Textos</span><span lang="en">Essays</span></a>
+      <a href="/curriculum"><span lang="pt">Currículo</span><span lang="en">Curriculum</span></a>
+    </nav>
+    <div class="lang-switch" role="group" aria-label="Idioma / Language"><button type="button" data-set-lang="pt" aria-pressed="true">PT</button><button type="button" data-set-lang="en" aria-pressed="false">EN</button></div>
+  </div>
 </header>
 
 <!-- ════════════════════════════════════════
@@ -554,16 +558,16 @@
 ════════════════════════════════════════ -->
 <div id="screen-intro" class="screen">
   <div class="intro-inner">
-    <div class="intro-eyebrow">Sistema de Identidade Fotográfica</div>
-    <h1 class="intro-title">Seu Retrato,<br><em>Construído</em></h1>
+    <div class="intro-eyebrow"><span lang="pt">Sistema de Identidade Fotográfica</span><span lang="en">Photographic Identity System</span></div>
+    <h1 class="intro-title"><span lang="pt">Seu Retrato,<br><em>Construído</em></span><span lang="en">Your Portrait,<br><em>Engineered</em></span></h1>
     <p class="intro-sub">
-      20 perguntas. Um perfil fotográfico completo. Três prompts para IA prontos para usar — escritos como se um fotógrafo comercial de alto nível estivesse dirigindo a sessão.
+      <span lang="pt">20 perguntas. Um perfil fotográfico completo. Três prompts para IA prontos para usar — escritos como se um fotógrafo comercial de alto nível estivesse dirigindo a sessão.</span><span lang="en">20 questions. A complete photographic profile. Three ready-to-use AI prompts — written as if a top commercial photographer were directing the session.</span>
     </p>
     <div class="intro-cta">
-      <button id="btn-start" class="btn-gold">Iniciar o Quiz &rarr;</button>
+      <button id="btn-start" class="btn-gold"><span lang="pt">Iniciar o Quiz</span><span lang="en">Start the Quiz</span> &rarr;</button>
     </div>
     <p class="intro-meta">
-      20 perguntas <span>·</span> ~4 minutos <span>·</span> Sem cadastro
+      <span lang="pt">20 perguntas</span><span lang="en">20 questions</span> <span>·</span> ~4 <span lang="pt">minutos</span><span lang="en">minutes</span> <span>·</span> <span lang="pt">Sem cadastro</span><span lang="en">No sign-up</span>
     </p>
   </div>
 </div>
@@ -575,7 +579,7 @@
   <div class="quiz-layout">
     <div class="progress-header">
       <div class="progress-meta">
-        <span class="progress-label">Quiz de Perfil Fotográfico</span>
+        <span class="progress-label"><span lang="pt">Quiz de Perfil Fotográfico</span><span lang="en">Photo Profile Quiz</span></span>
         <span class="progress-fraction" id="prog-frac">1 / 20</span>
       </div>
       <div class="progress-track">
@@ -593,6 +597,6 @@
   <div class="results-layout" id="results-root"></div>
 </div>
 
-<script src="quiz.js?v=2"></script>
+<script src="quiz.js?v=3"></script>
 </body>
 </html>
