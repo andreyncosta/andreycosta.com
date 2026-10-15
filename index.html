@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR" data-lang="pt" data-pt-title="Andrey Costa — Economista e Cientista de Dados" data-en-title="Andrey Costa — Economist &amp; Data Scientist">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Andrey Costa — Economist & Data Scientist</title>
+  <title>Andrey Costa — Economista e Cientista de Dados</title>
   <meta name="description" content="Andrey Costa — Data Scientist at BRB Bank, Master's candidate at FGV. Research at the intersection of macroeconomics, data engineering, and emerging financial systems.">
   <link rel="icon" href="/assets/favicon.svg">
+  <link rel="stylesheet" href="/assets/site.css">
+  <script src="/assets/i18n.js"></script>
   <style>
     /* Same visual system as /textos/ and /candidatos/: sage paper, deep green ink, Georgia headings. */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -261,51 +263,45 @@
   <link rel="stylesheet" href="/assets/writing.css?v=20261014">
 </head>
 <body>
-
   <!-- masthead -->
   <header class="masthead">
     <a class="brand" href="/"><span class="mark" aria-hidden="true">ac</span>Andrey Costa</a>
-    <nav class="nav-strip" aria-label="Principal">
-      <a href="/curriculum">Curriculum</a>
-      <a href="#projects">Projects</a>
-      <a href="#research">Research</a>
-      <a href="/textos/">Textos</a>
-      <a href="https://github.com/andreyncosta" target="_blank" rel="noopener">GitHub</a>
-      <a href="https://www.linkedin.com/in/andreyac" target="_blank" rel="noopener">LinkedIn</a>
-      <a href="mailto:andreynacosta46@gmail.com">Contact</a>
-    </nav>
+    <div class="site-tools">
+      <nav class="nav-strip" aria-label="Principal">
+        <a href="/curriculum"><span lang="pt">Currículo</span><span lang="en">Curriculum</span></a>
+        <a href="#projects"><span lang="pt">Projetos</span><span lang="en">Projects</span></a>
+        <a href="#research"><span lang="pt">Pesquisa</span><span lang="en">Research</span></a>
+        <a href="/textos/"><span lang="pt">Textos</span><span lang="en">Essays</span></a>
+        <a href="https://github.com/andreyncosta" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://www.linkedin.com/in/andreyac" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="mailto:andreynacosta46@gmail.com"><span lang="pt">Contato</span><span lang="en">Contact</span></a>
+      </nav>
+      <div class="lang-switch" role="group" aria-label="Idioma / Language"><button type="button" data-set-lang="pt" aria-pressed="true">PT</button><button type="button" data-set-lang="en" aria-pressed="false">EN</button></div>
+    </div>
   </header>
 
   <!-- hero -->
   <section class="hero">
     <div class="hero-left">
       <div>
-        <div class="eyebrow">Personal archive — projects &amp; ideas in progress</div>
+        <div class="eyebrow"><span lang="pt">Arquivo pessoal — projetos e ideias em andamento</span><span lang="en">Personal archive — projects &amp; ideas in progress</span></div>
         <h1 class="hero-headline">
-          Thinking at the<br>
-          intersection of <em>economics,</em><br>
-          data &amp; the future<br>of money.
+          <span lang="pt">Pensando na<br>interseção entre <em>economia,</em><br>dados e o futuro<br>do dinheiro.</span>
+          <span lang="en">Thinking at the<br>intersection of <em>economics,</em><br>data &amp; the future<br>of money.</span>
         </h1>
-        <p class="hero-byline">
-          Data scientist building production systems at BRB Bank,
-          researching bitdollar adoption at FGV, and shipping side projects
-          that sit between economic theory, engineering, and political economy.
-          Nothing here is finished. Everything here is worth thinking about.
-        </p>
+        <p class="hero-byline"><span lang="pt">Cientista de dados construindo sistemas em produção no Banco BRB, pesquisando a adoção do bitdólar na FGV e tocando projetos paralelos entre a teoria econômica, a engenharia e a economia política. Nada aqui está pronto. Tudo aqui vale a pena pensar.</span><span lang="en">Data scientist building production systems at BRB Bank, researching bitdollar adoption at FGV, and shipping side projects that sit between economic theory, engineering, and political economy. Nothing here is finished. Everything here is worth thinking about.</span></p>
       </div>
     </div>
-
-
     <div class="hero-right">
       <div class="stat-block">
-        <div class="stat-label">Current position</div>
-        <div class="stat-value">Analyst, BRB Bank</div>
-        <div class="stat-sub">Data Science &amp; Channel Strategy · Brasília · 4 yrs production</div>
+        <div class="stat-label"><span lang="pt">Cargo atual</span><span lang="en">Current position</span></div>
+        <div class="stat-value"><span lang="pt">Analista, Banco BRB</span><span lang="en">Analyst, BRB Bank</span></div>
+        <div class="stat-sub"><span lang="pt">Ciência de Dados e Estratégia de Canais · Brasília · 4 anos em produção</span><span lang="en">Data Science &amp; Channel Strategy · Brasília · 4 yrs production</span></div>
       </div>
       <div class="stat-block">
-        <div class="stat-label">Graduate research</div>
-        <div class="stat-value">Master's in Economics</div>
-        <div class="stat-sub">FGV EPPG · Bitcoin &amp; the dollar as co-sovereign stores of value</div>
+        <div class="stat-label"><span lang="pt">Pesquisa de pós-graduação</span><span lang="en">Graduate research</span></div>
+        <div class="stat-value"><span lang="pt">Mestrado em Economia</span><span lang="en">Master's in Economics</span></div>
+        <div class="stat-sub"><span lang="pt">FGV EPPG · Bitcoin e o dólar como reservas de valor co-soberanas</span><span lang="en">FGV EPPG · Bitcoin &amp; the dollar as co-sovereign stores of value</span></div>
       </div>
       <div class="stat-block">
         <div class="stat-label">Stack</div>
@@ -313,161 +309,150 @@
         <div class="stat-sub">Hive · Impala · Power BI · FastAPI · React</div>
       </div>
       <div class="stat-block">
-        <div class="stat-label">Curriculum vitae</div>
+        <div class="stat-label"><span lang="pt">Currículo</span><span lang="en">Curriculum vitae</span></div>
         <div class="stat-value"><a href="/curriculum">andreycosta.com/curriculum →</a></div>
-        <div class="stat-sub">Available in PT &amp; EN · PDF download</div>
+        <div class="stat-sub"><span lang="pt">Disponível em PT e EN · download em PDF</span><span lang="en">Available in PT &amp; EN · PDF download</span></div>
       </div>
     </div>
   </section>
 
   <!-- projects section header -->
   <div class="section-header" id="projects">
-    <div><h2>Projects</h2></div>
+    <div><h2><span lang="pt">Projetos</span><span lang="en">Projects</span></h2></div>
     <a class="section-link" href="https://github.com/andreyncosta" target="_blank" rel="noopener">github.com/andreyncosta →</a>
   </div>
 
   <!-- projects grid -->
   <section class="projects">
-
     <a class="project-card" href="/observatorio-fiscal/">
-      <div class="project-tag">07 —— Fiscal Analytics</div>
-      <div class="project-title">Observatório<br><em>Fiscal Brasileiro</em></div>
-      <p class="project-desc">Brazilian Central Government revenue, expenditure and primary balance from official Treasury data. Explore monthly and rolling 12-month indicators, nominal and inflation-adjusted values, and fiscal composition — backed by versioned ingestion and reconciliation tests.</p>
+      <div class="project-tag"><span lang="pt">07 —— Análise fiscal</span><span lang="en">07 —— Fiscal Analytics</span></div>
+      <div class="project-title"><span lang="pt">Observatório<br><em>Fiscal Brasileiro</em></span><span lang="en">Brazilian Fiscal<br><em>Observatory</em></span></div>
+      <p class="project-desc"><span lang="pt">Receita, despesa e resultado primário do Governo Central a partir de dados oficiais do Tesouro. Indicadores mensais e acumulados em 12 meses, valores nominais e corrigidos pela inflação e composição fiscal — com ingestão versionada e testes de conciliação.</span><span lang="en">Brazilian Central Government revenue, expenditure and primary balance from official Treasury data. Explore monthly and rolling 12-month indicators, nominal and inflation-adjusted values, and fiscal composition — backed by versioned ingestion and reconciliation tests.</span></p>
       <div class="project-footer">
         <span class="project-stack">Python · DuckDB · dbt · Tesouro Nacional</span>
         <span class="project-arrow">→</span>
       </div>
     </a>
-
     <a class="project-card" href="https://github.com/andreyncosta/job-market-lens" target="_blank" rel="noopener">
-      <div class="project-tag">01 —— Data Pipeline</div>
+      <div class="project-tag"><span lang="pt">01 —— Pipeline de dados</span><span lang="en">01 —— Data Pipeline</span></div>
       <div class="project-title">Job Market<br><em>Lens</em></div>
-      <p class="project-desc">DuckDB-backed pipeline collecting and analyzing Data Scientist job listings from Adzuna and Jobicy APIs. Tracks salary trends, required skills, and remote availability — with LLM enrichment and a Streamlit dashboard on the roadmap.</p>
+      <p class="project-desc"><span lang="pt">Pipeline em DuckDB que coleta e analisa vagas de Cientista de Dados pelas APIs Adzuna e Jobicy. Acompanha tendências salariais, habilidades exigidas e oferta de trabalho remoto — com enriquecimento por LLM e painel em Streamlit no roadmap.</span><span lang="en">DuckDB-backed pipeline collecting and analyzing Data Scientist job listings from Adzuna and Jobicy APIs. Tracks salary trends, required skills, and remote availability — with LLM enrichment and a Streamlit dashboard on the roadmap.</span></p>
       <div class="project-footer">
         <span class="project-stack">Python · DuckDB · GitHub Actions</span>
         <span class="project-arrow">→</span>
       </div>
     </a>
-
     <a class="project-card" href="https://github.com/andreyncosta/yt-minimal" target="_blank" rel="noopener">
       <div class="project-tag">02 —— App</div>
-      <div class="project-title">Curing<br><em>YouTube</em></div>
-      <p class="project-desc">Minimalist YouTube client with no Shorts, text-only feed, and audio-only toggle. Built to reclaim attention from algorithmic decay. FastAPI backend with OAuth 2.0 + React Native/Expo frontend.</p>
+      <div class="project-title"><span lang="pt">Curando o<br><em>YouTube</em></span><span lang="en">Curing<br><em>YouTube</em></span></div>
+      <p class="project-desc"><span lang="pt">Cliente minimalista do YouTube sem Shorts, com feed só de texto e modo só áudio. Feito para recuperar a atenção da decadência algorítmica. Backend em FastAPI com OAuth 2.0 e frontend em React Native/Expo.</span><span lang="en">Minimalist YouTube client with no Shorts, text-only feed, and audio-only toggle. Built to reclaim attention from algorithmic decay. FastAPI backend with OAuth 2.0 + React Native/Expo frontend.</span></p>
       <div class="project-footer">
         <span class="project-stack">FastAPI · React Native · OAuth 2.0</span>
         <span class="project-arrow">→</span>
       </div>
     </a>
-
-    <a class="project-card" href="/emendas-parlamentares" target="_blank">
-      <div class="project-tag">03 —— Public Policy</div>
-      <div class="project-title">Emendas<br><em>Parlamentares</em></div>
-      <p class="project-desc">Interactive report on Brazilian parliamentary budget amendments (individuais, bancada, relator). Per-capita allocation maps by state, party &amp; author execution rates, beneficiary concentration, and thematic classification — generated from Portal da Transparência open data by a pure-Python pipeline.</p>
+    <a class="project-card" href="/emendas-parlamentares">
+      <div class="project-tag"><span lang="pt">03 —— Políticas públicas</span><span lang="en">03 —— Public Policy</span></div>
+      <div class="project-title"><span lang="pt">Emendas<br><em>Parlamentares</em></span><span lang="en">Parliamentary<br><em>Amendments</em></span></div>
+      <p class="project-desc"><span lang="pt">Relatório interativo sobre as emendas parlamentares ao orçamento (individuais, de bancada e de relator). Mapas de alocação per capita por estado, taxas de execução por partido e autor, concentração de favorecidos e classificação temática — gerado a partir dos dados abertos do Portal da Transparência por um pipeline em Python puro.</span><span lang="en">Interactive report on Brazilian parliamentary budget amendments (individual, state-caucus and rapporteur). Per-capita allocation maps by state, party &amp; author execution rates, beneficiary concentration, and thematic classification — generated from Portal da Transparência open data by a pure-Python pipeline.</span></p>
       <div class="project-footer">
         <span class="project-stack">Python · SVG Maps · Portal da Transparência</span>
         <span class="project-arrow">→</span>
       </div>
     </a>
-
     <a class="project-card" href="https://github.com/andreyncosta/copom-credit-transmission" target="_blank" rel="noopener">
-      <div class="project-tag">04 —— Econometrics</div>
-      <div class="project-title">COPOM Credit<br><em>Transmission</em></div>
-      <p class="project-desc">Estimates the differential pass-through of SELIC rate shocks to household vs. corporate credit using an IV/2SLS strategy — the surprise component of each COPOM decision isolates the exogenous policy variation. Wu-Hausman endogeneity tests validate the IV. Results served via a FastAPI endpoint.</p>
+      <div class="project-tag"><span lang="pt">04 —— Econometria</span><span lang="en">04 —— Econometrics</span></div>
+      <div class="project-title"><span lang="pt">Transmissão do<br><em>Copom ao crédito</em></span><span lang="en">COPOM Credit<br><em>Transmission</em></span></div>
+      <p class="project-desc"><span lang="pt">Estima o repasse diferenciado dos choques da Selic ao crédito das famílias e das empresas com estratégia IV/2SLS — o componente-surpresa de cada decisão do Copom isola a variação exógena da política. Testes de endogeneidade de Wu-Hausman validam o instrumento. Resultados servidos por um endpoint FastAPI.</span><span lang="en">Estimates the differential pass-through of SELIC rate shocks to household vs. corporate credit using an IV/2SLS strategy — the surprise component of each COPOM decision isolates the exogenous policy variation. Wu-Hausman endogeneity tests validate the IV. Results served via a FastAPI endpoint.</span></p>
       <div class="project-footer">
         <span class="project-stack">Python · IV/2SLS · FastAPI · dbt · BCB/SGS</span>
         <span class="project-arrow">→</span>
       </div>
     </a>
-
     <a class="project-card" href="https://github.com/andreyncosta/kaldor-growth-diagnostics" target="_blank" rel="noopener">
       <div class="project-tag">05 —— Macro</div>
-      <div class="project-title">Kaldor Growth<br><em>Diagnostics</em></div>
-      <p class="project-desc">Empirical replication of Kaldor's stylized growth facts for Brazil against East Asian comparators (Japan, South Korea, China) and Latin American peers (Mexico, Chile). Tracks GDP per worker, TFP, capital deepening, and capital-output ratio across the Penn World Tables 10.0 from 1950 to 2019.</p>
+      <div class="project-title"><span lang="pt">Diagnóstico de<br><em>crescimento kaldoriano</em></span><span lang="en">Kaldor Growth<br><em>Diagnostics</em></span></div>
+      <p class="project-desc"><span lang="pt">Replicação empírica dos fatos estilizados de Kaldor para o Brasil, comparado ao Leste Asiático (Japão, Coreia do Sul, China) e a pares latino-americanos (México, Chile). Acompanha PIB por trabalhador, PTF, aprofundamento de capital e relação capital-produto na Penn World Table 10.0, de 1950 a 2019.</span><span lang="en">Empirical replication of Kaldor's stylized growth facts for Brazil against East Asian comparators (Japan, South Korea, China) and Latin American peers (Mexico, Chile). Tracks GDP per worker, TFP, capital deepening, and capital-output ratio across the Penn World Tables 10.0 from 1950 to 2019.</span></p>
       <div class="project-footer">
         <span class="project-stack">Python · pandas · PWT 10.0 · Growth Theory</span>
         <span class="project-arrow">→</span>
       </div>
     </a>
-
     <a class="project-card" href="/foto-quiz">
-      <div class="project-tag">06 —— Creative Tool</div>
-      <div class="project-title">Photo Profile<br><em>Quiz</em></div>
-      <p class="project-desc">20-question quiz that builds a complete photographic profile and generates three professional AI image prompts — primary, editorial, and candid/lifestyle — as if engineered by a commercial photographer directing an AI model session. Includes a photographer's direction note and ranked tool recommendations.</p>
+      <div class="project-tag"><span lang="pt">06 —— Ferramenta criativa</span><span lang="en">06 —— Creative Tool</span></div>
+      <div class="project-title"><span lang="pt">Quiz de<br><em>Perfil Fotográfico</em></span><span lang="en">Photo Profile<br><em>Quiz</em></span></div>
+      <p class="project-desc"><span lang="pt">Quiz de 20 perguntas que monta um perfil fotográfico completo e gera três prompts profissionais para IA — principal, editorial e espontâneo/lifestyle — como se um fotógrafo comercial dirigisse a sessão. Inclui nota de direção do fotógrafo e ferramentas recomendadas em ordem.</span><span lang="en">20-question quiz that builds a complete photographic profile and generates three professional AI image prompts — primary, editorial, and candid/lifestyle — as if engineered by a commercial photographer directing an AI model session. Includes a photographer's direction note and ranked tool recommendations.</span></p>
       <div class="project-footer">
         <span class="project-stack">HTML · CSS · JS · AI Prompts</span>
         <span class="project-arrow">→</span>
       </div>
     </a>
-
   </section>
 
   <!-- research -->
   <div class="section-header" id="research">
-    <div><h2>Research</h2></div>
+    <div><h2><span lang="pt">Pesquisa</span><span lang="en">Research</span></h2></div>
   </div>
 
   <section class="research">
     <div class="research-main">
-      <div class="eyebrow research-kicker">FGV EPPG · Master's Thesis in progress</div>
+      <div class="eyebrow research-kicker"><span lang="pt">FGV EPPG · Dissertação de mestrado em andamento</span><span lang="en">FGV EPPG · Master's Thesis in progress</span></div>
       <h2 class="research-title">
-        The <em>Bitdollar</em> Hypothesis:<br>
-        Bitcoin &amp; the Dollar as<br>
-        Co-Sovereign Stores of Value
+        <span lang="pt">A Hipótese do <em>Bitdólar</em>:<br>Bitcoin e o dólar como<br>reservas de valor co-soberanas</span>
+        <span lang="en">The <em>Bitdollar</em> Hypothesis:<br>Bitcoin &amp; the Dollar as<br>Co-Sovereign Stores of Value</span>
       </h2>
-      <p class="research-body">
-        What happens to the international monetary system if Bitcoin becomes a sovereign reserve asset alongside — not instead of — the US dollar? This research examines the macroeconomic and institutional implications of a "bitdollar" adoption scenario: the co-existence of BTC and USD as parallel stores of value at the state level, and the structural tensions this creates for fiscal policy, seigniorage, and monetary sovereignty in emerging economies.
-      </p>
-      <a class="research-link" href="https://github.com/andreyncosta/bitcoin-sovereign-reserve" target="_blank" rel="noopener">View research repo on GitHub →</a>
+      <p class="research-body"><span lang="pt">O que acontece com o sistema monetário internacional se o Bitcoin se tornar um ativo de reserva soberano ao lado — e não no lugar — do dólar americano? A pesquisa examina as implicações macroeconômicas e institucionais de um cenário de adoção do “bitdólar”: a coexistência de BTC e USD como reservas de valor paralelas no nível dos Estados, e as tensões estruturais que isso cria para a política fiscal, a senhoriagem e a soberania monetária das economias emergentes.</span><span lang="en">What happens to the international monetary system if Bitcoin becomes a sovereign reserve asset alongside — not instead of — the US dollar? This research examines the macroeconomic and institutional implications of a “bitdollar” adoption scenario: the co-existence of BTC and USD as parallel stores of value at the state level, and the structural tensions this creates for fiscal policy, seigniorage, and monetary sovereignty in emerging economies.</span></p>
+      <a class="research-link" href="https://github.com/andreyncosta/bitcoin-sovereign-reserve" target="_blank" rel="noopener"><span lang="pt">Ver o repositório da pesquisa no GitHub →</span><span lang="en">View research repo on GitHub →</span></a>
     </div>
     <div class="research-sidebar">
       <div class="research-meta-item">
-        <div class="research-meta-label">Institution</div>
-        <div class="research-meta-value">FGV EPPG — Escola de Políticas Públicas e Governo</div>
+        <div class="research-meta-label"><span lang="pt">Instituição</span><span lang="en">Institution</span></div>
+        <div class="research-meta-value"><span lang="pt">FGV EPPG — Escola de Políticas Públicas e Governo</span><span lang="en">FGV EPPG — School of Public Policy and Government</span></div>
       </div>
       <div class="research-meta-item">
-        <div class="research-meta-label">Degree</div>
-        <div class="research-meta-value">Professional Master's in Economics</div>
+        <div class="research-meta-label"><span lang="pt">Curso</span><span lang="en">Degree</span></div>
+        <div class="research-meta-value"><span lang="pt">Mestrado Profissional em Economia</span><span lang="en">Professional Master's in Economics</span></div>
       </div>
       <div class="research-meta-item">
-        <div class="research-meta-label">Status</div>
-        <div class="research-meta-value">In progress · 2024–2026</div>
+        <div class="research-meta-label"><span lang="pt">Situação</span><span lang="en">Status</span></div>
+        <div class="research-meta-value"><span lang="pt">Em andamento · 2024–2026</span><span lang="en">In progress · 2024–2026</span></div>
       </div>
       <div class="research-meta-item">
-        <div class="research-meta-label">Methods</div>
-        <div class="research-meta-value">Monetary theory · Institutional economics · Empirical macro</div>
+        <div class="research-meta-label"><span lang="pt">Métodos</span><span lang="en">Methods</span></div>
+        <div class="research-meta-value"><span lang="pt">Teoria monetária · Economia institucional · Macro empírica</span><span lang="en">Monetary theory · Institutional economics · Empirical macro</span></div>
       </div>
       <div class="research-meta-item">
-        <div class="research-meta-label">Keywords</div>
-        <div class="research-meta-value">Bitcoin · Dollarization · Seigniorage · Reserve currency · Crypto-fiscal policy</div>
+        <div class="research-meta-label"><span lang="pt">Palavras-chave</span><span lang="en">Keywords</span></div>
+        <div class="research-meta-value"><span lang="pt">Bitcoin · Dolarização · Senhoriagem · Moeda de reserva · Política cripto-fiscal</span><span lang="en">Bitcoin · Dollarization · Seigniorage · Reserve currency · Crypto-fiscal policy</span></div>
       </div>
     </div>
   </section>
 
   <!-- writing -->
   <div class="section-header" id="writing">
-    <div><h2>Textos &amp; ensaios</h2></div>
+    <div><h2><span lang="pt">Textos e ensaios</span><span lang="en">Essays</span></h2></div>
   </div>
   <section class="writing-journal" aria-labelledby="wj-title">
     <header class="wj-intro">
-      <div><p class="wj-eyebrow">OMNIBUS FORTITUDINEM</p><h2 id="wj-title">Uma casa para<br><em>as ideias.</em></h2><p>Economia, política, cultura e as ideias que atravessam a vida em sociedade. Ensaios reunidos aqui, com tempo para ler e espaço para pensar.</p></div>
-      <div class="wj-actions"><a href="/textos/" class="wj-button">Explorar o acervo <span aria-hidden="true">↗</span></a><a href="/textos/feed.xml">Acompanhar via RSS</a></div>
+      <div><p class="wj-eyebrow">OMNIBUS FORTITUDINEM</p><h2 id="wj-title"><span lang="pt">Uma casa para<br><em>as ideias.</em></span><span lang="en">A home for<br><em>ideas.</em></span></h2><p><span lang="pt">Economia, política, cultura e as ideias que atravessam a vida em sociedade. Ensaios reunidos aqui, com tempo para ler e espaço para pensar.</span><span lang="en">Economics, politics, culture, and the ideas that run through life in society. Essays gathered here, with time to read and room to think.</span></p></div>
+      <div class="wj-actions"><a href="/textos/" class="wj-button"><span lang="pt">Explorar o acervo</span><span lang="en">Explore the archive</span> <span aria-hidden="true">↗</span></a><a href="/textos/feed.xml"><span lang="pt">Acompanhar via RSS</span><span lang="en">Follow via RSS</span></a></div>
     </header>
-    <div class="wj-label"><span>Leitura em destaque</span><span>6 textos no acervo</span></div>
-    <div class="wj-feature"><article class="wj-post"><a href="/textos/a-farsa-do-pleno-emprego-ou-a-farsa/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-a-farsa-do-pleno-emprego-ou-a-farsa.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta">29 de abril de 2026 · 11 min de leitura</p><h3><a href="/textos/a-farsa-do-pleno-emprego-ou-a-farsa/">A farsa do pleno emprego ou a farsa do fim da escala 6x1</a></h3><p class="wj-description">Divagações acerca do mercado de trabalho, suas distorções e o fim da escala 6x1</p><a href="/textos/a-farsa-do-pleno-emprego-ou-a-farsa/" class="wj-read">Ler o texto <span aria-hidden="true">↗</span></a></div></article></div>
-    <div class="wj-label"><span>Mais do acervo</span><a href="/textos/">Ver todos os textos →</a></div>
-    <div class="wj-grid"><article class="wj-post"><a href="/textos/um-apelo-a-intolerancia/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-um-apelo-a-intolerancia.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta">13 de setembro de 2025 · 19 min de leitura</p><h3><a href="/textos/um-apelo-a-intolerancia/">Um Apelo à Intolerância</a></h3><p class="wj-description">Publicado em 1931 pelo Arcebispo Fulton Sheen</p><a href="/textos/um-apelo-a-intolerancia/" class="wj-read">Ler o texto <span aria-hidden="true">↗</span></a></div></article><article class="wj-post"><a href="/textos/a-economia-da-paz/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-a-economia-da-paz.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta">15 de agosto de 2025 · Registro no Substack · 10 min de leitura</p><h3><a href="/textos/a-economia-da-paz/">A Economia da Paz</a></h3><p class="wj-description">E os danos da guerra</p><a href="/textos/a-economia-da-paz/" class="wj-read">Ler o texto <span aria-hidden="true">↗</span></a></div></article><article class="wj-post"><a href="/textos/do-fim-da-historia-e-da-decadencia/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-do-fim-da-historia-e-da-decadencia.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta">7 de julho de 2025 · 12 min de leitura</p><h3><a href="/textos/do-fim-da-historia-e-da-decadencia/">Do fim da história e da decadência do ser</a></h3><p class="wj-description">Considerações acerca do que disseram caros conterrâneos</p><a href="/textos/do-fim-da-historia-e-da-decadencia/" class="wj-read">Ler o texto <span aria-hidden="true">↗</span></a></div></article><article class="wj-post"><a href="/textos/as-tribos-politicas-do-brasil-parte/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-as-tribos-politicas-do-brasil-parte.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta">2 de julho de 2025 · 6 min de leitura</p><h3><a href="/textos/as-tribos-politicas-do-brasil-parte/">As Tribos Políticas do Brasil - Parte 1</a></h3><p class="wj-description">Do cartesianismo à contemplação maravilhada</p><a href="/textos/as-tribos-politicas-do-brasil-parte/" class="wj-read">Ler o texto <span aria-hidden="true">↗</span></a></div></article><article class="wj-post"><a href="/textos/a-metastase-da-globalizacao/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-a-metastase-da-globalizacao.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta">25 de junho de 2025 · 6 min de leitura</p><h3><a href="/textos/a-metastase-da-globalizacao/">A Metástase da Globalização</a></h3><p class="wj-description">Quando a exceção vira a regra.</p><a href="/textos/a-metastase-da-globalizacao/" class="wj-read">Ler o texto <span aria-hidden="true">↗</span></a></div></article></div>
-    <aside class="wj-data"><div><p class="wj-eyebrow">TAMBÉM NO SITE · DADOS ABERTOS</p><h3><a href="/emendas-parlamentares">O Painel das Emendas</a></h3><p>Uma leitura interativa das alocações parlamentares, com dados por estado, partido e autor.</p></div><a href="/emendas-parlamentares" class="wj-read">Explorar a análise ↗</a></aside>
+    <div class="wj-label"><span><span lang="pt">Leitura em destaque</span><span lang="en">Featured essay</span></span><span><span lang="pt">6 textos no acervo</span><span lang="en">6 essays in the archive</span></span></div>
+    <div class="wj-feature"><article class="wj-post"><a href="/textos/a-farsa-do-pleno-emprego-ou-a-farsa/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-a-farsa-do-pleno-emprego-ou-a-farsa.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta"><span lang="pt">29 de abril de 2026 · 11 min de leitura</span><span lang="en">April 29, 2026 · 11 min read</span></p><h3><a href="/textos/a-farsa-do-pleno-emprego-ou-a-farsa/"><span lang="pt">A farsa do pleno emprego ou a farsa do fim da escala 6x1</span><span lang="en">The Full-Employment Sham, or the Sham of Ending the 6x1 Workweek</span></a></h3><p class="wj-description"><span lang="pt">Divagações acerca do mercado de trabalho, suas distorções e o fim da escala 6x1</span><span lang="en">Musings on the labor market, its distortions, and the end of the six-day workweek</span></p><a href="/textos/a-farsa-do-pleno-emprego-ou-a-farsa/" class="wj-read"><span lang="pt">Ler o texto</span><span lang="en">Read the essay</span> <span aria-hidden="true">↗</span></a></div></article></div>
+    <div class="wj-label"><span><span lang="pt">Mais do acervo</span><span lang="en">More from the archive</span></span><a href="/textos/"><span lang="pt">Ver todos os textos →</span><span lang="en">See all essays →</span></a></div>
+    <div class="wj-grid"><article class="wj-post"><a href="/textos/um-apelo-a-intolerancia/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-um-apelo-a-intolerancia.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta"><span lang="pt">13 de setembro de 2025 · 19 min de leitura</span><span lang="en">September 13, 2025 · Translation note</span></p><h3><a href="/textos/um-apelo-a-intolerancia/"><span lang="pt">Um Apelo à Intolerância</span><span lang="en">A Plea for Intolerance</span></a></h3><p class="wj-description"><span lang="pt">Publicado em 1931 pelo Arcebispo Fulton Sheen</span><span lang="en">Archbishop Fulton Sheen, 1931 — on the Portuguese translation</span></p><a href="/textos/um-apelo-a-intolerancia/" class="wj-read"><span lang="pt">Ler o texto</span><span lang="en">Read the essay</span> <span aria-hidden="true">↗</span></a></div></article><article class="wj-post"><a href="/textos/a-economia-da-paz/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-a-economia-da-paz.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta"><span lang="pt">15 de agosto de 2025 · Registro no Substack · 10 min de leitura</span><span lang="en">August 15, 2025 · From Substack · 10 min read</span></p><h3><a href="/textos/a-economia-da-paz/"><span lang="pt">A Economia da Paz</span><span lang="en">The Economics of Peace</span></a></h3><p class="wj-description"><span lang="pt">E os danos da guerra</span><span lang="en">And the damage of war</span></p><a href="/textos/a-economia-da-paz/" class="wj-read"><span lang="pt">Ler o texto</span><span lang="en">Read the essay</span> <span aria-hidden="true">↗</span></a></div></article><article class="wj-post"><a href="/textos/do-fim-da-historia-e-da-decadencia/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-do-fim-da-historia-e-da-decadencia.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta"><span lang="pt">7 de julho de 2025 · 12 min de leitura</span><span lang="en">July 7, 2025 · 12 min read</span></p><h3><a href="/textos/do-fim-da-historia-e-da-decadencia/"><span lang="pt">Do fim da história e da decadência do ser</span><span lang="en">On the End of History and the Decay of Being</span></a></h3><p class="wj-description"><span lang="pt">Considerações acerca do que disseram caros conterrâneos</span><span lang="en">Reflections on what some dear fellow countrymen have said</span></p><a href="/textos/do-fim-da-historia-e-da-decadencia/" class="wj-read"><span lang="pt">Ler o texto</span><span lang="en">Read the essay</span> <span aria-hidden="true">↗</span></a></div></article><article class="wj-post"><a href="/textos/as-tribos-politicas-do-brasil-parte/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-as-tribos-politicas-do-brasil-parte.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta"><span lang="pt">2 de julho de 2025 · 6 min de leitura</span><span lang="en">July 2, 2025 · 6 min read</span></p><h3><a href="/textos/as-tribos-politicas-do-brasil-parte/"><span lang="pt">As Tribos Políticas do Brasil - Parte 1</span><span lang="en">Brazil's Political Tribes — Part 1</span></a></h3><p class="wj-description"><span lang="pt">Do cartesianismo à contemplação maravilhada</span><span lang="en">From Cartesianism to awestruck contemplation</span></p><a href="/textos/as-tribos-politicas-do-brasil-parte/" class="wj-read"><span lang="pt">Ler o texto</span><span lang="en">Read the essay</span> <span aria-hidden="true">↗</span></a></div></article><article class="wj-post"><a href="/textos/a-metastase-da-globalizacao/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-a-metastase-da-globalizacao.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta"><span lang="pt">25 de junho de 2025 · 6 min de leitura</span><span lang="en">June 25, 2025 · 6 min read</span></p><h3><a href="/textos/a-metastase-da-globalizacao/"><span lang="pt">A Metástase da Globalização</span><span lang="en">The Metastasis of Globalization</span></a></h3><p class="wj-description"><span lang="pt">Quando a exceção vira a regra.</span><span lang="en">When the exception becomes the rule.</span></p><a href="/textos/a-metastase-da-globalizacao/" class="wj-read"><span lang="pt">Ler o texto</span><span lang="en">Read the essay</span> <span aria-hidden="true">↗</span></a></div></article></div>
+    <aside class="wj-data"><div><p class="wj-eyebrow"><span lang="pt">TAMBÉM NO SITE · DADOS ABERTOS</span><span lang="en">ALSO ON THE SITE · OPEN DATA</span></p><h3><a href="/emendas-parlamentares"><span lang="pt">O Painel das Emendas</span><span lang="en">The Amendments Dashboard</span></a></h3><p><span lang="pt">Uma leitura interativa das alocações parlamentares, com dados por estado, partido e autor.</span><span lang="en">An interactive look at parliamentary budget allocations, by state, party and author.</span></p></div><a href="/emendas-parlamentares" class="wj-read"><span lang="pt">Explorar a análise ↗</span><span lang="en">Explore the analysis ↗</span></a></aside>
   </section>
 
   <!-- footer -->
   <footer class="footer">
     <nav class="footer-links">
-      <a href="/curriculum">Curriculum</a>
+      <a href="/curriculum"><span lang="pt">Currículo</span><span lang="en">Curriculum</span></a>
       <a href="https://github.com/andreyncosta" target="_blank" rel="noopener">GitHub</a>
       <a href="https://www.linkedin.com/in/andreyac" target="_blank" rel="noopener">LinkedIn</a>
-      <a href="mailto:andreynacosta46@gmail.com">Contact</a>
+      <a href="mailto:andreynacosta46@gmail.com"><span lang="pt">Contato</span><span lang="en">Contact</span></a>
     </nav>
-        <div class="footer-copy">© 2025 · andreycosta.com</div>
+    <div class="footer-copy">© 2025 · andreycosta.com</div>
   </footer>
 
 </body>

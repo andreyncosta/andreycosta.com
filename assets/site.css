@@ -8,3 +8,11 @@
 .site-nav a:hover{color:var(--brand-accent)}
 .site-bar a:focus-visible{outline:3px solid var(--brand-focus);outline-offset:4px}
 @media print{.site-bar{display:none}}
+/* Bilingual content: both copies live in the page, only the active one shows. */
+html[data-lang="en"] [lang="pt"]:not(html),html[data-lang="pt"] [lang="en"]:not(html){display:none!important}
+.lang-switch{display:inline-flex;flex:none;border:1px solid var(--brand-rule);border-radius:999px;overflow:hidden;background:var(--brand-card)}
+.lang-switch button{font:600 11px/1 var(--brand-sans);letter-spacing:.08em;padding:7px 11px;border:0;background:transparent;color:var(--brand-muted);cursor:pointer}
+.lang-switch button[aria-pressed="true"]{background:var(--brand-accent);color:#fff}
+.lang-switch button:focus-visible{outline:3px solid var(--brand-focus);outline-offset:-3px}
+.site-tools{display:flex;align-items:center;flex-wrap:wrap;gap:12px 22px}
+@media print{.lang-switch{display:none}}
