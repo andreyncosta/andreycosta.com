@@ -14,6 +14,7 @@ $flag = fn (string $f) => in_array($f, $args, true);
 try {
     match ($cmd) {
         'init' => cmd_init(),
+        'setup' => cmd_setup(),
         'migrate' => print('schema version ' . migrate() . "\n"),
         'invite' => cmd_invite($args[0] ?? '', $flag('--send')),
         'work' => print('processed ' . run_queue((int) ($args[0] ?? 50)) . " job(s)\n"),
@@ -24,6 +25,7 @@ try {
         'stats' => cmd_stats(),
         default => print(<<<TXT
 Eixo CLI
+  setup                server bootstrap: environment report, composer install, init, check
   init                 create the private data dir, master key and config template
   migrate              apply database migrations
   invite EMAIL [--send]  create a sign-up / reset link (48 h); --send e-mails it
@@ -39,6 +41,26 @@ TXT),
 } catch (Throwable $e) {
     fwrite(STDERR, 'error: ' . $e->getMessage() . "\n");
     exit(1);
+}
+
+/** One command for a fresh server (Hostinger cron commands are limited to 255 characters). */
+function cmd_setup(): void
+{
+    echo 'PHP ' . PHP_VERSION . ' · ' . PHP_BINARY . "\n";
+    foreach (['sodium', 'pdo_sqlite', 'curl', 'zip', 'fileinfo', 'mbstring'] as $ext) {
+        echo '  ext ' . $ext . ': ' . (extension_loaded($ext) ? 'ok' : 'MISSING') . "\n";
+    }
+    $composer = trim((string) shell_exec('command -v composer 2>/dev/null'));
+    echo '  composer: ' . ($composer ?: 'not found') . "\n";
+    echo '  pdftotext: ' . (trim((string) shell_exec('command -v pdftotext 2>/dev/null')) ?: 'not found') . "\n";
+    echo '  data dir: ' . eixo_data_dir() . "\n";
+    if ($composer && !is_file(__DIR__ . '/vendor/autoload.php')) {
+        echo "composer install...\n";
+        passthru('cd ' . escapeshellarg(__DIR__) . ' && ' . escapeshellarg($composer) . ' install --no-dev --optimize-autoloader --no-interaction 2>&1 | tail -5');
+    }
+    cmd_init();
+    chmod(eixo_data_dir(), 0700);
+    cmd_check();
 }
 
 function cmd_init(): void
