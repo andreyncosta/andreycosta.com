@@ -1,0 +1,14 @@
+DirectoryIndex index.php
+Options -Indexes
+# Only index.php and the static assets are public; code, CLI, tests, vendor and docs are not.
+RedirectMatch 404 ^/eixo/(src|migrations|vendor)(/|$)
+<FilesMatch "^(cli|tests)\.php$|\.(sql|sqlite|md|json|lock|key)$">
+  Require all denied
+</FilesMatch>
+<Files "manifest.webmanifest">
+  Require all granted
+</Files>
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "no-referrer"
+</IfModule>

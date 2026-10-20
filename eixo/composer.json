@@ -1,0 +1,23 @@
+{
+    "name": "andreycosta/eixo",
+    "description": "Eixo: personal health record with dual AI reading of lab reports",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.2",
+        "ext-sodium": "*",
+        "ext-pdo_sqlite": "*",
+        "ext-curl": "*",
+        "ext-zip": "*",
+        "ext-fileinfo": "*",
+        "anthropic-ai/sdk": "^0.59",
+        "guzzlehttp/guzzle": "^7.9"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    }
+}

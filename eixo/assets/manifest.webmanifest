@@ -1,0 +1,11 @@
+{
+  "name": "Eixo",
+  "short_name": "Eixo",
+  "start_url": "/eixo/",
+  "scope": "/eixo/",
+  "display": "standalone",
+  "background_color": "#f3f3ed",
+  "theme_color": "#2d5546",
+  "lang": "pt-BR",
+  "icons": [{ "src": "/assets/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

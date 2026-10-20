@@ -24,3 +24,6 @@ error_log
 *.zip
 candidatos-private/
 artifacts/
+
+# Eixo: dependencies are installed on the server with composer
+eixo/vendor/

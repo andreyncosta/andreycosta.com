@@ -1,0 +1,17 @@
+name: Validate eixo
+on:
+  push:
+    paths: ['eixo/**', '.github/workflows/eixo.yml']
+  pull_request:
+    paths: ['eixo/**', '.github/workflows/eixo.yml']
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PHP, SQLite and poppler
+        run: sudo apt-get update && sudo apt-get install -y php-cli php-sqlite3 php-curl php-zip php-mbstring poppler-utils
+      - name: Syntax and behavioral tests
+        run: |
+          find eixo -name '*.php' -not -path 'eixo/vendor/*' -print0 | xargs -0 -n1 php -l
+          php eixo/tests.php
