@@ -36,6 +36,8 @@ Cron no painel (a cada minuto), para a fila de leitura, e um diário para backup
 15 3 * * * /usr/bin/php ~/public_html/eixo/cli.php backup && /usr/bin/php ~/public_html/eixo/cli.php purge
 ```
 
+**Na Hostinger, na prática.** O cron do painel não aceita `cd`, `&&` nem redirecionamentos, e o PATH dele não inclui o `composer`. Use um comando por cron, sempre com caminhos absolutos: `/usr/bin/php /usr/local/bin/composer --working-dir=<eixo> install --no-dev -o -n` uma vez, depois `/usr/bin/php <eixo>/cli.php setup` uma vez, e um cron separado para cada um de `work 50`, `backup` e `purge`. Para gerar um convite sem SSH, crie um cron num minuto fixo (`49 * * * *`), leia a saída e apague o cron. A extensão `sodium` vem desligada: ligue-a em hPanel → PHP → Extensões. `shell_exec` é bloqueado; o `pdftotext` roda por `proc_open` e, sem o binário, a leitura vai por imagem.
+
 Use o PHP da mesma versão do site (`php -v`); ele precisa de `sodium`, `pdo_sqlite`, `curl`, `zip` e `fileinfo`. O `pdftotext` (poppler) dá a camada de texto dos PDFs; sem ele, as duas leituras vão por imagem e a checagem fica mais fraca (`cli.php check` avisa). Se o binário estiver em outro caminho, ajuste `pdftotext` no `config.php`.
 
 **Convites.** Não há cadastro aberto. Cada paciente entra por convite de uso único, válido por 48 h:
