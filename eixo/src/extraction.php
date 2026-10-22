@@ -120,13 +120,20 @@ TXT;
 function pdf_pages_text(string $pdfBytes): ?array
 {
     $bin = (string) eixo_config()['pdftotext'];
-    if (!is_executable($bin)) {
+    // Shared hosting disables shell_exec and friends; proc_open with an argv array needs no shell.
+    if (!is_executable($bin) || !function_exists('proc_open')) {
         return null;
     }
     $tmp = tempnam(sys_get_temp_dir(), 'eixo');
     file_put_contents($tmp, $pdfBytes);
+    $out = null;
     try {
-        $out = shell_exec(escapeshellarg($bin) . ' -layout -enc UTF-8 ' . escapeshellarg($tmp) . ' - 2>/dev/null');
+        $proc = @proc_open([$bin, '-layout', '-enc', 'UTF-8', $tmp, '-'], [1 => ['pipe', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
+        if (is_resource($proc)) {
+            $out = stream_get_contents($pipes[1]);
+            fclose($pipes[1]);
+            proc_close($proc);
+        }
     } finally {
         unlink($tmp);
     }

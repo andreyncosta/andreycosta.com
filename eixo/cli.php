@@ -50,14 +50,9 @@ function cmd_setup(): void
     foreach (['sodium', 'pdo_sqlite', 'curl', 'zip', 'fileinfo', 'mbstring'] as $ext) {
         echo '  ext ' . $ext . ': ' . (extension_loaded($ext) ? 'ok' : 'MISSING') . "\n";
     }
-    $composer = trim((string) shell_exec('command -v composer 2>/dev/null'));
-    echo '  composer: ' . ($composer ?: 'not found') . "\n";
-    echo '  pdftotext: ' . (trim((string) shell_exec('command -v pdftotext 2>/dev/null')) ?: 'not found') . "\n";
+    // No shell from PHP on shared hosting: run `composer install` in the cron command itself.
+    echo '  vendor: ' . (is_file(__DIR__ . '/vendor/autoload.php') ? 'ok' : 'MISSING (run composer install --no-dev -o)') . "\n";
     echo '  data dir: ' . eixo_data_dir() . "\n";
-    if ($composer && !is_file(__DIR__ . '/vendor/autoload.php')) {
-        echo "composer install...\n";
-        passthru('cd ' . escapeshellarg(__DIR__) . ' && ' . escapeshellarg($composer) . ' install --no-dev --optimize-autoloader --no-interaction 2>&1 | tail -5');
-    }
     cmd_init();
     chmod(eixo_data_dir(), 0700);
     cmd_check();
