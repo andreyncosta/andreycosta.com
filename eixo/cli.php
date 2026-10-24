@@ -23,7 +23,7 @@ try {
         'backup' => cmd_backup(),
         'purge' => cmd_purge(),
         'stats' => cmd_stats(),
-        'diag' => cmd_diag(),
+        'diag' => isset($args[0]) ? cmd_diag_doc((int) $args[0]) : cmd_diag(),
         'requeue' => cmd_requeue(),
         default => print(<<<TXT
 Eixo CLI
@@ -37,7 +37,8 @@ Eixo CLI
   backup               consistent SQLite backup with SHA-256
   purge                delete access logs and login attempts past retention
   stats                usage and AI token counts (no health data)
-  diag                 recent document/reading error codes and a minimal live call to each AI provider
+  diag [DOC]           recent document/reading error codes and a minimal live call to each AI provider
+                       with DOC: re-run both readings on that document and print the provider error text
   requeue              put failed documents back in the queue
 
 TXT),
@@ -255,4 +256,23 @@ function cmd_requeue(): void
         $n++;
     }
     echo "requeued $n document(s)\n";
+}
+
+function cmd_diag_doc(int $docId): void
+{
+    $d = row('SELECT * FROM documents WHERE id = ?', [$docId]);
+    if (!$d) {
+        echo "no document $docId\n";
+        return;
+    }
+    $bytes = load_blob((int) $d['user_id'], $d['blob_name']);
+    $pages = $d['mime'] === 'application/pdf' ? pdf_pages_text($bytes) : null;
+    echo "doc $docId {$d['mime']} " . round(strlen($bytes) / 1024) . ' KB, text layer: ' . ($pages === null ? 'none' : count($pages) . ' page(s)') . "\n";
+    $input = ['bytes' => $bytes, 'mime' => $d['mime'], 'pages' => $pages, 'sha256' => $d['sha256']];
+    foreach (['A', 'B'] as $reader) {
+        $t = microtime(true);
+        $r = read_document($reader, $input);
+        printf("%s %s/%s %s %.0fs ok=%d %s in=%s out=%s\n  %s\n", $reader, $r['provider'], $r['model'], $r['mode'], microtime(true) - $t,
+            $r['ok'] ? 1 : 0, $r['error'] ?? '-', $r['in'] ?? '-', $r['out'] ?? '-', $r['detail'] ?? '');
+    }
 }

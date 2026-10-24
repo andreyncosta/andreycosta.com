@@ -22,6 +22,8 @@ function nul(array $schema): array
 function extraction_schema(): array
 {
     $str = ['type' => 'string'];
+    // Optional text is "" rather than null: the Claude API caps a schema at 16 union-typed fields.
+    $opt = $str;
     $num = ['type' => 'number'];
     $int = ['type' => 'integer'];
     $range = [
@@ -29,8 +31,8 @@ function extraction_schema(): array
         'required' => ['kind', 'condition', 'label', 'low', 'high'],
         'properties' => [
             'kind' => ['type' => 'string', 'enum' => ['interval', 'upper', 'lower', 'category', 'text']],
-            'condition' => nul($str),
-            'label' => nul($str),
+            'condition' => $opt,
+            'label' => $opt,
             'low' => nul($num),
             'high' => nul($num),
         ],
@@ -42,50 +44,50 @@ function extraction_schema(): array
             'loinc_code', 'loinc_property', 'loinc_confidence'],
         'properties' => [
             'name_printed' => $str,
-            'section' => nul($str),
+            'section' => $opt,
             'value_printed' => $str,
             'operator' => ['type' => 'string', 'enum' => ['', '<', '<=', '>', '>=']],
             'value_number' => nul($num),
-            'value_text' => nul($str),
-            'unit_printed' => nul($str),
-            'reference_printed' => nul($str),
+            'value_text' => $opt,
+            'unit_printed' => $opt,
+            'reference_printed' => $opt,
             'reference_ranges' => ['type' => 'array', 'items' => $range],
-            'flag_printed' => nul($str),
-            'method' => nul($str),
-            'specimen' => nul($str),
+            'flag_printed' => $opt,
+            'method' => $opt,
+            'specimen' => $opt,
             'column' => ['type' => 'string', 'enum' => ['current', 'previous']],
-            'result_date' => nul($str),
+            'result_date' => $opt,
             'page' => $int,
             'quote' => $str,
-            'loinc_code' => nul($str),
-            'loinc_property' => nul($str),
+            'loinc_code' => $opt,
+            'loinc_property' => $opt,
             'loinc_confidence' => $num,
         ],
     ];
     $metric = [
         'type' => 'object', 'additionalProperties' => false,
         'required' => ['name_printed', 'value_printed', 'value_number', 'unit_printed', 'page', 'quote'],
-        'properties' => ['name_printed' => $str, 'value_printed' => $str, 'value_number' => nul($num), 'unit_printed' => nul($str), 'page' => $int, 'quote' => $str],
+        'properties' => ['name_printed' => $str, 'value_printed' => $str, 'value_number' => nul($num), 'unit_printed' => $opt, 'page' => $int, 'quote' => $str],
     ];
     $rx = [
         'type' => 'object', 'additionalProperties' => false,
         'required' => ['drug', 'strength', 'form', 'route', 'instructions', 'page', 'quote'],
-        'properties' => ['drug' => $str, 'strength' => nul($str), 'form' => nul($str), 'route' => nul($str), 'instructions' => nul($str), 'page' => $int, 'quote' => $str],
+        'properties' => ['drug' => $str, 'strength' => $opt, 'form' => $opt, 'route' => $opt, 'instructions' => $opt, 'page' => $int, 'quote' => $str],
     ];
     return [
         'type' => 'object', 'additionalProperties' => false,
         'required' => ['doc_type', 'laboratory', 'collection_date', 'results', 'body_composition', 'prescription_items'],
         'properties' => [
             'doc_type' => ['type' => 'string', 'enum' => ['lab_report', 'bioimpedance', 'prescription', 'imaging_report', 'other']],
-            'laboratory' => nul($str),
-            'collection_date' => nul($str),
+            'laboratory' => $opt,
+            'collection_date' => $opt,
             'results' => ['type' => 'array', 'items' => $result],
             'body_composition' => nul([
                 'type' => 'object', 'additionalProperties' => false,
                 'required' => ['device_brand', 'device_model', 'technology', 'measured_date', 'metrics'],
                 'properties' => [
-                    'device_brand' => nul($str), 'device_model' => nul($str), 'technology' => nul($str),
-                    'measured_date' => nul($str), 'metrics' => ['type' => 'array', 'items' => $metric],
+                    'device_brand' => $opt, 'device_model' => $opt, 'technology' => $opt,
+                    'measured_date' => $opt, 'metrics' => ['type' => 'array', 'items' => $metric],
                 ],
             ]),
             'prescription_items' => ['type' => 'array', 'items' => $rx],
@@ -99,14 +101,14 @@ function extraction_instructions(): string
 You transcribe Brazilian medical documents (lab reports, body-composition printouts, prescriptions, imaging reports) into the JSON schema you are given. You are a transcriber, not a clinician.
 
 Rules:
-- Copy, never compute. Do not convert units, do not calculate indices, do not fix values that look wrong, do not fill in anything that is not printed. When something is not printed, use null.
-- One entry in "results" per printed result. Results printed in a "previous results" / "resultados anteriores" column are separate entries with column "previous" and the date printed for that column in result_date. Current results use column "current" and result_date null unless the report prints a different date for that test.
+- Copy, never compute. Do not convert units, do not calculate indices, do not fix values that look wrong, do not fill in anything that is not printed. When something is not printed, use an empty string for text fields and null for numbers.
+- One entry in "results" per printed result. Results printed in a "previous results" / "resultados anteriores" column are separate entries with column "previous" and the date printed for that column in result_date. Current results use column "current" and result_date empty unless the report prints a different date for that test.
 - value_printed is the result exactly as printed, including any operator or text ("< 0,01", "Não reagente", "5,4"). operator holds only the comparison sign. value_number is the numeric part with a dot as decimal separator and no thousands separator (Brazilian "1.234,5" is 1234.5); null when the result is not numeric. value_text holds non-numeric results.
-- unit_printed is the unit as printed. reference_printed is the reference text as printed. reference_ranges structures it: one entry per range or category; condition holds who it applies to as printed (sex, age, cycle phase, trimester) or null.
-- flag_printed: only an abnormality mark printed by the lab (H, L, *, "Alto", bold note). null if none. Never add your own.
+- unit_printed is the unit as printed. reference_printed is the reference text as printed. reference_ranges structures it: one entry per range or category; condition holds who it applies to as printed (sex, age, cycle phase, trimester) or empty.
+- flag_printed: only an abnormality mark printed by the lab (H, L, *, "Alto", bold note). Empty if none. Never add your own.
 - section: the report section heading the result sits under (e.g. "Hormônios", "Bioquímica").
 - page is the 1-based page number. quote is the exact line of text where the value appears, verbatim, including the value.
-- loinc_code: your best LOINC code for the test given name, specimen, unit and method; loinc_property is that code's property (MCnc, SCnc, CCnc, ACnc, NCnc, MFr, NFr, SFr, VFr, Ratio, Mass, Len, Time, Pres, ...). loinc_confidence from 0 to 1. Use null and 0 when unsure.
+- loinc_code: your best LOINC code for the test given name, specimen, unit and method; loinc_property is that code's property (MCnc, SCnc, CCnc, ACnc, NCnc, MFr, NFr, SFr, VFr, Ratio, Mass, Len, Time, Pres, ...). loinc_confidence from 0 to 1. Use empty and 0 when unsure.
 - Dates as YYYY-MM-DD. collection_date is the specimen collection date ("coleta"), not the release date.
 - body_composition: for bioimpedance printouts, the device and every metric printed (weight, fat mass, % fat, lean mass, skeletal muscle mass, total/intra/extracellular water, phase angle, visceral fat, BMR...). Otherwise null.
 - prescription_items: medications or supplements on a prescription. Otherwise an empty array.
@@ -168,7 +170,27 @@ function read_document(string $reader, array $doc, string $extraInstruction = ''
     if ($providers === 'fake') {
         return fake_read($reader, $doc);
     }
-    return $reader === 'B' ? gemini_read($doc, $extraInstruction) : claude_read($reader, $doc, $extraInstruction);
+    $res = $reader === 'B' ? gemini_read($doc, $extraInstruction) : claude_read($reader, $doc, $extraInstruction);
+    if ($res['ok']) {
+        $res['payload'] = empty_text_to_null($res['payload']);
+    }
+    return $res;
+}
+
+/** The schema uses "" for optional text (see extraction_schema); the rest of the pipeline expects null. */
+function empty_text_to_null(array $data): array
+{
+    static $optional = ['laboratory', 'collection_date', 'section', 'value_text', 'unit_printed', 'reference_printed', 'flag_printed',
+        'method', 'specimen', 'result_date', 'loinc_code', 'loinc_property', 'condition', 'label', 'device_brand', 'device_model',
+        'technology', 'measured_date', 'strength', 'form', 'route', 'instructions'];
+    foreach ($data as $k => $v) {
+        if (is_array($v)) {
+            $data[$k] = empty_text_to_null($v);
+        } elseif (is_string($k) && $v === '' && in_array($k, $optional, true)) {
+            $data[$k] = null;
+        }
+    }
+    return $data;
 }
 
 function claude_read(string $reader, array $doc, string $extraInstruction): array
@@ -208,11 +230,11 @@ function claude_read(string $reader, array $doc, string $extraInstruction): arra
             requestOptions: ['timeout' => 240.0, 'maxRetries' => 2],
         );
     } catch (Anthropic\Core\Exceptions\RateLimitException $e) {
-        return ['error' => 'rate_limited'] + $base;
+        return ['error' => 'rate_limited', 'detail' => provider_detail($e->getMessage())] + $base;
     } catch (Anthropic\Core\Exceptions\APIStatusException $e) {
-        return ['error' => 'api_' . ($e->type?->value ?? 'status')] + $base;
+        return ['error' => 'api_' . ($e->type?->value ?? 'status'), 'detail' => provider_detail($e->getMessage())] + $base;
     } catch (Anthropic\Core\Exceptions\APIConnectionException $e) {
-        return ['error' => 'connection'] + $base;
+        return ['error' => 'connection', 'detail' => provider_detail($e->getMessage())] + $base;
     }
     $base['in'] = $message->usage->inputTokens ?? null;
     $base['out'] = $message->usage->outputTokens ?? null;
@@ -231,6 +253,12 @@ function claude_read(string $reader, array $doc, string $extraInstruction): arra
         }
     }
     return ['error' => 'bad_json'] + $base;
+}
+
+/** Provider error text for the server log: whitespace collapsed, capped; API errors do not echo document content. */
+function provider_detail(string $msg): string
+{
+    return mb_substr((string) preg_replace('/\s+/', ' ', $msg), 0, 600);
 }
 
 function gemini_read(array $doc, string $extraInstruction): array
@@ -261,15 +289,16 @@ function gemini_read(array $doc, string $extraInstruction): array
     ]);
     $raw = curl_exec($ch);
     $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+    $curlError = curl_error($ch);
     curl_close($ch);
     if (!is_string($raw)) {
-        return ['error' => 'connection'] + $base;
+        return ['error' => 'connection', 'detail' => provider_detail($curlError)] + $base;
     }
     if ($status === 429) {
-        return ['error' => 'rate_limited'] + $base;
+        return ['error' => 'rate_limited', 'detail' => provider_detail($raw)] + $base;
     }
     if ($status >= 400) {
-        return ['error' => 'api_' . $status] + $base;
+        return ['error' => 'api_' . $status, 'detail' => provider_detail($raw)] + $base;
     }
     $json = json_decode($raw, true);
     if (!is_array($json)) {
@@ -464,6 +493,9 @@ function cross_check(array $r, ?array $pages, array $otherQuotes, array $history
 
 function store_reading(int $userId, int $docId, string $reader, array $res): void
 {
+    if (!empty($res['detail'])) {
+        error_log("[eixo] doc $docId reader $reader {$res['error']}: {$res['detail']}");
+    }
     q('INSERT INTO readings(document_id, reader, provider, model, input_mode, prompt_version, ok, input_tokens, output_tokens, payload_enc, error_code, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', [
         $docId, $reader, $res['provider'], $res['model'], $res['mode'], EIXO_PROMPT_VERSION, $res['ok'] ? 1 : 0,
         $res['in'], $res['out'], $res['payload'] !== null ? enc($userId, $res['payload']) : null, $res['error'], now(),
@@ -494,9 +526,11 @@ function process_document(int $docId): void
     $b = read_document('B', $input);
     store_reading($userId, $docId, 'B', $b);
     if (!$a['ok'] || !$b['ok']) {
-        $transient = in_array($a['error'] ?? $b['error'], ['rate_limited', 'connection', 'api_overloaded_error', 'api_500', 'api_503'], true);
-        if ($transient) {
-            throw new RuntimeException('transient:' . ($a['error'] ?? $b['error']));
+        $transientCodes = ['rate_limited', 'connection', 'api_overloaded_error', 'api_api_error', 'api_500', 'api_502', 'api_503', 'api_504'];
+        foreach ([$a, $b] as $r) {
+            if (!$r['ok'] && in_array($r['error'], $transientCodes, true)) {
+                throw new RuntimeException('transient:' . $r['error']);
+            }
         }
         q("UPDATE documents SET status = 'failed', error_code = ?, processed_at = ? WHERE id = ?", [$a['error'] ?? $b['error'], now(), $docId]);
         audit($userId, 'system', 'document.failed', 'document:' . $docId);
