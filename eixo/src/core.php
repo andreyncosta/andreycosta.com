@@ -35,6 +35,7 @@ function eixo_config(): array
             'mail_from' => '',
             'anthropic_api_key' => '',
             'claude_model' => 'claude-opus-5-5',
+            'claude_effort' => 'medium',
             'gemini_api_key' => '',
             'gemini_model' => 'gemini-4-argon',
             'anthropic_base_url' => null,

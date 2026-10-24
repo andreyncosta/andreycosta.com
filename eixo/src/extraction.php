@@ -219,16 +219,29 @@ function claude_read(string $reader, array $doc, string $extraInstruction): arra
 
     try {
         $client = new Anthropic\Client(apiKey: (string) $cfg['anthropic_api_key'], baseUrl: $cfg['anthropic_base_url'] ?: null);
-        $message = $client->beta->messages->create(
+        // Streamed so a long report can use a large output budget without hitting HTTP timeouts.
+        $stream = $client->beta->messages->createStream(
             model: $model,
-            maxTokens: 16000,
+            maxTokens: 64000,
             system: extraction_instructions(),
             messages: [['role' => 'user', 'content' => $content]],
-            outputConfig: ['effort' => 'high', 'format' => ['type' => 'json_schema', 'schema' => extraction_schema()]],
+            outputConfig: ['effort' => (string) $cfg['claude_effort'], 'format' => ['type' => 'json_schema', 'schema' => extraction_schema()]],
             fallbacks: 'default',
             betas: ['server-side-fallback-2026-07-01'],
-            requestOptions: ['timeout' => 240.0, 'maxRetries' => 2],
+            requestOptions: ['timeout' => 600.0, 'maxRetries' => 2],
         );
+        $text = '';
+        $stopReason = null;
+        foreach ($stream as $event) {
+            if ($event instanceof Anthropic\Beta\Messages\BetaRawMessageStartEvent) {
+                $base['in'] = $event->message->usage->inputTokens ?? null;
+            } elseif ($event instanceof Anthropic\Beta\Messages\BetaRawContentBlockDeltaEvent && $event->delta instanceof Anthropic\Beta\Messages\BetaTextDelta) {
+                $text .= $event->delta->text;
+            } elseif ($event instanceof Anthropic\Beta\Messages\BetaRawMessageDeltaEvent) {
+                $stopReason = $event->delta->stopReason ?? $stopReason;
+                $base['out'] = $event->usage->outputTokens;
+            }
+        }
     } catch (Anthropic\Core\Exceptions\RateLimitException $e) {
         return ['error' => 'rate_limited', 'detail' => provider_detail($e->getMessage())] + $base;
     } catch (Anthropic\Core\Exceptions\APIStatusException $e) {
@@ -236,21 +249,15 @@ function claude_read(string $reader, array $doc, string $extraInstruction): arra
     } catch (Anthropic\Core\Exceptions\APIConnectionException $e) {
         return ['error' => 'connection', 'detail' => provider_detail($e->getMessage())] + $base;
     }
-    $base['in'] = $message->usage->inputTokens ?? null;
-    $base['out'] = $message->usage->outputTokens ?? null;
-    if ($message->stopReason === 'refusal') {
+    if ($stopReason === 'refusal') {
         return ['error' => 'refusal'] + $base;
     }
-    if ($message->stopReason === 'max_tokens') {
+    if ($stopReason === 'max_tokens') {
         return ['error' => 'truncated'] + $base;
     }
-    foreach ($message->content as $block) {
-        if ($block->type === 'text') {
-            $data = json_decode($block->text, true);
-            if (is_array($data)) {
-                return ['ok' => true, 'payload' => $data] + $base;
-            }
-        }
+    $data = json_decode($text, true);
+    if (is_array($data)) {
+        return ['ok' => true, 'payload' => $data] + $base;
     }
     return ['error' => 'bad_json'] + $base;
 }
@@ -285,7 +292,7 @@ function gemini_read(array $doc, string $extraInstruction): array
         CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'x-goog-api-key: ' . $cfg['gemini_api_key']],
         CURLOPT_POSTFIELDS => json_encode($body, JSON_UNESCAPED_UNICODE),
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 240,
+        CURLOPT_TIMEOUT => 600,
     ]);
     $raw = curl_exec($ch);
     $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
@@ -809,7 +816,7 @@ function run_queue(int $seconds = 50): int
     $deadline = time() + $seconds;
     $n = 0;
     // Jobs left "running" by a crashed worker go back to the queue.
-    q("UPDATE jobs SET status = 'pending' WHERE status = 'running' AND locked_at < ?", [gmdate('Y-m-d\TH:i:s\Z', time() - 900)]);
+    q("UPDATE jobs SET status = 'pending' WHERE status = 'running' AND locked_at < ?", [gmdate('Y-m-d\TH:i:s\Z', time() - 3600)]);
     while (time() < $deadline) {
         $job = row("SELECT * FROM jobs WHERE status = 'pending' AND run_after <= ? ORDER BY id LIMIT 1", [now()]);
         if (!$job) {
