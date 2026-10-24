@@ -23,6 +23,8 @@ try {
         'backup' => cmd_backup(),
         'purge' => cmd_purge(),
         'stats' => cmd_stats(),
+        'diag' => cmd_diag(),
+        'requeue' => cmd_requeue(),
         default => print(<<<TXT
 Eixo CLI
   setup                server bootstrap: environment report, composer install, init, check
@@ -35,6 +37,8 @@ Eixo CLI
   backup               consistent SQLite backup with SHA-256
   purge                delete access logs and login attempts past retention
   stats                usage and AI token counts (no health data)
+  diag                 recent document/reading error codes and a minimal live call to each AI provider
+  requeue              put failed documents back in the queue
 
 TXT),
     };
@@ -203,4 +207,52 @@ function cmd_stats(): void
     }
     $q = row("SELECT SUM(status = 'quarantine') q, COUNT(*) n FROM results WHERE origin = 'extraction'");
     echo '  quarantine share: ' . ($q['n'] ? round($q['q'] / $q['n'] * 100, 1) : 0) . "%\n";
+}
+
+/** Error codes only (no health data), plus a one-word live call to each provider showing the raw API error. */
+function cmd_diag(): void
+{
+    foreach (rows("SELECT id, status, error_code, mime, uploaded_at FROM documents ORDER BY id DESC LIMIT 10") as $d) {
+        echo "doc {$d['id']} {$d['mime']} {$d['status']} " . ($d['error_code'] ?? '-') . " {$d['uploaded_at']}\n";
+        foreach (rows('SELECT reader, provider, model, input_mode, ok, error_code, input_tokens, output_tokens FROM readings WHERE document_id = ? ORDER BY id', [$d['id']]) as $r) {
+            echo "  {$r['reader']} {$r['provider']}/{$r['model']} {$r['input_mode']} ok={$r['ok']} " . ($r['error_code'] ?? '-') . " in={$r['input_tokens']} out={$r['output_tokens']}\n";
+        }
+        foreach (rows('SELECT status, attempts, last_error FROM jobs WHERE document_id = ? ORDER BY id', [$d['id']]) as $j) {
+            echo "  job {$j['status']} attempts={$j['attempts']} " . ($j['last_error'] ?? '-') . "\n";
+        }
+    }
+    $c = eixo_config();
+    echo "probe anthropic {$c['claude_model']}: ";
+    try {
+        $client = new Anthropic\Client(apiKey: (string) $c['anthropic_api_key'], baseUrl: $c['anthropic_base_url'] ?: null);
+        $m = $client->messages->create(model: (string) $c['claude_model'], maxTokens: 16, messages: [['role' => 'user', 'content' => 'Reply with: ok']]);
+        echo 'ok (' . $m->stopReason?->value . ")\n";
+    } catch (Throwable $e) {
+        echo get_class($e) . ': ' . mb_substr($e->getMessage(), 0, 400) . "\n";
+    }
+    echo "probe gemini {$c['gemini_model']}: ";
+    $ch = curl_init(rtrim((string) $c['gemini_base_url'], '/') . '/interactions');
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'x-goog-api-key: ' . $c['gemini_api_key']],
+        CURLOPT_POSTFIELDS => json_encode(['model' => $c['gemini_model'], 'store' => false, 'input' => 'Reply with: ok']),
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 60,
+    ]);
+    $raw = curl_exec($ch);
+    $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+    $err = curl_error($ch);
+    curl_close($ch);
+    echo "HTTP $status " . ($raw === false ? $err : mb_substr(preg_replace('/\s+/', ' ', (string) $raw), 0, 400)) . "\n";
+}
+
+function cmd_requeue(): void
+{
+    $n = 0;
+    foreach (rows("SELECT id FROM documents WHERE status = 'failed'") as $d) {
+        q("DELETE FROM jobs WHERE document_id = ? AND status IN ('failed','pending')", [$d['id']]);
+        enqueue_document((int) $d['id']);
+        $n++;
+    }
+    echo "requeued $n document(s)\n";
 }
