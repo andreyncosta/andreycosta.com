@@ -25,6 +25,7 @@ try {
         'stats' => cmd_stats(),
         'diag' => isset($args[0]) ? cmd_diag_doc((int) $args[0], $flag('--text')) : cmd_diag(),
         'models' => cmd_models(),
+        'config' => cmd_config($args[0] ?? '', $args[1] ?? ''),
         'requeue' => cmd_requeue(),
         default => print(<<<TXT
 Eixo CLI
@@ -42,6 +43,7 @@ Eixo CLI
                        with DOC: re-run both readings on that document and print the provider error text
                        with DOC --text: only report the PDF text layer (no AI call, no cost)
   models               list the Gemini models this key can use
+  config KEY VALUE     set a model or effort setting in config.php (never touches keys or secrets)
   requeue              put failed documents back in the queue
 
 TXT),
@@ -303,4 +305,30 @@ function cmd_models(): void
     if (!isset($json['models'])) {
         echo mb_substr(json_encode($json), 0, 400) . "\n";
     }
+}
+
+/** Edits only the model/effort lines of config.php, so the server can be tuned from a cron without opening the file. */
+function cmd_config(string $key, string $value): void
+{
+    $allowed = ['claude_model', 'claude_effort', 'claude_tiebreak_model', 'gemini_model'];
+    if (!in_array($key, $allowed, true) || !preg_match('/^[a-z0-9.\-]{1,64}$/', $value)) {
+        echo 'usage: config ' . implode('|', $allowed) . " VALUE\n";
+        return;
+    }
+    $file = eixo_data_dir() . '/config.php';
+    $src = (string) file_get_contents($file);
+    $line = "'$key' => '$value',";
+    $pattern = '/\'' . preg_quote($key, '/') . '\'\s*=>\s*\'[^\']*\',/';
+    $new = preg_match($pattern, $src) ? preg_replace($pattern, $line, $src, 1) : preg_replace('/\];\s*$/', "    $line\n];\n", $src, 1);
+    $tmp = $file . '.tmp';
+    file_put_contents($tmp, $new);
+    chmod($tmp, 0600);
+    $check = include $tmp;
+    if (!is_array($check) || ($check[$key] ?? null) !== $value) {
+        unlink($tmp);
+        echo "not changed: the edited file did not parse\n";
+        return;
+    }
+    rename($tmp, $file);
+    echo "$key = $value\n";
 }
