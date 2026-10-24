@@ -116,6 +116,28 @@ Rules:
 TXT;
 }
 
+/**
+ * Pure-PHP fallback when pdftotext is not installed (Hostinger shared hosting).
+ * Much cheaper for the readers than sending page images.
+ * @return list<string>|null
+ */
+function pdf_pages_text_php(string $pdfBytes): ?array
+{
+    if (!class_exists(Smalot\PdfParser\Parser::class)) {
+        return null;
+    }
+    try {
+        $pages = [];
+        foreach ((new Smalot\PdfParser\Parser())->parseContent($pdfBytes)->getPages() as $page) {
+            $pages[] = (string) $page->getText();
+        }
+    } catch (Throwable $e) {
+        log_error('pdfparser', $e);
+        return null;
+    }
+    return trim(implode('', $pages)) === '' ? null : $pages;
+}
+
 /* ── Document text layer and minimization ───────────────────────────────── */
 
 /** @return list<string>|null per-page text of a PDF, or null when unavailable */
@@ -124,7 +146,7 @@ function pdf_pages_text(string $pdfBytes): ?array
     $bin = (string) eixo_config()['pdftotext'];
     // Shared hosting disables shell_exec and friends; proc_open with an argv array needs no shell.
     if (!is_executable($bin) || !function_exists('proc_open')) {
-        return null;
+        return pdf_pages_text_php($pdfBytes);
     }
     $tmp = tempnam(sys_get_temp_dir(), 'eixo');
     file_put_contents($tmp, $pdfBytes);
@@ -196,7 +218,8 @@ function empty_text_to_null(array $data): array
 function claude_read(string $reader, array $doc, string $extraInstruction): array
 {
     $cfg = eixo_config();
-    $model = (string) $cfg['claude_model'];
+    // Reader A reads cheaply (the text layer, a small model); only the tie-break, run when A and B disagree, uses the larger one.
+    $model = (string) ($reader === 'C' ? $cfg['claude_tiebreak_model'] : $cfg['claude_model']);
     $useText = $reader === 'A' && $doc['pages'] !== null && mb_strlen(implode('', $doc['pages'])) > 200;
     $mode = $useText ? 'text_layer' : 'file';
     $base = ['ok' => false, 'payload' => null, 'provider' => 'anthropic', 'model' => $model, 'mode' => $mode, 'in' => null, 'out' => null, 'error' => null];
@@ -220,14 +243,16 @@ function claude_read(string $reader, array $doc, string $extraInstruction): arra
     try {
         $client = new Anthropic\Client(apiKey: (string) $cfg['anthropic_api_key'], baseUrl: $cfg['anthropic_base_url'] ?: null);
         // Streamed so a long report can use a large output budget without hitting HTTP timeouts.
+        // Haiku has no server-side refusal fallback; the parameter is only sent to models that support it.
+        $hasFallback = !str_contains($model, 'haiku');
         $stream = $client->beta->messages->createStream(
             model: $model,
             maxTokens: 64000,
             system: extraction_instructions(),
             messages: [['role' => 'user', 'content' => $content]],
-            outputConfig: ['effort' => (string) $cfg['claude_effort'], 'format' => ['type' => 'json_schema', 'schema' => extraction_schema()]],
-            fallbacks: 'default',
-            betas: ['server-side-fallback-2026-07-01'],
+            outputConfig: ['effort' => (string) ($reader === 'C' ? 'medium' : $cfg['claude_effort']), 'format' => ['type' => 'json_schema', 'schema' => extraction_schema()]],
+            fallbacks: $hasFallback ? 'default' : null,
+            betas: $hasFallback ? ['server-side-fallback-2026-07-01'] : null,
             requestOptions: ['timeout' => 600.0, 'maxRetries' => 2],
         );
         $text = '';
@@ -711,7 +736,7 @@ function persist_outcome(int $userId, array $doc, array $o, ?array $pages): void
         }
 
         $counts = ['loaded' => 0, 'quarantine' => 0, 'skipped_existing' => 0];
-        $versions = ['prompt' => EIXO_PROMPT_VERSION, 'claude' => eixo_config()['claude_model'], 'gemini' => eixo_config()['gemini_model'], 'ucum' => 'eixo-ucum-1', 'loinc' => 'model-proposed'];
+        $versions = ['prompt' => EIXO_PROMPT_VERSION, 'claude' => eixo_config()['claude_model'], 'claude_tiebreak' => eixo_config()['claude_tiebreak_model'], 'gemini' => eixo_config()['gemini_model'], 'ucum' => 'eixo-ucum-1', 'loinc' => 'model-proposed'];
         foreach ($o['results'] as $item) {
             $r = $item['r'];
             $r['_collection_date'] = $o['collection_date'];

@@ -23,7 +23,8 @@ try {
         'backup' => cmd_backup(),
         'purge' => cmd_purge(),
         'stats' => cmd_stats(),
-        'diag' => isset($args[0]) ? cmd_diag_doc((int) $args[0]) : cmd_diag(),
+        'diag' => isset($args[0]) ? cmd_diag_doc((int) $args[0], $flag('--text')) : cmd_diag(),
+        'models' => cmd_models(),
         'requeue' => cmd_requeue(),
         default => print(<<<TXT
 Eixo CLI
@@ -39,6 +40,8 @@ Eixo CLI
   stats                usage and AI token counts (no health data)
   diag [DOC]           recent document/reading error codes and a minimal live call to each AI provider
                        with DOC: re-run both readings on that document and print the provider error text
+                       with DOC --text: only report the PDF text layer (no AI call, no cost)
+  models               list the Gemini models this key can use
   requeue              put failed documents back in the queue
 
 TXT),
@@ -90,7 +93,9 @@ return [
     'dpo_email' => '',
     'mail_from' => '',            // sender for `invite --send`
     'anthropic_api_key' => '',
-    'claude_model' => 'claude-opus-5-5',
+    'claude_model' => 'claude-haiku-5-5',      // reader A (text layer when the PDF has one)
+    'claude_effort' => 'low',
+    'claude_tiebreak_model' => 'claude-sonnet-5-5', // only when A and B disagree
     'gemini_api_key' => '',
     'gemini_model' => 'gemini-4-argon',
     'max_upload_mb' => 20,
@@ -258,7 +263,7 @@ function cmd_requeue(): void
     echo "requeued $n document(s)\n";
 }
 
-function cmd_diag_doc(int $docId): void
+function cmd_diag_doc(int $docId, bool $textOnly = false): void
 {
     $d = row('SELECT * FROM documents WHERE id = ?', [$docId]);
     if (!$d) {
@@ -268,11 +273,34 @@ function cmd_diag_doc(int $docId): void
     $bytes = load_blob((int) $d['user_id'], $d['blob_name']);
     $pages = $d['mime'] === 'application/pdf' ? pdf_pages_text($bytes) : null;
     echo "doc $docId {$d['mime']} " . round(strlen($bytes) / 1024) . ' KB, text layer: ' . ($pages === null ? 'none' : count($pages) . ' page(s)') . "\n";
+    if ($pages !== null) {
+        echo '  characters per page: ' . implode(' ', array_map('mb_strlen', $pages)) . "\n";
+    }
+    if ($textOnly) {
+        return;
+    }
     $input = ['bytes' => $bytes, 'mime' => $d['mime'], 'pages' => $pages, 'sha256' => $d['sha256']];
     foreach (['A', 'B'] as $reader) {
         $t = microtime(true);
         $r = read_document($reader, $input);
         printf("%s %s/%s %s %.0fs ok=%d %s in=%s out=%s\n  %s\n", $reader, $r['provider'], $r['model'], $r['mode'], microtime(true) - $t,
             $r['ok'] ? 1 : 0, $r['error'] ?? '-', $r['in'] ?? '-', $r['out'] ?? '-', $r['detail'] ?? '');
+    }
+}
+
+function cmd_models(): void
+{
+    $c = eixo_config();
+    $ch = curl_init(rtrim((string) $c['gemini_base_url'], '/') . '/models?pageSize=200');
+    curl_setopt_array($ch, [CURLOPT_HTTPHEADER => ['x-goog-api-key: ' . $c['gemini_api_key']], CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 60]);
+    $json = json_decode((string) curl_exec($ch), true);
+    curl_close($ch);
+    foreach (($json['models'] ?? []) as $m) {
+        if (in_array('generateContent', $m['supportedGenerationMethods'] ?? [], true)) {
+            echo str_replace('models/', '', $m['name']) . '  ' . ($m['displayName'] ?? '') . "\n";
+        }
+    }
+    if (!isset($json['models'])) {
+        echo mb_substr(json_encode($json), 0, 400) . "\n";
     }
 }
