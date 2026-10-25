@@ -25,7 +25,7 @@ try {
         'stats' => cmd_stats(),
         'diag' => isset($args[0]) ? cmd_diag_doc((int) $args[0], $flag('--text')) : cmd_diag(),
         'models' => cmd_models(),
-        'config' => cmd_config($args[0] ?? '', $args[1] ?? ''),
+        'config' => array_map(fn ($pair) => cmd_config($pair[0], $pair[1] ?? ''), array_chunk($args ?: [''], 2)),
         'requeue' => cmd_requeue(),
         default => print(<<<TXT
 Eixo CLI
@@ -43,7 +43,7 @@ Eixo CLI
                        with DOC: re-run both readings on that document and print the provider error text
                        with DOC --text: only report the PDF text layer (no AI call, no cost)
   models               list the Gemini models this key can use
-  config KEY VALUE     set a model or effort setting in config.php (never touches keys or secrets)
+  config KEY VALUE...  set a model or effort setting in config.php (never touches keys or secrets)
   requeue              put failed documents back in the queue
 
 TXT),
@@ -320,7 +320,7 @@ function cmd_config(string $key, string $value): void
     $line = "'$key' => '$value',";
     $pattern = '/\'' . preg_quote($key, '/') . '\'\s*=>\s*\'[^\']*\',/';
     $new = preg_match($pattern, $src) ? preg_replace($pattern, $line, $src, 1) : preg_replace('/\];\s*$/', "    $line\n];\n", $src, 1);
-    $tmp = $file . '.tmp';
+    $tmp = $file . '.' . bin2hex(random_bytes(4)) . '.tmp';
     file_put_contents($tmp, $new);
     chmod($tmp, 0600);
     $check = include $tmp;
