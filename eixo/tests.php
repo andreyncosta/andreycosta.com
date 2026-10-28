@@ -62,6 +62,32 @@ ok(consents($uid)['ai'] && !consents($uid)['research'], 'consents by purpose, re
 $m = minimize_text("Paciente: Maria da Silva\nCPF: 123.456.789-09\nTSH   2,10 µUI/mL\nMédico solicitante: Dr. Fulano CRM-PI 12345");
 ok(!str_contains($m, 'Maria') && !str_contains($m, '123.456') && !str_contains($m, 'Fulano') && str_contains($m, '2,10'), 'identifiers removed, values kept');
 
+/* ── Model replies: no provider enforces the schema, so parsing and validation are ours ── */
+ok(json_from_model_text("```json\n{\"a\": 1}\n```") === ['a' => 1], 'JSON found inside a markdown fence');
+ok(json_from_model_text('Segue o resultado: {"a": {"b": 2}} — pronto.') === ['a' => ['b' => 2]], 'JSON found between prose');
+ok(json_from_model_text('{"q": "uma } chave no texto", "n": 3}') === ['q' => 'uma } chave no texto', 'n' => 3], 'a brace inside a string does not close the object');
+ok(json_from_model_text('nenhum objeto aqui') === null, 'a reply with no object is rejected');
+
+$exSchema = extraction_schema();
+$perfect = synthetic_report(11)['fixture'];
+ok(schema_errors(coerce_to_schema($perfect, $exSchema), $exSchema) === [], 'a perfect reading fits the schema after coercion');
+
+$loose = coerce_to_schema(['doc_type' => 'lab_report', 'laboratory' => null, 'collection_date' => '2026-01-02',
+    'body_composition' => null, 'prescription_items' => [], 'invented_key' => 'x'], $exSchema);
+ok(($loose['laboratory'] ?? 'x') === '', 'optional text arriving as null becomes ""');
+ok(!array_key_exists('invented_key', $loose), 'a key outside the schema is dropped');
+ok(($loose['results'] ?? null) === [], 'a missing list becomes empty, never invented');
+ok(schema_errors($loose, $exSchema) === [], 'the coerced minimum fits the schema');
+ok(coerce_to_schema(['page' => '3', 'v' => '5.4'], ['type' => 'object', 'properties' => ['page' => ['type' => 'integer'], 'v' => ['type' => 'number']]]) === ['page' => 3, 'v' => 5.4], 'a numeric string becomes a number');
+ok(coerce_to_schema('12,5', ['type' => 'number']) === '12,5', 'a comma decimal is never silently converted');
+
+$wrong = $perfect;
+$wrong['doc_type'] = 'laudo';
+$wrong['results'][0]['page'] = 'um';
+$errs = schema_errors(coerce_to_schema($wrong, $exSchema), $exSchema);
+ok(count($errs) === 2 && str_contains($errs[0], 'doc_type') && str_contains($errs[1], 'results[0].page'), 'a bad enum and a bad type are reported by path');
+ok(reader_model('A') !== reader_model('B'), 'readers A and B are different models');
+
 /* ── Pipeline with fake readers ── */
 function add_doc(int $uid, string $bytes, string $mime = 'application/pdf'): int
 {

@@ -1,6 +1,6 @@
 {
     "name": "andreycosta/eixo",
-    "description": "Eixo: personal health record with dual AI reading of lab reports",
+    "description": "Eixo: personal health record with dual AI reading of lab reports (Replicate)",
     "type": "project",
     "license": "proprietary",
     "require": {
@@ -10,8 +10,6 @@
         "ext-pdo_sqlite": "*",
         "ext-sodium": "*",
         "ext-zip": "*",
-        "anthropic-ai/sdk": "^0.59",
-        "guzzlehttp/guzzle": "^7.9",
         "smalot/pdfparser": "^2"
     },
     "config": {

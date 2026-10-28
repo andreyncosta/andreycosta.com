@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
 
-// Composer dependencies (Anthropic SDK, Guzzle) are installed on the server with
-// `composer install --no-dev` inside eixo/; tests run without them.
+// The Composer dependency (smalot/pdfparser, the pure-PHP text layer) is installed on the
+// server with `composer install --no-dev` inside eixo/; tests run without it.
 if (is_file(__DIR__ . '/../vendor/autoload.php')) {
     require __DIR__ . '/../vendor/autoload.php';
 }

@@ -42,8 +42,8 @@ Eixo CLI
   diag [DOC]           recent document/reading error codes and a minimal live call to each AI provider
                        with DOC: re-run both readings on that document and print the provider error text
                        with DOC --text: only report the PDF text layer (no AI call, no cost)
-  models               list the Gemini models this key can use
-  config KEY VALUE...  set a model or effort setting in config.php (never touches keys or secrets)
+  models               check that the configured Replicate models exist and answer to this key
+  config KEY VALUE...  set a model in config.php (never touches keys or secrets)
   requeue              put failed documents back in the queue
 
 TXT),
@@ -94,12 +94,10 @@ return [
     'dpo_name' => '',             // encarregado
     'dpo_email' => '',
     'mail_from' => '',            // sender for `invite --send`
-    'anthropic_api_key' => '',
-    'claude_model' => 'claude-haiku-5-5',      // reader A (text layer when the PDF has one)
-    'claude_effort' => 'low',
-    'claude_tiebreak_model' => 'claude-sonnet-5-5', // only when A and B disagree
-    'gemini_api_key' => '',
-    'gemini_model' => 'gemini-4-argon',
+    'replicate_key' => '',        // one key for every reader: replicate.com/account/api-tokens
+    'replicate_model_a' => 'openai/gpt-oss-120b',              // reader A, on the page text
+    'replicate_model_b' => 'meta/llama-4-maverick-instruct',   // reader B, another model family
+    'replicate_tiebreak_model' => 'deepseek-ai/deepseek-v3.1', // only when A and B disagree
     'max_upload_mb' => 20,
     'max_documents_per_30_days' => 40,
 ];
@@ -126,7 +124,7 @@ function cmd_invite(string $email, bool $send): void
 function cmd_eval(int $n, bool $yes): void
 {
     if (!$yes) {
-        echo "This sends $n synthetic report(s) to both AI providers (real cost, roughly 2-3 readings each). Re-run with --yes.\n";
+        echo "This sends $n synthetic report(s) to the Replicate readers (real cost, roughly 2-3 readings each). Re-run with --yes.\n";
         return;
     }
     $email = 'eval+' . time() . '@eixo.invalid';
@@ -145,7 +143,7 @@ function cmd_eval(int $n, bool $yes): void
             $truth[$docId] = $rep['truth'];
             echo '.';
         }
-        $score = score_against_truth($uid, $truth) + ['at' => now(), 'documents' => $n, 'claude' => eixo_config()['claude_model'], 'gemini' => eixo_config()['gemini_model'], 'prompt' => EIXO_PROMPT_VERSION];
+        $score = score_against_truth($uid, $truth) + ['at' => now(), 'documents' => $n, 'reader_a' => reader_model('A'), 'reader_b' => reader_model('B'), 'prompt' => EIXO_PROMPT_VERSION];
         meta_set('eval_last', json_encode($score));
         printf("\n%d values, %d loaded, %d correct, %d WRONG loaded · precision %.2f%% · recall %.2f%%\n",
             $score['values'], $score['loaded'], $score['correct'], $score['wrong_loaded'], $score['precision'] * 100, $score['recall'] * 100);
@@ -167,8 +165,7 @@ function cmd_check(): void
         'schema up to date' => (int) (meta_get('schema_version') ?? 0) === EIXO_SCHEMA_VERSION,
         'sqlite integrity' => row('PRAGMA integrity_check')['integrity_check'] === 'ok',
         'composer vendor installed' => is_file(__DIR__ . '/vendor/autoload.php'),
-        'Anthropic key set' => $c['anthropic_api_key'] !== '',
-        'Gemini key set' => $c['gemini_api_key'] !== '',
+        'Replicate key set' => $c['replicate_key'] !== '',
         'pdftotext available' => is_executable((string) $c['pdftotext']),
         'controller and DPO named' => $c['controller_name'] !== '' && $c['dpo_name'] !== '',
         'synthetic eval recorded' => meta_get('eval_last') !== null,
@@ -229,29 +226,15 @@ function cmd_diag(): void
             echo "  job {$j['status']} attempts={$j['attempts']} " . ($j['last_error'] ?? '-') . "\n";
         }
     }
-    $c = eixo_config();
-    echo "probe anthropic {$c['claude_model']}: ";
-    try {
-        $client = new Anthropic\Client(apiKey: (string) $c['anthropic_api_key'], baseUrl: $c['anthropic_base_url'] ?: null);
-        $m = $client->messages->create(model: (string) $c['claude_model'], maxTokens: 16, messages: [['role' => 'user', 'content' => 'Reply with: ok']]);
-        echo 'ok (' . $m->stopReason?->value . ")\n";
-    } catch (Throwable $e) {
-        echo get_class($e) . ': ' . mb_substr($e->getMessage(), 0, 400) . "\n";
+    foreach (['A', 'B', 'C'] as $reader) {
+        $model = reader_model($reader);
+        $t = microtime(true);
+        $r = replicate_predict($model, 'Reply with exactly: ok');
+        printf("probe %s %s: %.0fs %s %s in=%s out=%s\n", $reader, $model, microtime(true) - $t,
+            $r['ok'] ? 'ok' : ($r['error'] ?? 'failed'),
+            provider_detail((string) ($r['ok'] ? $r['text'] : ($r['detail'] ?? ''))),
+            $r['in'] ?? '-', $r['out'] ?? '-');
     }
-    echo "probe gemini {$c['gemini_model']}: ";
-    $ch = curl_init(rtrim((string) $c['gemini_base_url'], '/') . '/interactions');
-    curl_setopt_array($ch, [
-        CURLOPT_POST => true,
-        CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'x-goog-api-key: ' . $c['gemini_api_key']],
-        CURLOPT_POSTFIELDS => json_encode(['model' => $c['gemini_model'], 'store' => false, 'input' => 'Reply with: ok']),
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 60,
-    ]);
-    $raw = curl_exec($ch);
-    $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-    $err = curl_error($ch);
-    curl_close($ch);
-    echo "HTTP $status " . ($raw === false ? $err : mb_substr(preg_replace('/\s+/', ' ', (string) $raw), 0, 400)) . "\n";
 }
 
 function cmd_requeue(): void
@@ -292,26 +275,23 @@ function cmd_diag_doc(int $docId, bool $textOnly = false): void
 
 function cmd_models(): void
 {
-    $c = eixo_config();
-    $ch = curl_init(rtrim((string) $c['gemini_base_url'], '/') . '/models?pageSize=200');
-    curl_setopt_array($ch, [CURLOPT_HTTPHEADER => ['x-goog-api-key: ' . $c['gemini_api_key']], CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 60]);
-    $json = json_decode((string) curl_exec($ch), true);
-    curl_close($ch);
-    foreach (($json['models'] ?? []) as $m) {
-        if (in_array('generateContent', $m['supportedGenerationMethods'] ?? [], true)) {
-            echo str_replace('models/', '', $m['name']) . '  ' . ($m['displayName'] ?? '') . "\n";
+    $base = rtrim((string) eixo_config()['replicate_base_url'], '/');
+    foreach (['A', 'B', 'C'] as $reader) {
+        $model = reader_model($reader);
+        $res = replicate_http('GET', $base . '/models/' . $model, null);
+        if (!$res['ok']) {
+            echo "$reader $model: {$res['error']} " . mb_substr((string) $res['detail'], 0, 200) . "\n";
+            continue;
         }
-    }
-    if (!isset($json['models'])) {
-        echo mb_substr(json_encode($json), 0, 400) . "\n";
+        echo "$reader $model: ok · " . mb_substr((string) ($res['json']['description'] ?? ''), 0, 90) . "\n";
     }
 }
 
 /** Edits only the model/effort lines of config.php, so the server can be tuned from a cron without opening the file. */
 function cmd_config(string $key, string $value): void
 {
-    $allowed = ['claude_model', 'claude_effort', 'claude_tiebreak_model', 'gemini_model'];
-    if (!in_array($key, $allowed, true) || !preg_match('/^[a-z0-9.\-]{1,64}$/', $value)) {
+    $allowed = ['replicate_model_a', 'replicate_model_b', 'replicate_tiebreak_model'];
+    if (!in_array($key, $allowed, true) || !preg_match('#^[a-z0-9.\-]{1,40}/[a-z0-9.\-]{1,60}$#', $value)) {
         echo 'usage: config ' . implode('|', $allowed) . " VALUE\n";
         return;
     }

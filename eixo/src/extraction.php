@@ -3,13 +3,15 @@ declare(strict_types=1);
 
 /*
  * Extraction pipeline. The models only transcribe; code compares, checks and decides.
+ * Every reader runs on Replicate, on the document's text layer (minimized).
  *
- *   A: Claude, on the PDF text layer when there is one (minimized), else on the file
- *   B: Gemini, on the file itself (page images + text)
- *   C: Claude, on the file, only when A and B disagree (tie-break)
+ *   A: replicate_model_a, on the page text
+ *   B: replicate_model_b, a different model family, on the same page text
+ *   C: replicate_tiebreak_model, only when A and B disagree (tie-break)
  *
  * A value is loaded only when two readings agree and it passes the cross-check
- * (RN-02); everything else goes to quarantine (RN-10).
+ * (RN-02); everything else goes to quarantine (RN-10). These models read text, so a
+ * document with no text layer is not read at all: it fails with no_text_layer.
  */
 
 /* ── Output schema shared by every reader ───────────────────────────────── */
@@ -22,7 +24,7 @@ function nul(array $schema): array
 function extraction_schema(): array
 {
     $str = ['type' => 'string'];
-    // Optional text is "" rather than null: the Claude API caps a schema at 16 union-typed fields.
+    // Optional text is "" rather than null: fewer union-typed fields, which smaller models fill more reliably.
     $opt = $str;
     $num = ['type' => 'number'];
     $int = ['type' => 'integer'];
@@ -192,7 +194,7 @@ function read_document(string $reader, array $doc, string $extraInstruction = ''
     if ($providers === 'fake') {
         return fake_read($reader, $doc);
     }
-    $res = $reader === 'B' ? gemini_read($doc, $extraInstruction) : claude_read($reader, $doc, $extraInstruction);
+    $res = replicate_read($reader, $doc, $extraInstruction);
     if ($res['ok']) {
         $res['payload'] = empty_text_to_null($res['payload']);
     }
@@ -215,156 +217,331 @@ function empty_text_to_null(array $data): array
     return $data;
 }
 
-function claude_read(string $reader, array $doc, string $extraInstruction): array
-{
-    $cfg = eixo_config();
-    // Reader A reads cheaply (the text layer, a small model); only the tie-break, run when A and B disagree, uses the larger one.
-    $model = (string) ($reader === 'C' ? $cfg['claude_tiebreak_model'] : $cfg['claude_model']);
-    $useText = $reader === 'A' && $doc['pages'] !== null && mb_strlen(implode('', $doc['pages'])) > 200;
-    $mode = $useText ? 'text_layer' : 'file';
-    $base = ['ok' => false, 'payload' => null, 'provider' => 'anthropic', 'model' => $model, 'mode' => $mode, 'in' => null, 'out' => null, 'error' => null];
-    if ($cfg['anthropic_api_key'] === '') {
-        return ['error' => 'no_api_key'] + $base;
-    }
-    $content = [];
-    if ($useText) {
-        $text = '';
-        foreach ($doc['pages'] as $i => $p) {
-            $text .= "=== Página " . ($i + 1) . " ===\n" . minimize_text($p) . "\n";
-        }
-        $content[] = ['type' => 'text', 'text' => "Document text layer, page by page:\n\n" . $text];
-    } elseif ($doc['mime'] === 'application/pdf') {
-        $content[] = ['type' => 'document', 'source' => ['type' => 'base64', 'mediaType' => 'application/pdf', 'data' => base64_encode($doc['bytes'])]];
-    } else {
-        $content[] = ['type' => 'image', 'source' => ['type' => 'base64', 'mediaType' => $doc['mime'], 'data' => base64_encode($doc['bytes'])]];
-    }
-    $content[] = ['type' => 'text', 'text' => 'Transcribe this document into the schema.' . ($extraInstruction ? "\n\n" . $extraInstruction : '')];
-
-    try {
-        $client = new Anthropic\Client(apiKey: (string) $cfg['anthropic_api_key'], baseUrl: $cfg['anthropic_base_url'] ?: null);
-        // Streamed so a long report can use a large output budget without hitting HTTP timeouts.
-        // Haiku has no server-side refusal fallback; the parameter is only sent to models that support it.
-        $hasFallback = !str_contains($model, 'haiku');
-        $stream = $client->beta->messages->createStream(
-            model: $model,
-            maxTokens: 64000,
-            system: extraction_instructions(),
-            messages: [['role' => 'user', 'content' => $content]],
-            outputConfig: ['effort' => (string) ($reader === 'C' ? 'medium' : $cfg['claude_effort']), 'format' => ['type' => 'json_schema', 'schema' => extraction_schema()]],
-            fallbacks: $hasFallback ? 'default' : null,
-            betas: $hasFallback ? ['server-side-fallback-2026-07-01'] : null,
-            requestOptions: ['timeout' => 600.0, 'maxRetries' => 2],
-        );
-        $text = '';
-        $stopReason = null;
-        foreach ($stream as $event) {
-            if ($event instanceof Anthropic\Beta\Messages\BetaRawMessageStartEvent) {
-                $base['in'] = $event->message->usage->inputTokens ?? null;
-            } elseif ($event instanceof Anthropic\Beta\Messages\BetaRawContentBlockDeltaEvent && $event->delta instanceof Anthropic\Beta\Messages\BetaTextDelta) {
-                $text .= $event->delta->text;
-            } elseif ($event instanceof Anthropic\Beta\Messages\BetaRawMessageDeltaEvent) {
-                $stopReason = $event->delta->stopReason ?? $stopReason;
-                $base['out'] = $event->usage->outputTokens;
-            }
-        }
-    } catch (Anthropic\Core\Exceptions\RateLimitException $e) {
-        return ['error' => 'rate_limited', 'detail' => provider_detail($e->getMessage())] + $base;
-    } catch (Anthropic\Core\Exceptions\APIStatusException $e) {
-        return ['error' => 'api_' . ($e->type?->value ?? 'status'), 'detail' => provider_detail($e->getMessage())] + $base;
-    } catch (Anthropic\Core\Exceptions\APIConnectionException $e) {
-        return ['error' => 'connection', 'detail' => provider_detail($e->getMessage())] + $base;
-    }
-    if ($stopReason === 'refusal') {
-        return ['error' => 'refusal'] + $base;
-    }
-    if ($stopReason === 'max_tokens') {
-        return ['error' => 'truncated'] + $base;
-    }
-    $data = json_decode($text, true);
-    if (is_array($data)) {
-        return ['ok' => true, 'payload' => $data] + $base;
-    }
-    return ['error' => 'bad_json'] + $base;
-}
-
 /** Provider error text for the server log: whitespace collapsed, capped; API errors do not echo document content. */
 function provider_detail(string $msg): string
 {
     return mb_substr((string) preg_replace('/\s+/', ' ', $msg), 0, 600);
 }
 
-function gemini_read(array $doc, string $extraInstruction): array
+/* ── Replicate ───────────────────────────────────────────────────────────── */
+
+/** The model behind each reader. C is the tie-break, asked only when A and B disagree. */
+function reader_model(string $reader): string
 {
     $cfg = eixo_config();
-    $model = (string) $cfg['gemini_model'];
-    $base = ['ok' => false, 'payload' => null, 'provider' => 'google', 'model' => $model, 'mode' => 'file', 'in' => null, 'out' => null, 'error' => null];
-    if ($cfg['gemini_api_key'] === '') {
+    return (string) match ($reader) {
+        'B' => $cfg['replicate_model_b'],
+        'C' => $cfg['replicate_tiebreak_model'],
+        default => $cfg['replicate_model_a'],
+    };
+}
+
+/**
+ * Everything the model needs in one string: these models take no system prompt and enforce
+ * no schema, so the instructions, the schema and the document travel together and the reply
+ * is validated here instead of by the provider.
+ */
+function extraction_prompt(string $text, string $task, ?array $repair): string
+{
+    $prompt = extraction_instructions()
+        . "\n\nReturn one JSON object and nothing else: no explanation, no markdown fence. It must validate against this JSON Schema:\n"
+        . json_encode(extraction_schema(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+        . "\n\nDocument text layer, page by page:\n\n" . $text . "\n" . $task;
+    if ($repair) {
+        $prompt .= "\n\nYour previous reply did not fit the schema:\n- " . implode("\n- ", array_slice($repair, 0, 20))
+            . "\nSend the corrected JSON object only. Do not invent a value to fill a gap: \"\" for text that is not printed, null for a number that is not printed.";
+    }
+    return $prompt;
+}
+
+/**
+ * One reading. Every reader works on the page text, because these models take text only:
+ * a document with no text layer fails with no_text_layer instead of being read badly.
+ */
+function replicate_read(string $reader, array $doc, string $extraInstruction): array
+{
+    $cfg = eixo_config();
+    $model = reader_model($reader);
+    $base = ['ok' => false, 'payload' => null, 'provider' => 'replicate', 'model' => $model, 'mode' => 'text_layer', 'in' => null, 'out' => null, 'error' => null];
+    if ((string) $cfg['replicate_key'] === '') {
         return ['error' => 'no_api_key'] + $base;
     }
-    $part = $doc['mime'] === 'application/pdf'
-        ? ['type' => 'document', 'data' => base64_encode($doc['bytes']), 'mime_type' => 'application/pdf']
-        : ['type' => 'image', 'data' => base64_encode($doc['bytes']), 'mime_type' => $doc['mime']];
-    $body = [
-        'model' => $model,
-        'store' => false,
-        'system_instruction' => extraction_instructions(),
-        'input' => [$part, ['type' => 'text', 'text' => 'Transcribe this document into the schema.' . ($extraInstruction ? "\n\n" . $extraInstruction : '')]],
-        'response_format' => ['type' => 'text', 'mime_type' => 'application/json', 'schema' => extraction_schema()],
-    ];
-    $ch = curl_init(rtrim((string) $cfg['gemini_base_url'], '/') . '/interactions');
+    $pages = $doc['pages'];
+    if ($pages === null || mb_strlen(implode('', $pages)) <= 200) {
+        return ['error' => 'no_text_layer'] + $base;
+    }
+    $text = '';
+    foreach ($pages as $i => $p) {
+        $text .= "=== Página " . ($i + 1) . " ===\n" . minimize_text($p) . "\n";
+    }
+    $task = 'Transcribe this document into the schema.' . ($extraInstruction ? "\n\n" . $extraInstruction : '');
+    $prompt = extraction_prompt($text, $task, null);
+
+    $in = 0;
+    $out = 0;
+    $errors = ['the reply was not a single JSON object'];
+    // Two attempts at most; the second is told exactly what did not fit.
+    for ($attempt = 0; $attempt < 2; $attempt++) {
+        $call = replicate_predict($model, $prompt);
+        $in += (int) ($call['in'] ?? 0);
+        $out += (int) ($call['out'] ?? 0);
+        $base['in'] = $in ?: null;
+        $base['out'] = $out ?: null;
+        if (!$call['ok']) {
+            return ['error' => $call['error'], 'detail' => $call['detail']] + $base;
+        }
+        $data = json_from_model_text((string) $call['text']);
+        if ($data !== null) {
+            $data = coerce_to_schema($data, extraction_schema());
+            $errors = schema_errors($data, extraction_schema());
+            if (!$errors) {
+                return ['ok' => true, 'payload' => $data] + $base;
+            }
+        }
+        $prompt = extraction_prompt($text, $task, $errors);
+    }
+    return ['error' => 'schema_mismatch', 'detail' => provider_detail(implode('; ', $errors))] + $base;
+}
+
+/**
+ * One prediction. Replicate holds the connection for up to 60 s with `Prefer: wait`; a long
+ * report takes longer, so the prediction is then polled until it reaches a final state.
+ * @return array{ok:bool,text:?string,in:?int,out:?int,error:?string,detail:?string}
+ */
+function replicate_predict(string $model, string $prompt): array
+{
+    $cfg = eixo_config();
+    $deadline = microtime(true) + (float) $cfg['replicate_timeout'];
+    $input = ['prompt' => $prompt, 'max_tokens' => (int) $cfg['replicate_max_tokens'], 'temperature' => 0];
+    $res = replicate_http('POST', rtrim((string) $cfg['replicate_base_url'], '/') . '/models/' . $model . '/predictions', ['input' => $input]);
+    if (!$res['ok']) {
+        return $res;
+    }
+    $pred = $res['json'];
+    while (in_array($pred['status'] ?? '', ['starting', 'processing'], true)) {
+        if (microtime(true) > $deadline) {
+            return ['ok' => false, 'text' => null, 'in' => null, 'out' => null, 'error' => 'timeout', 'detail' => null];
+        }
+        sleep(2);
+        $get = replicate_http('GET', (string) ($pred['urls']['get'] ?? ''), null);
+        if (!$get['ok']) {
+            return $get;
+        }
+        $pred = $get['json'];
+    }
+    $metrics = is_array($pred['metrics'] ?? null) ? $pred['metrics'] : [];
+    $usage = ['in' => $metrics['input_token_count'] ?? null, 'out' => $metrics['output_token_count'] ?? null];
+    if (($pred['status'] ?? '') !== 'succeeded') {
+        $code = ($pred['status'] ?? '') === 'canceled' ? 'canceled' : 'prediction_failed';
+        return ['ok' => false, 'text' => null, 'error' => $code, 'detail' => provider_detail((string) ($pred['error'] ?? ''))] + $usage;
+    }
+    $output = $pred['output'] ?? null;
+    $text = is_array($output) ? implode('', array_map('strval', $output)) : (is_string($output) ? $output : null);
+    if ($text === null || trim($text) === '') {
+        return ['ok' => false, 'text' => null, 'error' => 'empty_output', 'detail' => null] + $usage;
+    }
+    return ['ok' => true, 'text' => $text, 'error' => null, 'detail' => null] + $usage;
+}
+
+/**
+ * One HTTP call to the Replicate API.
+ * @return array{ok:bool,json:?array,text:?string,in:?int,out:?int,error:?string,detail:?string}
+ */
+function replicate_http(string $method, string $url, ?array $body): array
+{
+    $cfg = eixo_config();
+    $fail = fn (string $code, ?string $detail = null) => ['ok' => false, 'json' => null, 'text' => null, 'in' => null, 'out' => null, 'error' => $code, 'detail' => $detail];
+    if ($url === '') {
+        return $fail('bad_response');
+    }
+    $headers = ['Authorization: Bearer ' . $cfg['replicate_key'], 'Content-Type: application/json'];
+    if ($method === 'POST') {
+        $headers[] = 'Prefer: wait=60';
+    }
+    $ch = curl_init($url);
     curl_setopt_array($ch, [
-        CURLOPT_POST => true,
-        CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'x-goog-api-key: ' . $cfg['gemini_api_key']],
-        CURLOPT_POSTFIELDS => json_encode($body, JSON_UNESCAPED_UNICODE),
+        CURLOPT_CUSTOMREQUEST => $method,
+        CURLOPT_HTTPHEADER => $headers,
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 600,
+        CURLOPT_TIMEOUT => 120,
     ]);
+    if ($body !== null) {
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body, JSON_UNESCAPED_UNICODE));
+    }
     $raw = curl_exec($ch);
     $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
     $curlError = curl_error($ch);
     curl_close($ch);
     if (!is_string($raw)) {
-        return ['error' => 'connection', 'detail' => provider_detail($curlError)] + $base;
+        return $fail('connection', provider_detail($curlError));
     }
     if ($status === 429) {
-        return ['error' => 'rate_limited', 'detail' => provider_detail($raw)] + $base;
+        return $fail('rate_limited', provider_detail($raw));
     }
     if ($status >= 400) {
-        return ['error' => 'api_' . $status, 'detail' => provider_detail($raw)] + $base;
+        return $fail('api_' . $status, provider_detail($raw));
     }
     $json = json_decode($raw, true);
     if (!is_array($json)) {
-        return ['error' => 'bad_json'] + $base;
+        return $fail('bad_response', provider_detail($raw));
     }
-    $usage = $json['usage'] ?? $json['usage_metadata'] ?? [];
-    $base['in'] = $usage['total_input_tokens'] ?? $usage['input_tokens'] ?? $usage['prompt_token_count'] ?? null;
-    $base['out'] = $usage['total_output_tokens'] ?? $usage['output_tokens'] ?? $usage['candidates_token_count'] ?? null;
-    $text = gemini_output_text($json);
-    $data = $text === null ? null : json_decode($text, true);
-    if (!is_array($data)) {
-        return ['error' => 'bad_json'] + $base;
-    }
-    return ['ok' => true, 'payload' => $data] + $base;
+    return ['ok' => true, 'json' => $json, 'text' => null, 'in' => null, 'out' => null, 'error' => null, 'detail' => null];
 }
 
-/** Final model text of an Interactions API response: output_text, else the model_output step text. */
-function gemini_output_text(array $json): ?string
+/* ── Reply parsing and schema validation ─────────────────────────────────── */
+
+/** The first complete JSON object in a reply: fence, preamble and trailing prose are ignored. */
+function json_from_model_text(string $text): ?array
 {
-    if (isset($json['output_text']) && is_string($json['output_text'])) {
-        return $json['output_text'];
+    $start = strpos($text, '{');
+    if ($start === false) {
+        return null;
     }
-    $texts = [];
-    foreach (($json['steps'] ?? $json['outputs'] ?? []) as $step) {
-        if (!is_array($step) || (($step['type'] ?? '') !== 'model_output' && ($step['type'] ?? '') !== 'text')) {
+    $depth = 0;
+    $inString = false;
+    $escaped = false;
+    $len = strlen($text);
+    for ($i = $start; $i < $len; $i++) {
+        $ch = $text[$i];
+        if ($inString) {
+            if ($escaped) {
+                $escaped = false;
+            } elseif ($ch === '\\') {
+                $escaped = true;
+            } elseif ($ch === '"') {
+                $inString = false;
+            }
             continue;
         }
-        array_walk_recursive($step, function ($v, $k) use (&$texts) {
-            if ($k === 'text' && is_string($v)) {
-                $texts[] = $v;
-            }
-        });
+        if ($ch === '"') {
+            $inString = true;
+        } elseif ($ch === '{') {
+            $depth++;
+        } elseif ($ch === '}' && --$depth === 0) {
+            $data = json_decode(substr($text, $start, $i - $start + 1), true);
+            return is_array($data) ? $data : null;
+        }
     }
-    return $texts ? implode('', $texts) : null;
+    return null;
+}
+
+/**
+ * Narrow repairs to a reply before validation: a numeric string becomes a number, a missing
+ * optional text becomes "", a missing list becomes [], an unknown key is dropped. It never
+ * fills in a value, so nothing the model did not read can enter the pipeline here.
+ */
+function coerce_to_schema(mixed $data, array $schema): mixed
+{
+    if (isset($schema['anyOf'])) {
+        if ($data === null) {
+            return null;
+        }
+        foreach ($schema['anyOf'] as $branch) {
+            if (($branch['type'] ?? null) !== 'null') {
+                return coerce_to_schema($data, $branch);
+            }
+        }
+        return $data;
+    }
+    $type = $schema['type'] ?? null;
+    if ($type === 'object') {
+        if (!is_array($data)) {
+            return $data;
+        }
+        $out = [];
+        foreach (($schema['properties'] ?? []) as $key => $sub) {
+            if (array_key_exists($key, $data)) {
+                $out[$key] = coerce_to_schema($data[$key], $sub);
+            } elseif (($sub['type'] ?? null) === 'array') {
+                $out[$key] = [];
+            } elseif (($sub['type'] ?? null) === 'string' && !isset($sub['enum'])) {
+                $out[$key] = '';
+            }
+        }
+        return $out;
+    }
+    if ($type === 'array') {
+        return is_array($data) ? array_map(fn ($v) => coerce_to_schema($v, $schema['items'] ?? []), array_values($data)) : $data;
+    }
+    if ($type === 'string') {
+        if ($data === null) {
+            return '';
+        }
+        return is_int($data) || is_float($data) ? (string) $data : $data;
+    }
+    if ($type === 'number' || $type === 'integer') {
+        if (is_string($data) && preg_match('/^-?\d+(\.\d+)?$/', trim($data))) {
+            return $type === 'integer' ? (int) trim($data) : (float) trim($data);
+        }
+        if ($type === 'integer' && is_float($data) && floor($data) === $data) {
+            return (int) $data;
+        }
+    }
+    return $data;
+}
+
+/**
+ * Why the data does not fit the schema, in words the model can act on. Empty means it fits.
+ * @return list<string>
+ */
+function schema_errors(mixed $data, array $schema, string $path = ''): array
+{
+    $at = $path === '' ? 'the object' : $path;
+    if (isset($schema['anyOf'])) {
+        foreach ($schema['anyOf'] as $branch) {
+            if (!schema_errors($data, $branch, $path)) {
+                return [];
+            }
+        }
+        return ["$at does not match any allowed type"];
+    }
+    $errors = [];
+    switch ($schema['type'] ?? null) {
+        case 'null':
+            return $data === null ? [] : ["$at must be null"];
+        case 'string':
+            if (!is_string($data)) {
+                return ["$at must be a string"];
+            }
+            if (isset($schema['enum']) && !in_array($data, $schema['enum'], true)) {
+                return ["$at must be one of: \"" . implode('", "', $schema['enum']) . '"'];
+            }
+            return [];
+        case 'integer':
+            return is_int($data) ? [] : ["$at must be an integer"];
+        case 'number':
+            return is_int($data) || is_float($data) ? [] : ["$at must be a number"];
+        case 'array':
+            if (!is_array($data) || ($data !== [] && array_keys($data) !== range(0, count($data) - 1))) {
+                return ["$at must be an array"];
+            }
+            foreach ($data as $i => $item) {
+                $errors = array_merge($errors, schema_errors($item, $schema['items'] ?? [], "$at[$i]"));
+                if (count($errors) > 20) {
+                    break;
+                }
+            }
+            return $errors;
+        case 'object':
+            if (!is_array($data)) {
+                return ["$at must be an object"];
+            }
+            foreach (($schema['required'] ?? []) as $key) {
+                if (!array_key_exists($key, $data)) {
+                    $errors[] = ($path === '' ? $key : "$path.$key") . ' is missing';
+                }
+            }
+            foreach (($schema['properties'] ?? []) as $key => $sub) {
+                if (array_key_exists($key, $data)) {
+                    $errors = array_merge($errors, schema_errors($data[$key], $sub, $path === '' ? $key : "$path.$key"));
+                }
+                if (count($errors) > 20) {
+                    break;
+                }
+            }
+            return $errors;
+    }
+    return [];
 }
 
 /** Test provider: readings come from <data>/fake/<sha256>.<reader>.json (or .json for every reader). */
@@ -558,7 +735,7 @@ function process_document(int $docId): void
     $b = read_document('B', $input);
     store_reading($userId, $docId, 'B', $b);
     if (!$a['ok'] || !$b['ok']) {
-        $transientCodes = ['rate_limited', 'connection', 'api_overloaded_error', 'api_api_error', 'api_500', 'api_502', 'api_503', 'api_504'];
+        $transientCodes = ['rate_limited', 'connection', 'timeout', 'prediction_failed', 'api_500', 'api_502', 'api_503', 'api_504'];
         foreach ([$a, $b] as $r) {
             if (!$r['ok'] && in_array($r['error'], $transientCodes, true)) {
                 throw new RuntimeException('transient:' . $r['error']);
@@ -736,7 +913,7 @@ function persist_outcome(int $userId, array $doc, array $o, ?array $pages): void
         }
 
         $counts = ['loaded' => 0, 'quarantine' => 0, 'skipped_existing' => 0];
-        $versions = ['prompt' => EIXO_PROMPT_VERSION, 'claude' => eixo_config()['claude_model'], 'claude_tiebreak' => eixo_config()['claude_tiebreak_model'], 'gemini' => eixo_config()['gemini_model'], 'ucum' => 'eixo-ucum-1', 'loinc' => 'model-proposed'];
+        $versions = ['prompt' => EIXO_PROMPT_VERSION, 'reader_a' => reader_model('A'), 'reader_b' => reader_model('B'), 'tiebreak' => reader_model('C'), 'ucum' => 'eixo-ucum-1', 'loinc' => 'model-proposed'];
         foreach ($o['results'] as $item) {
             $r = $item['r'];
             $r['_collection_date'] = $o['collection_date'];

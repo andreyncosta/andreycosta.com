@@ -8,7 +8,7 @@ Registro pessoal de saúde: exames de sangue, bioimpedância e medicações numa
 
 O código está pronto para um piloto fechado, por convite. O próprio documento de requisitos pede o que segue antes de receber dados de saúde de terceiros. Nada disso é código:
 
-- [ ] Contrato **sem retenção e sem treinamento** com a Anthropic (zero data retention, pedido à Anthropic) e com o Google (Gemini pago; o Eixo já manda `store: false`). RNF-06.
+- [ ] Contrato **sem retenção e sem treinamento** com a Replicate, o único fornecedor de IA do Eixo. Os dois leitores são modelos de peso aberto que rodam na infraestrutura da própria Replicate, então não há provedor a montante. RNF-06.
 - [ ] Cláusulas-padrão da ANPD para a transferência internacional (Resolução CD/ANPD 19/2024).
 - [ ] RIPD e encarregado nomeado (RNF-18); preencher `controller_*` e `dpo_*` no `config.php`.
 - [ ] Revisão do texto de privacidade (`?r=privacy`) e dos consentimentos por advogado.
@@ -23,7 +23,7 @@ O deploy pelo Git publica o código em `public_html/eixo/`. Dados, chaves e sess
 
 ```bash
 cd ~/public_html/eixo
-composer install --no-dev --optimize-autoloader   # SDK da Anthropic + Guzzle (não vão para o git)
+composer update --no-dev --optimize-autoloader    # uma vez: o lock ainda lista o SDK da Anthropic, hoje sem uso
 php cli.php init                                  # cria ~/eixo-private, master.key, config.php e o banco
 nano ~/eixo-private/config.php                    # chaves de API, controlador, encarregado, e-mail
 php cli.php check                                 # tudo "ok" antes de convidar alguém
@@ -36,9 +36,9 @@ Cron no painel (a cada minuto), para a fila de leitura, e um diário para backup
 15 3 * * * /usr/bin/php ~/public_html/eixo/cli.php backup && /usr/bin/php ~/public_html/eixo/cli.php purge
 ```
 
-**Na Hostinger, na prática.** O cron do painel não aceita `cd`, `&&` nem redirecionamentos, e o PATH dele não inclui o `composer`. Use um comando por cron, sempre com caminhos absolutos: `/usr/bin/php /usr/local/bin/composer --working-dir=<eixo> install --no-dev -o -n` uma vez, depois `/usr/bin/php <eixo>/cli.php setup` uma vez, e um cron separado para cada um de `work 50`, `backup` e `purge`. Para gerar um convite sem SSH, crie um cron num minuto fixo (`49 * * * *`), leia a saída e apague o cron. A extensão `sodium` vem desligada: ligue-a em hPanel → PHP → Extensões. `shell_exec` é bloqueado; o `pdftotext` roda por `proc_open` e, sem o binário, a leitura vai por imagem.
+**Na Hostinger, na prática.** O cron do painel não aceita `cd`, `&&` nem redirecionamentos, e o PATH dele não inclui o `composer`. Use um comando por cron, sempre com caminhos absolutos: `/usr/bin/php /usr/local/bin/composer --working-dir=<eixo> install --no-dev -o -n` uma vez, depois `/usr/bin/php <eixo>/cli.php setup` uma vez, e um cron separado para cada um de `work 50`, `backup` e `purge`. Para gerar um convite sem SSH, crie um cron num minuto fixo (`49 * * * *`), leia a saída e apague o cron. A extensão `sodium` vem desligada: ligue-a em hPanel → PHP → Extensões. `shell_exec` é bloqueado; o `pdftotext` roda por `proc_open` e, sem o binário, a camada de texto sai do `smalot/pdfparser`, em PHP puro.
 
-Use o PHP da mesma versão do site (`php -v`); ele precisa de `sodium`, `pdo_sqlite`, `curl`, `zip` e `fileinfo`. O `pdftotext` (poppler) dá a camada de texto dos PDFs; sem ele, as duas leituras vão por imagem e a checagem fica mais fraca (`cli.php check` avisa). Se o binário estiver em outro caminho, ajuste `pdftotext` no `config.php`.
+Use o PHP da mesma versão do site (`php -v`); ele precisa de `sodium`, `pdo_sqlite`, `curl`, `zip` e `fileinfo`. O `pdftotext` (poppler) dá a camada de texto dos PDFs; sem ele, o `smalot/pdfparser` faz o mesmo em PHP puro, com resultado mais pobre em PDF complexo (`cli.php check` avisa). Se o binário estiver em outro caminho, ajuste `pdftotext` no `config.php`. A camada de texto é a única entrada dos leitores: ver “Documentos sem camada de texto”.
 
 **Convites.** Não há cadastro aberto. Cada paciente entra por convite de uso único, válido por 48 h:
 
@@ -56,15 +56,20 @@ Verifique em produção que `/eixo/src/core.php`, `/eixo/cli.php`, `/eixo/vendor
 | Etapa | Onde | O quê |
 | --- | --- | --- |
 | Envio | `index.php?r=upload` | PDF, JPG, PNG ou WebP, vários por vez; duplicata por SHA-256; arquivo cifrado em `blobs/` |
-| Leitura A | `src/extraction.php` | Claude (`claude_model`), pela camada de texto do PDF, com nome, CPF, pedido e médico removidos; sem camada de texto, pelo arquivo |
-| Leitura B | idem | Gemini (`gemini_model`), pelo arquivo (imagem da página) |
-| Desempate | idem | Só quando A e B discordam: Claude pelo arquivo; precisa coincidir com uma das duas |
+| Camada de texto | `pdf_pages_text()` | `pdftotext`, ou `smalot/pdfparser` quando o binário falta. Sem camada de texto o documento não é lido (ver abaixo) |
+| Leitura A | `src/extraction.php` | `replicate_model_a`, pela camada de texto do documento, com nome, CPF, pedido e médico removidos |
+| Leitura B | idem | `replicate_model_b`, de outra família de modelos, pela mesma camada de texto |
+| Desempate | idem | Só quando A e B discordam: `replicate_tiebreak_model`; precisa coincidir com uma das duas |
 | Checagem cruzada | `cross_check()` | Valor no texto da página; unidade compatível com a propriedade LOINC; ordem de grandeza coerente com a faixa impressa e com o histórico no mesmo laboratório; data válida |
 | Carga | `persist_outcome()` | Entra na série só o que passa; o resto vai para a quarentena, com link para o laudo |
 | Séries | `series_key()` | Junta só com mesmo LOINC, material e propriedade (as duas leituras concordando, confiança ≥ 0,7); senão, nome + laboratório + unidade. O paciente junta ou separa |
 | Unidades | `src/ucum.php` | Conversão por álgebra UCUM e só com a mesma propriedade: % ↔ mmol/mol e ng/mL ↔ nmol/L nunca convertem |
 
 Cada valor guarda página, trecho do laudo, as duas leituras, a resolução, as checagens e as versões de modelo, instrução e biblioteca de unidades (RNF-09).
+
+**Documentos sem camada de texto.** Os modelos usados na Replicate leem texto, e não imagem. Um PDF digitalizado ou uma foto de laudo não tem camada de texto: o arquivo é guardado e cifrado como qualquer outro, mas nenhum valor é extraído e o documento termina com `no_text_layer` em `cli.php diag`. Para voltar a ler esses arquivos é preciso um estágio de OCR antes dos leitores, que ainda não existe.
+
+**Validação do JSON.** Nenhum modelo da Replicate aceita esquema JSON, então o esquema vai no prompt e a resposta é conferida aqui: `json_from_model_text()` isola o objeto, `coerce_to_schema()` faz só reparos que não inventam valor (texto ausente vira `""`, lista ausente vira `[]`, número em forma de texto vira número, chave fora do esquema é descartada) e `schema_errors()` diz o que não encaixou. Quando não encaixa, o leitor é chamado uma segunda vez com a lista de erros; se ainda assim não encaixar, a leitura falha com `schema_mismatch` e nada entra na série.
 
 **Cifragem.** Uma chave mestra (`master.key`, 0600) cifra uma chave por usuário, e esta cifra documentos e todo campo de saúde (`*_enc`). Nas colunas abertas ficam só ids, datas, estados e hashes com chave. Excluir a conta destrói a chave do usuário. A chave mestra está no mesmo servidor, então isso protege cópias do banco e backups, não um servidor comprometido. Para isso, ver “Limites”.
 
