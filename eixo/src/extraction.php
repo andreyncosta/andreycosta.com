@@ -293,7 +293,9 @@ function replicate_read(string $reader, array $doc, string $extraInstruction): a
 }
 
 /**
- * One group of pages. Two attempts at most; the second is told exactly what did not fit.
+ * One group of pages, with three attempts at most. A reply whose schema did not fit is
+ * told exactly what was wrong; a reply that did not decode at all gets a clean retry,
+ * since there is nothing useful to say about it and the complaint only crowds the prompt.
  * @param array<int,string> $group page text, still keyed by its zero-based page index
  * @return array{ok:bool,payload:?array,in:int,out:int,error:?string,detail:?string}
  */
@@ -309,29 +311,30 @@ function read_page_group(string $model, array $group, int $total, string $extraI
         . reset($numbers) . '-' . end($numbers) . ' of a ' . $total . '-page document. Transcribe only what is printed'
         . ' here, and leave a list empty when these pages hold none of it.'
         . ($extraInstruction ? "\n\n" . $extraInstruction : '');
-    $prompt = extraction_prompt($text, $task, null);
-
     $in = 0;
     $out = 0;
-    $errors = ['the reply was not a single JSON object'];
-    for ($attempt = 0; $attempt < 2; $attempt++) {
-        $call = replicate_predict($model, $prompt);
+    $errors = [];
+    for ($attempt = 0; $attempt < 3; $attempt++) {
+        $call = replicate_predict($model, extraction_prompt($text, $task, $errors ?: null));
         $in += (int) ($call['in'] ?? 0);
         $out += (int) ($call['out'] ?? 0);
         if (!$call['ok']) {
             return ['ok' => false, 'payload' => null, 'in' => $in, 'out' => $out, 'error' => $call['error'], 'detail' => $call['detail']];
         }
         $data = json_from_model_text((string) $call['text']);
-        if ($data !== null) {
-            $data = coerce_to_schema($data, extraction_schema());
-            $errors = schema_errors($data, extraction_schema());
-            if (!$errors) {
-                return ['ok' => true, 'payload' => $data, 'in' => $in, 'out' => $out, 'error' => null, 'detail' => null];
-            }
+        if ($data === null) {
+            $errors = [];
+            continue;
         }
-        $prompt = extraction_prompt($text, $task, $errors);
+        $data = coerce_to_schema($data, extraction_schema());
+        $errors = schema_errors($data, extraction_schema());
+        if (!$errors) {
+            return ['ok' => true, 'payload' => $data, 'in' => $in, 'out' => $out, 'error' => null, 'detail' => null];
+        }
     }
-    return ['ok' => false, 'payload' => null, 'in' => $in, 'out' => $out, 'error' => 'schema_mismatch', 'detail' => provider_detail(implode('; ', $errors))];
+    return ['ok' => false, 'payload' => null, 'in' => $in, 'out' => $out,
+        'error' => $errors ? 'schema_mismatch' : 'no_json',
+        'detail' => $errors ? provider_detail(implode('; ', $errors)) : 'no attempt returned a JSON object'];
 }
 
 /**
