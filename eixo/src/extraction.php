@@ -1199,8 +1199,10 @@ function run_queue(int $seconds = 50): int
     }
     $deadline = time() + $seconds;
     $n = 0;
-    // Jobs left "running" by a crashed worker go back to the queue.
-    q("UPDATE jobs SET status = 'pending' WHERE status = 'running' AND locked_at < ?", [gmdate('Y-m-d\TH:i:s\Z', time() - 3600)]);
+    // Jobs left "running" by a crashed worker go back to the queue. The cron kills the worker
+    // after thirty minutes, and only one worker runs at a time (worker.lock), so a job locked
+    // for longer than that is dead and waiting an hour for it only idles the queue.
+    q("UPDATE jobs SET status = 'pending' WHERE status = 'running' AND locked_at < ?", [gmdate('Y-m-d\TH:i:s\Z', time() - 2100)]);
     while (time() < $deadline) {
         $job = row("SELECT * FROM jobs WHERE status = 'pending' AND run_after <= ? ORDER BY id LIMIT 1", [now()]);
         if (!$job) {
