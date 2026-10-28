@@ -278,7 +278,14 @@ function replicate_read(string $reader, array $doc, string $extraInstruction): a
     $in = 0;
     $out = 0;
     $parts = [];
-    foreach (array_chunk($pages, max(1, (int) $cfg['replicate_pages_per_call']), true) as $group) {
+    // O desempate lê com uma instrução a mais, então a leitura dele não é a guardada.
+    $keep = $extraInstruction === '';
+    foreach (array_chunk($pages, max(1, (int) $cfg['replicate_pages_per_call']), true) as $index => $group) {
+        $kept = $keep ? remembered_group($doc, $reader, $model, $index) : null;
+        if ($kept !== null) {
+            $parts[] = $kept;
+            continue;
+        }
         $call = read_page_group($model, $group, $total, $extraInstruction);
         $in += $call['in'];
         $out += $call['out'];
@@ -288,8 +295,45 @@ function replicate_read(string $reader, array $doc, string $extraInstruction): a
             return ['error' => $call['error'], 'detail' => $call['detail']] + $base;
         }
         $parts[] = $call['payload'];
+        if ($keep) {
+            remember_group($doc, $reader, $model, $index, $call['payload']);
+        }
     }
     return ['ok' => true, 'payload' => merge_page_groups($parts)] + $base;
+}
+
+/**
+ * A group already read. The cron worker is killed after thirty minutes and a long report
+ * does not fit in one run, so each group is kept and the next run carries on from there
+ * instead of paying again for what was already read. The rows go away in
+ * forget_group_readings(), when the document leaves the queue either way.
+ */
+function remembered_group(array $doc, string $reader, string $model, int $index): ?array
+{
+    if (empty($doc['document_id'])) {
+        return null;
+    }
+    $row = row('SELECT payload_enc FROM page_group_readings WHERE document_id = ? AND reader = ? AND group_index = ?
+        AND pages_per_call = ? AND model = ? AND prompt_version = ?',
+        [$doc['document_id'], $reader, $index, (int) eixo_config()['replicate_pages_per_call'], $model, EIXO_PROMPT_VERSION]);
+    return $row ? dec((int) $doc['user_id'], $row['payload_enc']) : null;
+}
+
+function remember_group(array $doc, string $reader, string $model, int $index, array $payload): void
+{
+    if (empty($doc['document_id'])) {
+        return;
+    }
+    q('INSERT OR REPLACE INTO page_group_readings(document_id, reader, group_index, pages_per_call, model, prompt_version, payload_enc, created_at)
+        VALUES (?,?,?,?,?,?,?,?)',
+        [$doc['document_id'], $reader, $index, (int) eixo_config()['replicate_pages_per_call'], $model,
+            EIXO_PROMPT_VERSION, enc((int) $doc['user_id'], $payload), now()]);
+}
+
+/** Nothing of the document stays behind once it is out of the queue (RNF-07). */
+function forget_group_readings(int $docId): void
+{
+    q('DELETE FROM page_group_readings WHERE document_id = ?', [$docId]);
 }
 
 /**
@@ -848,7 +892,8 @@ function process_document(int $docId): void
     }
     $bytes = load_blob($userId, $doc['blob_name']);
     $pages = $doc['mime'] === 'application/pdf' ? pdf_pages_text($bytes) : null;
-    $input = ['bytes' => $bytes, 'mime' => $doc['mime'], 'pages' => $pages, 'sha256' => $doc['sha256']];
+    $input = ['bytes' => $bytes, 'mime' => $doc['mime'], 'pages' => $pages, 'sha256' => $doc['sha256'],
+        'document_id' => $docId, 'user_id' => $userId];
 
     $a = read_document('A', $input);
     store_reading($userId, $docId, 'A', $a);
@@ -862,12 +907,14 @@ function process_document(int $docId): void
             }
         }
         q("UPDATE documents SET status = 'failed', error_code = ?, processed_at = ? WHERE id = ?", [$a['error'] ?? $b['error'], now(), $docId]);
+        forget_group_readings($docId);
         audit($userId, 'system', 'document.failed', 'document:' . $docId);
         return;
     }
 
     $outcome = reconcile($userId, $docId, $a['payload'], $b['payload'], $pages, $input);
     persist_outcome($userId, $doc, $outcome, $pages);
+    forget_group_readings($docId);
 }
 
 /**
