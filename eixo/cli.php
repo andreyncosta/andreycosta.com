@@ -96,8 +96,8 @@ return [
     'mail_from' => '',            // sender for `invite --send`
     'replicate_key' => '',        // one key for every reader: replicate.com/account/api-tokens
     'replicate_model_a' => 'openai/gpt-oss-120b',              // reader A, on the page text
-    'replicate_model_b' => 'meta/llama-4-maverick-instruct',   // reader B, another model family
-    'replicate_tiebreak_model' => 'deepseek-ai/deepseek-v3.1', // only when A and B disagree
+    'replicate_model_b' => 'openai/gpt-oss-20b',               // reader B, a second reading
+    'replicate_tiebreak_model' => 'meta/llama-4-scout-instruct', // only when A and B disagree
     'max_upload_mb' => 20,
     'max_documents_per_30_days' => 40,
 ];

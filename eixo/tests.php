@@ -88,6 +88,24 @@ $errs = schema_errors(coerce_to_schema($wrong, $exSchema), $exSchema);
 ok(count($errs) === 2 && str_contains($errs[0], 'doc_type') && str_contains($errs[1], 'results[0].page'), 'a bad enum and a bad type are reported by path');
 ok(reader_model('A') !== reader_model('B'), 'readers A and B are different models');
 
+/* ── Pages are read in groups, so the groups have to go back together ── */
+$grupo = fn (array $over) => $over + ['doc_type' => 'other', 'laboratory' => '', 'collection_date' => '',
+    'results' => [], 'body_composition' => null, 'prescription_items' => []];
+$merged = merge_page_groups([
+    $grupo(['results' => [['name_printed' => 'capa', 'page' => 1]]]),
+    $grupo(['doc_type' => 'lab_report', 'laboratory' => 'Fleury', 'collection_date' => '2026-01-02',
+        'results' => [['name_printed' => 'glicose', 'page' => 6]],
+        'body_composition' => ['metrics' => [['name_printed' => 'peso']]]]),
+    $grupo(['doc_type' => 'bioimpedance', 'laboratory' => 'Outro', 'collection_date' => '2026-02-02',
+        'body_composition' => ['metrics' => [['name_printed' => 'gordura']]],
+        'prescription_items' => [['drug' => 'metformina']]]),
+]);
+ok($merged['doc_type'] === 'lab_report', 'the document type comes from the first group that is not "other"');
+ok($merged['laboratory'] === 'Fleury' && $merged['collection_date'] === '2026-01-02', 'a header field takes the first group that printed it');
+ok(array_column($merged['results'], 'name_printed') === ['capa', 'glicose'], 'results are concatenated in page order');
+ok(array_column($merged['body_composition']['metrics'], 'name_printed') === ['peso', 'gordura'], 'body composition metrics from every group are kept');
+ok(array_column($merged['prescription_items'], 'drug') === ['metformina'], 'prescription items are concatenated');
+
 /* ── Pipeline with fake readers ── */
 function add_doc(int $uid, string $bytes, string $mime = 'application/pdf'): int
 {

@@ -57,8 +57,8 @@ Verifique em produção que `/eixo/src/core.php`, `/eixo/cli.php`, `/eixo/vendor
 | --- | --- | --- |
 | Envio | `index.php?r=upload` | PDF, JPG, PNG ou WebP, vários por vez; duplicata por SHA-256; arquivo cifrado em `blobs/` |
 | Camada de texto | `pdf_pages_text()` | `pdftotext`, ou `smalot/pdfparser` quando o binário falta. Sem camada de texto o documento não é lido (ver abaixo) |
-| Leitura A | `src/extraction.php` | `replicate_model_a`, pela camada de texto do documento, com nome, CPF, pedido e médico removidos |
-| Leitura B | idem | `replicate_model_b`, de outra família de modelos, pela mesma camada de texto |
+| Leitura A | `src/extraction.php` | `replicate_model_a`, pela camada de texto do documento, em grupos de páginas, com nome, CPF, pedido e médico removidos |
+| Leitura B | idem | `replicate_model_b`, um segundo modelo, pela mesma camada de texto |
 | Desempate | idem | Só quando A e B discordam: `replicate_tiebreak_model`; precisa coincidir com uma das duas |
 | Checagem cruzada | `cross_check()` | Valor no texto da página; unidade compatível com a propriedade LOINC; ordem de grandeza coerente com a faixa impressa e com o histórico no mesmo laboratório; data válida |
 | Carga | `persist_outcome()` | Entra na série só o que passa; o resto vai para a quarentena, com link para o laudo |
@@ -68,6 +68,10 @@ Verifique em produção que `/eixo/src/core.php`, `/eixo/cli.php`, `/eixo/vendor
 Cada valor guarda página, trecho do laudo, as duas leituras, a resolução, as checagens e as versões de modelo, instrução e biblioteca de unidades (RNF-09).
 
 **Documentos sem camada de texto.** Os modelos usados na Replicate leem texto, e não imagem. Um PDF digitalizado ou uma foto de laudo não tem camada de texto: o arquivo é guardado e cifrado como qualquer outro, mas nenhum valor é extraído e o documento termina com `no_text_layer` em `cli.php diag`. Para voltar a ler esses arquivos é preciso um estágio de OCR antes dos leitores, que ainda não existe.
+
+**Independência das duas leituras.** A RN-02 supõe que A e B erram de maneiras diferentes. Hoje os dois são da mesma família (`gpt-oss-120b` e `gpt-oss-20b`), porque foram os únicos modelos de peso aberto da Replicate que leram um laudo de 5 páginas em menos de dois minutos e devolveram o esquema completo: o `llama-4-maverick` estourou o teto de tokens, o `qwen3-235b` e o `deepseek-v3.1` foram interrompidos pela Replicate, e o `llama-4-scout` achou 12 dos 22 resultados. Modelos da mesma família erram de forma correlacionada, então a concordância entre A e B vale menos do que valeria com famílias distintas; a checagem feita em código (unidade, faixa, aritmética) continua sendo a defesa independente. O desempate usa o `llama-4-scout`, que é de outra família: quando ele não acha o item em disputa, o valor vai para quarentena, que é o desfecho seguro.
+
+**Leitura em grupos de páginas.** Cada leitor recebe o documento em grupos de `replicate_pages_per_call` páginas (5 por padrão), não de uma vez, e os grupos são remontados em `merge_page_groups()`: as listas são concatenadas na ordem das páginas e um campo de cabeçalho fica com o primeiro grupo que o trouxe. O motivo é prático: um laudo de 25 páginas pedido numa chamada só leva de 4 a 10 minutos para ser gerado, e a Replicate interrompe a predição no meio (`prediction_failed`, código PA); um grupo de 5 páginas volta em cerca de um minuto, cabe com folga no teto de tokens e pode ser repetido sozinho.
 
 **Validação do JSON.** Nenhum modelo da Replicate aceita esquema JSON, então o esquema vai no prompt e a resposta é conferida aqui: `json_from_model_text()` isola o objeto, `coerce_to_schema()` faz só reparos que não inventam valor (texto ausente vira `""`, lista ausente vira `[]`, número em forma de texto vira número, chave fora do esquema é descartada) e `schema_errors()` diz o que não encaixou. Quando não encaixa, o leitor é chamado uma segunda vez com a lista de erros; se ainda assim não encaixar, a leitura falha com `schema_mismatch` e nada entra na série.
 

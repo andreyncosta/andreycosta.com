@@ -257,6 +257,10 @@ function extraction_prompt(string $text, string $task, ?array $repair): string
 /**
  * One reading. Every reader works on the page text, because these models take text only:
  * a document with no text layer fails with no_text_layer instead of being read badly.
+ *
+ * The pages go in groups, not all at once: a whole report asked for in a single call takes
+ * minutes to generate and Replicate interrupts it, while a group of pages comes back in about
+ * a minute and can be retried on its own. The groups are put back together here.
  */
 function replicate_read(string $reader, array $doc, string $extraInstruction): array
 {
@@ -270,37 +274,97 @@ function replicate_read(string $reader, array $doc, string $extraInstruction): a
     if ($pages === null || mb_strlen(implode('', $pages)) <= 200) {
         return ['error' => 'no_text_layer'] + $base;
     }
+    $total = count($pages);
+    $in = 0;
+    $out = 0;
+    $parts = [];
+    foreach (array_chunk($pages, max(1, (int) $cfg['replicate_pages_per_call']), true) as $group) {
+        $call = read_page_group($model, $group, $total, $extraInstruction);
+        $in += $call['in'];
+        $out += $call['out'];
+        $base['in'] = $in ?: null;
+        $base['out'] = $out ?: null;
+        if (!$call['ok']) {
+            return ['error' => $call['error'], 'detail' => $call['detail']] + $base;
+        }
+        $parts[] = $call['payload'];
+    }
+    return ['ok' => true, 'payload' => merge_page_groups($parts)] + $base;
+}
+
+/**
+ * One group of pages. Two attempts at most; the second is told exactly what did not fit.
+ * @param array<int,string> $group page text, still keyed by its zero-based page index
+ * @return array{ok:bool,payload:?array,in:int,out:int,error:?string,detail:?string}
+ */
+function read_page_group(string $model, array $group, int $total, string $extraInstruction): array
+{
     $text = '';
-    foreach ($pages as $i => $p) {
+    $numbers = [];
+    foreach ($group as $i => $p) {
+        $numbers[] = $i + 1;
         $text .= "=== Página " . ($i + 1) . " ===\n" . minimize_text($p) . "\n";
     }
-    $task = 'Transcribe this document into the schema.' . ($extraInstruction ? "\n\n" . $extraInstruction : '');
+    $task = 'Transcribe into the schema everything printed on these pages, which are pages '
+        . reset($numbers) . '-' . end($numbers) . ' of a ' . $total . '-page document. Transcribe only what is printed'
+        . ' here, and leave a list empty when these pages hold none of it.'
+        . ($extraInstruction ? "\n\n" . $extraInstruction : '');
     $prompt = extraction_prompt($text, $task, null);
 
     $in = 0;
     $out = 0;
     $errors = ['the reply was not a single JSON object'];
-    // Two attempts at most; the second is told exactly what did not fit.
     for ($attempt = 0; $attempt < 2; $attempt++) {
         $call = replicate_predict($model, $prompt);
         $in += (int) ($call['in'] ?? 0);
         $out += (int) ($call['out'] ?? 0);
-        $base['in'] = $in ?: null;
-        $base['out'] = $out ?: null;
         if (!$call['ok']) {
-            return ['error' => $call['error'], 'detail' => $call['detail']] + $base;
+            return ['ok' => false, 'payload' => null, 'in' => $in, 'out' => $out, 'error' => $call['error'], 'detail' => $call['detail']];
         }
         $data = json_from_model_text((string) $call['text']);
         if ($data !== null) {
             $data = coerce_to_schema($data, extraction_schema());
             $errors = schema_errors($data, extraction_schema());
             if (!$errors) {
-                return ['ok' => true, 'payload' => $data] + $base;
+                return ['ok' => true, 'payload' => $data, 'in' => $in, 'out' => $out, 'error' => null, 'detail' => null];
             }
         }
         $prompt = extraction_prompt($text, $task, $errors);
     }
-    return ['error' => 'schema_mismatch', 'detail' => provider_detail(implode('; ', $errors))] + $base;
+    return ['ok' => false, 'payload' => null, 'in' => $in, 'out' => $out, 'error' => 'schema_mismatch', 'detail' => provider_detail(implode('; ', $errors))];
+}
+
+/**
+ * The groups back into one document: the lists are concatenated in page order, and a header
+ * field takes the first group that printed it, since later pages repeat it or leave it out.
+ * @param list<array> $parts
+ */
+function merge_page_groups(array $parts): array
+{
+    $merged = ['doc_type' => 'other', 'laboratory' => '', 'collection_date' => '', 'results' => [],
+        'body_composition' => null, 'prescription_items' => []];
+    foreach ($parts as $p) {
+        if ($merged['doc_type'] === 'other') {
+            $merged['doc_type'] = (string) ($p['doc_type'] ?? 'other');
+        }
+        foreach (['laboratory', 'collection_date'] as $field) {
+            if ($merged[$field] === '') {
+                $merged[$field] = (string) ($p[$field] ?? '');
+            }
+        }
+        $merged['results'] = array_merge($merged['results'], $p['results'] ?? []);
+        $merged['prescription_items'] = array_merge($merged['prescription_items'], $p['prescription_items'] ?? []);
+        $composition = $p['body_composition'] ?? null;
+        if (!is_array($composition)) {
+            continue;
+        }
+        if (is_array($merged['body_composition'])) {
+            $merged['body_composition']['metrics'] = array_merge($merged['body_composition']['metrics'] ?? [], $composition['metrics'] ?? []);
+        } else {
+            $merged['body_composition'] = $composition;
+        }
+    }
+    return $merged;
 }
 
 /**
