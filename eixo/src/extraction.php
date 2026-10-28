@@ -516,7 +516,7 @@ function schema_errors(mixed $data, array $schema, string $path = ''): array
                 return ["$at must be an array"];
             }
             foreach ($data as $i => $item) {
-                $errors = array_merge($errors, schema_errors($item, $schema['items'] ?? [], "$at[$i]"));
+                $errors = array_merge($errors, schema_errors($item, $schema['items'] ?? [], $at . '[' . $i . ']'));
                 if (count($errors) > 20) {
                     break;
                 }
