@@ -107,6 +107,7 @@ ok($merged['laboratory'] === 'Fleury' && $merged['collection_date'] === '2026-01
 ok(array_column($merged['results'], 'name_printed') === ['capa', 'glicose'], 'results are concatenated in page order');
 ok(array_column($merged['body_composition']['metrics'], 'name_printed') === ['peso', 'gordura'], 'body composition metrics from every group are kept');
 ok(array_column($merged['prescription_items'], 'drug') === ['metformina'], 'prescription items are concatenated');
+ok(merge_page_groups([]) === ['doc_type' => 'other', 'laboratory' => '', 'collection_date' => '', 'results' => [], 'body_composition' => null, 'prescription_items' => []], 'no group read leaves an empty document, never a half one');
 
 /* ── Pipeline with fake readers ── */
 function add_doc(int $uid, string $bytes, string $mime = 'application/pdf'): int

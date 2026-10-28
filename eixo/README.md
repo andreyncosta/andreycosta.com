@@ -59,7 +59,7 @@ Verifique em produção que `/eixo/src/core.php`, `/eixo/cli.php`, `/eixo/vendor
 | Camada de texto | `pdf_pages_text()` | `pdftotext`, ou `smalot/pdfparser` quando o binário falta. Sem camada de texto o documento não é lido (ver abaixo) |
 | Leitura A | `src/extraction.php` | `replicate_model_a`, pela camada de texto do documento, em grupos de páginas, com nome, CPF, pedido e médico removidos |
 | Leitura B | idem | `replicate_model_b`, um segundo modelo, pela mesma camada de texto |
-| Desempate | idem | Só quando A e B discordam: `replicate_tiebreak_model`; precisa coincidir com uma das duas |
+| Desempate | idem | Só quando A e B discordam, e só nas páginas em disputa: `replicate_tiebreak_model`; precisa coincidir com uma das duas |
 | Checagem cruzada | `cross_check()` | Valor no texto da página; unidade compatível com a propriedade LOINC; ordem de grandeza coerente com a faixa impressa e com o histórico no mesmo laboratório; data válida |
 | Carga | `persist_outcome()` | Entra na série só o que passa; o resto vai para a quarentena, com link para o laudo |
 | Séries | `series_key()` | Junta só com mesmo LOINC, material e propriedade (as duas leituras concordando, confiança ≥ 0,7); senão, nome + laboratório + unidade. O paciente junta ou separa |

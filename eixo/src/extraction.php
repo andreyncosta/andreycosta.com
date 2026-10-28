@@ -275,10 +275,15 @@ function replicate_read(string $reader, array $doc, string $extraInstruction): a
         return ['error' => 'no_text_layer'] + $base;
     }
     $total = count($pages);
+    // O desempate pede só as páginas em disputa; os outros leitores pedem o documento todo.
+    $wanted = $doc['only_pages'] ?? null;
     $in = 0;
     $out = 0;
     $parts = [];
     foreach (array_chunk($pages, max(1, (int) $cfg['replicate_pages_per_call']), true) as $index => $group) {
+        if ($wanted !== null && !array_intersect(array_map(fn (int $i): int => $i + 1, array_keys($group)), $wanted)) {
+            continue;
+        }
         $kept = remembered_group($doc, $reader, $model, $index, $extraInstruction);
         if ($kept !== null) {
             $parts[] = $kept;
@@ -959,11 +964,17 @@ function reconcile(int $userId, int $docId, array $pa, array $pb, ?array $pages,
     $kc = [];
     if ($disputed) {
         $list = [];
+        $onlyPages = [];
         foreach ($disputed as $k => [$ra, $rb]) {
             $r = $ra ?? $rb;
+            $onlyPages[] = (int) ($r['page'] ?? 0);
             $list[] = '- "' . ($r['name_printed'] ?? '') . '" on page ' . (int) ($r['page'] ?? 0) . ' (' . ($r['column'] ?? 'current') . ')';
         }
-        $c = read_document('C', $input, "This is a verification reading. Two earlier readings disagreed on these items; transcribe the whole document carefully, paying special attention to them:\n" . implode("\n", array_slice($list, 0, 80)));
+        // Só as páginas em disputa: reler um laudo de 45 páginas para resolver dois valores
+        // gasta dezenas de minutos de um modelo lento e dá à Replicate muito mais ocasiões
+        // de interromper a predição, que foi o que derrubou os dois primeiros desempates.
+        $c = read_document('C', ['only_pages' => array_values(array_unique($onlyPages))] + $input,
+            "This is a verification reading. Two earlier readings disagreed on these items; transcribe these pages carefully, paying special attention to them:\n" . implode("\n", array_slice($list, 0, 80)));
         store_reading($userId, $docId, 'C', $c);
         if ($c['ok']) {
             $kc = keyed_results($c['payload']);
