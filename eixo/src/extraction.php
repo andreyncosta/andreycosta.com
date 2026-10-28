@@ -481,8 +481,52 @@ function merge_page_groups(array $parts): array
 }
 
 /**
- * One prediction. Replicate holds the connection for up to 60 s with `Prefer: wait`; a long
- * report takes longer, so the prediction is then polled until it reaches a final state.
+ * The input for one model. Every model on Replicate declares its own input: the ceiling on
+ * the reply is max_tokens for one, max_completion_tokens for another, max_output_tokens for
+ * a third, and some take no temperature at all. Sending a field a model does not declare
+ * fails the call with 422, so the declaration is read and obeyed.
+ */
+function replicate_input(string $model, string $prompt): array
+{
+    $ceiling = (int) eixo_config()['replicate_max_tokens'];
+    $props = model_input_properties($model);
+    if (!$props) {
+        return ['prompt' => $prompt, 'max_tokens' => $ceiling];
+    }
+    $input = ['prompt' => $prompt];
+    foreach (['max_tokens', 'max_completion_tokens', 'max_output_tokens', 'max_new_tokens'] as $field) {
+        if (isset($props[$field])) {
+            $declared = $props[$field]['maximum'] ?? null;
+            $input[$field] = $declared === null ? $ceiling : min($ceiling, (int) $declared);
+            break;
+        }
+    }
+    if (isset($props['temperature'])) {
+        $input['temperature'] = 0;
+    }
+    return $input;
+}
+
+/**
+ * What a model declares it accepts, asked once per run. An unanswered question returns
+ * nothing, and the caller falls back to the field every open-weight model here takes.
+ * @return array<string,array>
+ */
+function model_input_properties(string $model): array
+{
+    static $known = [];
+    if (!array_key_exists($model, $known)) {
+        $res = replicate_http('GET', rtrim((string) eixo_config()['replicate_base_url'], '/') . '/models/' . $model, null);
+        $known[$model] = $res['ok']
+            ? ($res['json']['latest_version']['openapi_schema']['components']['schemas']['Input']['properties'] ?? [])
+            : [];
+    }
+    return $known[$model];
+}
+
+/**
+ * One prediction: created, then asked for until it reaches a final state. Nothing holds the
+ * connection, so a reading that takes minutes never depends on one long-lived request.
  * @return array{ok:bool,text:?string,in:?int,out:?int,error:?string,detail:?string}
  */
 function replicate_predict(string $model, string $prompt): array
@@ -490,7 +534,7 @@ function replicate_predict(string $model, string $prompt): array
     $cfg = eixo_config();
     $started = microtime(true);
     $deadline = $started + (float) $cfg['replicate_timeout'];
-    $input = ['prompt' => $prompt, 'max_tokens' => (int) $cfg['replicate_max_tokens'], 'temperature' => 0];
+    $input = replicate_input($model, $prompt);
     $res = replicate_http('POST', rtrim((string) $cfg['replicate_base_url'], '/') . '/models/' . $model . '/predictions', ['input' => $input]);
     if (!$res['ok']) {
         return $res;
