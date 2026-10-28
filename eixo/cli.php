@@ -27,6 +27,7 @@ try {
         'models' => cmd_models(),
         'config' => array_map(fn ($pair) => cmd_config($pair[0], $pair[1] ?? ''), array_chunk($args ?: [''], 2)),
         'requeue' => cmd_requeue(),
+        'reextract' => cmd_reextract((int) ($args[0] ?? 0), $flag('--yes')),
         default => print(<<<TXT
 Eixo CLI
   setup                server bootstrap: environment report, composer install, init, check
@@ -45,6 +46,8 @@ Eixo CLI
   models               check that the configured Replicate models exist and answer to this key
   config KEY VALUE...  set a model in config.php (never touches keys or secrets)
   requeue              put failed documents back in the queue
+  reextract DOC --yes  undo what the extraction wrote for one document and read it again
+                       (patient corrections are kept; without --yes it only reports)
 
 TXT),
     };
@@ -95,9 +98,9 @@ return [
     'dpo_email' => '',
     'mail_from' => '',            // sender for `invite --send`
     'replicate_key' => '',        // one key for every reader: replicate.com/account/api-tokens
-    'replicate_model_a' => 'openai/gpt-oss-120b',              // reader A, on the page text
-    'replicate_model_b' => 'openai/gpt-oss-20b',               // reader B, a second reading
-    'replicate_tiebreak_model' => 'meta/llama-4-scout-instruct', // only when A and B disagree
+    'replicate_model_a' => 'openai/gpt-5-mini',                // reader A, on the page text
+    'replicate_model_b' => 'google/gemini-2.5-flash',          // reader B, another company
+    'replicate_tiebreak_model' => 'openai/gpt-oss-120b',       // only when A and B disagree
     'max_upload_mb' => 20,
     'max_documents_per_30_days' => 40,
 ];
@@ -235,6 +238,46 @@ function cmd_diag(): void
             provider_detail((string) ($r['ok'] ? $r['text'] : ($r['detail'] ?? ''))),
             $r['in'] ?? '-', $r['out'] ?? '-');
     }
+}
+
+/**
+ * Everything the extraction wrote for one document, undone, so it can be read again. What
+ * the patient corrected by hand is never touched, and a series left without any result goes
+ * with it, so the chart does not keep an empty line. Without --yes it only says what it would do.
+ */
+function cmd_reextract(int $docId, bool $yes): void
+{
+    $doc = row('SELECT id, user_id, status FROM documents WHERE id = ?', [$docId]);
+    if (!$doc) {
+        echo "no document $docId\n";
+        return;
+    }
+    $count = fn (string $sql) => (int) row($sql, [$docId])['c'];
+    $extracted = $count("SELECT COUNT(*) c FROM results WHERE document_id = ? AND origin = 'extraction'");
+    $corrections = $count("SELECT COUNT(*) c FROM results WHERE document_id = ? AND origin = 'patient_correction'");
+    $readings = $count('SELECT COUNT(*) c FROM readings WHERE document_id = ?');
+    if (!$yes) {
+        echo "document $docId ({$doc['status']}): would delete $extracted extracted result(s) and $readings reading(s),"
+            . " keep $corrections patient correction(s), and queue it again. Re-run with --yes.\n";
+        return;
+    }
+    $touched = array_column(rows('SELECT DISTINCT series_id FROM results WHERE document_id = ? AND series_id IS NOT NULL', [$docId]), 'series_id');
+    q("DELETE FROM results WHERE document_id = ? AND origin = 'extraction'", [$docId]);
+    q('DELETE FROM readings WHERE document_id = ?', [$docId]);
+    forget_group_readings($docId);
+    $emptied = 0;
+    foreach ($touched as $seriesId) {
+        if (!row('SELECT 1 AS present FROM results WHERE series_id = ? LIMIT 1', [$seriesId])) {
+            q('DELETE FROM series WHERE id = ?', [$seriesId]);
+            $emptied++;
+        }
+    }
+    q("DELETE FROM jobs WHERE document_id = ? AND status IN ('failed','pending','running')", [$docId]);
+    q("UPDATE documents SET status = 'queued', error_code = NULL, processed_at = NULL WHERE id = ?", [$docId]);
+    enqueue_document($docId);
+    audit((int) $doc['user_id'], 'system', 'document.reextract', 'document:' . $docId);
+    echo "document $docId: $extracted result(s) and $readings reading(s) removed, $emptied empty series removed,"
+        . " $corrections correction(s) kept, queued again\n";
 }
 
 function cmd_requeue(): void

@@ -8,7 +8,7 @@ Registro pessoal de saúde: exames de sangue, bioimpedância e medicações numa
 
 O código está pronto para um piloto fechado, por convite. O próprio documento de requisitos pede o que segue antes de receber dados de saúde de terceiros. Nada disso é código:
 
-- [ ] Contrato **sem retenção e sem treinamento** com a Replicate, o único fornecedor de IA do Eixo. Os dois leitores são modelos de peso aberto que rodam na infraestrutura da própria Replicate, então não há provedor a montante. RNF-06.
+- [ ] Contrato **sem retenção e sem treinamento** com a Replicate, por onde passa toda a IA do Eixo, e cobertura equivalente para os fornecedores a montante dela: os leitores são `gpt-5-mini` (OpenAI) e `gemini-2.5-flash` (Google), que a Replicate opera em nome deles. RNF-06.
 - [ ] Cláusulas-padrão da ANPD para a transferência internacional (Resolução CD/ANPD 19/2024).
 - [ ] RIPD e encarregado nomeado (RNF-18); preencher `controller_*` e `dpo_*` no `config.php`.
 - [ ] Revisão do texto de privacidade (`?r=privacy`) e dos consentimentos por advogado.
@@ -73,7 +73,19 @@ Cada valor guarda página, trecho do laudo, as duas leituras, a resolução, as 
 
 **Laço de repetição.** Em algumas páginas estes modelos entram num laço e devolvem a mesma linha seis vezes seguidas, com valores diferentes a cada repetição. Como A e B são da mesma família, os dois entram no mesmo laço, concordam entre si e a RN-02 não pega: numa página de 1585 caracteres vieram 84 itens com 14 nomes e 14 trechos distintos. O trecho do laudo é a evidência de um valor, então `drop_looped_results()` agrupa os resultados por página, coluna, nome e trecho: onde a mesma linha dá o mesmo valor duas vezes, fica um; onde dá valores diferentes, não fica nenhum, porque a evidência não diz qual está certo e adivinhar não é opção. O que foi descartado vai para o log do servidor.
 
-**Independência das duas leituras.** A RN-02 supõe que A e B erram de maneiras diferentes. Hoje os dois são da mesma família (`gpt-oss-120b` e `gpt-oss-20b`), porque foram os únicos modelos de peso aberto da Replicate que leram um laudo de 5 páginas em menos de dois minutos e devolveram o esquema completo: o `llama-4-maverick` estourou o teto de tokens, o `qwen3-235b` e o `deepseek-v3.1` foram interrompidos pela Replicate, e o `llama-4-scout` achou 12 dos 22 resultados. Modelos da mesma família erram de forma correlacionada, então a concordância entre A e B vale menos do que valeria com famílias distintas; a checagem feita em código (unidade, faixa, aritmética) continua sendo a defesa independente. O desempate usa o `llama-4-scout`, que é de outra família: quando ele não acha o item em disputa, o valor vai para quarentena, que é o desfecho seguro.
+**Independência das duas leituras, e por que estes modelos.** A RN-02 supõe que A e B erram de maneiras diferentes, e por isso A e B são de empresas diferentes: `gpt-5-mini` (OpenAI) e `gemini-2.5-flash` (Google). A escolha foi medida em duas páginas densas de laudos reais, onde os modelos anteriores falhavam — a verdade era 14 itens numa e 17 na outra:
+
+| modelo | US$/M entrada | US$/M saída | veredito |
+|---|---|---|---|
+| `gpt-5-nano` | 0,05 | 0,40 | não viu nada numa das páginas |
+| `gpt-oss-20b` | 0,09 | 0,36 | laço de repetição |
+| `llama-4-scout` | 0,17 | 0,65 | lento e interrompido pela Replicate |
+| `gpt-oss-120b` | 0,18 | 0,72 | laço nas duas |
+| **`gpt-5-mini`** | **0,25** | **2,00** | **acertou as duas, sem laço, em 38-48 s** |
+| `gemini-2.5-flash` | 0,30 | 2,50 | acerta depois do filtro de laço |
+| `claude-4.5-haiku` | 1,00 | 5,00 | teto de 8192 tokens trunca o grupo |
+
+O desempate usa o `gpt-oss-120b`, de peso aberto e barato, porque só é chamado nas páginas em disputa e passa pelo mesmo filtro de laço. O custo fica em torno de US$ 0,10 por laudo de 25 páginas, somando os dois leitores.
 
 **Leitura em grupos de páginas.** Cada leitor recebe o documento em grupos de `replicate_pages_per_call` páginas (5 por padrão), não de uma vez, e os grupos são remontados em `merge_page_groups()`: as listas são concatenadas na ordem das páginas e um campo de cabeçalho fica com o primeiro grupo que o trouxe. O motivo é prático: um laudo de 25 páginas pedido numa chamada só leva de 4 a 10 minutos para ser gerado, e a Replicate interrompe a predição no meio (`prediction_failed`, código PA); um grupo de 5 páginas volta em cerca de um minuto, cabe com folga no teto de tokens e pode ser repetido sozinho.
 
