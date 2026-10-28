@@ -123,14 +123,19 @@ function fixture(string $bytes, array $payload, string $reader = ''): void
 /* ── A group already read survives a worker that was killed ── */
 $docCache = add_doc($uid, 'documento para o cache de grupos');
 $alvo = ['document_id' => $docCache, 'user_id' => $uid];
-ok(remembered_group($alvo, 'A', 'dono/modelo', 0) === null, 'a group not read yet is not remembered');
-remember_group($alvo, 'A', 'dono/modelo', 0, ['results' => [['name_printed' => 'glicose']]]);
-ok(remembered_group($alvo, 'A', 'dono/modelo', 0)['results'][0]['name_printed'] === 'glicose', 'a group already read comes back');
-ok(remembered_group($alvo, 'B', 'dono/modelo', 0) === null, 'another reader does not reuse it');
-ok(remembered_group($alvo, 'A', 'dono/modelo', 1) === null, 'another group does not reuse it');
-ok(remembered_group($alvo, 'A', 'outro/modelo', 0) === null, 'another model does not reuse it');
+ok(remembered_group($alvo, 'A', 'dono/modelo', 0, '') === null, 'a group not read yet is not remembered');
+remember_group($alvo, 'A', 'dono/modelo', 0, '', ['results' => [['name_printed' => 'glicose']]]);
+ok(remembered_group($alvo, 'A', 'dono/modelo', 0, '')['results'][0]['name_printed'] === 'glicose', 'a group already read comes back');
+ok(remembered_group($alvo, 'B', 'dono/modelo', 0, '') === null, 'another reader does not reuse it');
+ok(remembered_group($alvo, 'A', 'dono/modelo', 1, '') === null, 'another group does not reuse it');
+ok(remembered_group($alvo, 'A', 'outro/modelo', 0, '') === null, 'another model does not reuse it');
+ok(remembered_group($alvo, 'C', 'dono/modelo', 0, 'confira o item X') === null, 'the tie-break does not reuse a plain reading');
+remember_group($alvo, 'C', 'dono/modelo', 0, 'confira o item X', ['results' => []]);
+ok(remembered_group($alvo, 'C', 'dono/modelo', 0, 'confira o item X') !== null, 'the tie-break is kept under its own instruction');
+ok(remembered_group($alvo, 'C', 'dono/modelo', 0, 'confira o item Y') === null, 'another instruction is another reading');
+ok(transient_error('prediction_failed') && !transient_error('schema_mismatch'), 'only a passing failure is worth another call');
 forget_group_readings($docCache);
-ok(remembered_group($alvo, 'A', 'dono/modelo', 0) === null, 'the groups go away when the document leaves the queue');
+ok(remembered_group($alvo, 'A', 'dono/modelo', 0, '') === null, 'the groups go away when the document leaves the queue');
 
 $rep = synthetic_report(7);
 $text = pdf_pages_text($rep['pdf']);

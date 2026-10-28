@@ -278,10 +278,8 @@ function replicate_read(string $reader, array $doc, string $extraInstruction): a
     $in = 0;
     $out = 0;
     $parts = [];
-    // O desempate lê com uma instrução a mais, então a leitura dele não é a guardada.
-    $keep = $extraInstruction === '';
     foreach (array_chunk($pages, max(1, (int) $cfg['replicate_pages_per_call']), true) as $index => $group) {
-        $kept = $keep ? remembered_group($doc, $reader, $model, $index) : null;
+        $kept = remembered_group($doc, $reader, $model, $index, $extraInstruction);
         if ($kept !== null) {
             $parts[] = $kept;
             continue;
@@ -295,11 +293,16 @@ function replicate_read(string $reader, array $doc, string $extraInstruction): a
             return ['error' => $call['error'], 'detail' => $call['detail']] + $base;
         }
         $parts[] = $call['payload'];
-        if ($keep) {
-            remember_group($doc, $reader, $model, $index, $call['payload']);
-        }
+        remember_group($doc, $reader, $model, $index, $extraInstruction, $call['payload']);
     }
     return ['ok' => true, 'payload' => merge_page_groups($parts)] + $base;
+}
+
+/** Replicate interrompe predições longas e a rede falha: nesses casos vale tentar de novo. */
+function transient_error(?string $code): bool
+{
+    return in_array($code, ['rate_limited', 'connection', 'timeout', 'prediction_failed',
+        'api_500', 'api_502', 'api_503', 'api_504'], true);
 }
 
 /**
@@ -308,18 +311,18 @@ function replicate_read(string $reader, array $doc, string $extraInstruction): a
  * instead of paying again for what was already read. The rows go away in
  * forget_group_readings(), when the document leaves the queue either way.
  */
-function remembered_group(array $doc, string $reader, string $model, int $index): ?array
+function remembered_group(array $doc, string $reader, string $model, int $index, string $extraInstruction): ?array
 {
     if (empty($doc['document_id'])) {
         return null;
     }
     $row = row('SELECT payload_enc FROM page_group_readings WHERE document_id = ? AND reader = ? AND group_index = ?
         AND pages_per_call = ? AND model = ? AND prompt_version = ?',
-        [$doc['document_id'], $reader, $index, (int) eixo_config()['replicate_pages_per_call'], $model, EIXO_PROMPT_VERSION]);
+        [$doc['document_id'], $reader, $index, (int) eixo_config()['replicate_pages_per_call'], $model, group_prompt_key($extraInstruction)]);
     return $row ? dec((int) $doc['user_id'], $row['payload_enc']) : null;
 }
 
-function remember_group(array $doc, string $reader, string $model, int $index, array $payload): void
+function remember_group(array $doc, string $reader, string $model, int $index, string $extraInstruction, array $payload): void
 {
     if (empty($doc['document_id'])) {
         return;
@@ -327,7 +330,14 @@ function remember_group(array $doc, string $reader, string $model, int $index, a
     q('INSERT OR REPLACE INTO page_group_readings(document_id, reader, group_index, pages_per_call, model, prompt_version, payload_enc, created_at)
         VALUES (?,?,?,?,?,?,?,?)',
         [$doc['document_id'], $reader, $index, (int) eixo_config()['replicate_pages_per_call'], $model,
-            EIXO_PROMPT_VERSION, enc((int) $doc['user_id'], $payload), now()]);
+            group_prompt_key($extraInstruction), enc((int) $doc['user_id'], $payload), now()]);
+}
+
+/** What a group was read with: the prompt version, and the tie-break's own instruction on top. */
+function group_prompt_key(string $extraInstruction): string
+{
+    return $extraInstruction === '' ? EIXO_PROMPT_VERSION
+        : EIXO_PROMPT_VERSION . '+' . substr(hash('sha256', $extraInstruction), 0, 16);
 }
 
 /** Nothing of the document stays behind once it is out of the queue (RNF-07). */
@@ -363,6 +373,12 @@ function read_page_group(string $model, array $group, int $total, string $extraI
         $in += (int) ($call['in'] ?? 0);
         $out += (int) ($call['out'] ?? 0);
         if (!$call['ok']) {
+            // Replicate interrompe predições longas na cara; repetir o grupo custa menos do que
+            // perder a leitura inteira e refazer os grupos que já tinham dado certo.
+            if (transient_error($call['error']) && $attempt < 2) {
+                $errors = [];
+                continue;
+            }
             return ['ok' => false, 'payload' => null, 'in' => $in, 'out' => $out, 'error' => $call['error'], 'detail' => $call['detail']];
         }
         $data = json_from_model_text((string) $call['text']);
@@ -900,9 +916,8 @@ function process_document(int $docId): void
     $b = read_document('B', $input);
     store_reading($userId, $docId, 'B', $b);
     if (!$a['ok'] || !$b['ok']) {
-        $transientCodes = ['rate_limited', 'connection', 'timeout', 'prediction_failed', 'api_500', 'api_502', 'api_503', 'api_504'];
         foreach ([$a, $b] as $r) {
-            if (!$r['ok'] && in_array($r['error'], $transientCodes, true)) {
+            if (!$r['ok'] && transient_error($r['error'])) {
                 throw new RuntimeException('transient:' . $r['error']);
             }
         }
