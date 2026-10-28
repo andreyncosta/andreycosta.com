@@ -90,6 +90,28 @@ $errs = schema_errors(coerce_to_schema($wrong, $exSchema), $exSchema);
 ok(count($errs) === 2 && str_contains($errs[0], 'doc_type') && str_contains($errs[1], 'results[0].page'), 'a bad enum and a bad type are reported by path');
 ok(reader_model('A') !== reader_model('B'), 'readers A and B are different models');
 
+/* ── A model that loops on a page must not fill the series with the repeats ── */
+$linha = fn (string $nome, string $valor, ?float $num, string $trecho) => ['page' => 3, 'column' => 'current',
+    'name_printed' => $nome, 'value_printed' => $valor, 'value_number' => $num, 'value_text' => '',
+    'unit_printed' => 'mg/dL', 'operator' => '', 'quote' => $trecho];
+[$fica, $foram] = drop_looped_results([
+    $linha('Glicose', '92', 92.0, 'Glicose 92 mg/dL'),
+    $linha('Glicose', '92', 92.0, 'Glicose 92 mg/dL'),
+    $linha('Ureia', '31', 31.0, 'Ureia 31 mg/dL'),
+]);
+ok(count($fica) === 2 && $foram === 1, 'the same line read twice with the same value collapses into one');
+[$fica, $foram] = drop_looped_results([
+    $linha('Glicose', '92', 92.0, 'Glicose 92 mg/dL'),
+    $linha('Glicose', '87', 87.0, 'Glicose 92 mg/dL'),
+    $linha('Ureia', '31', 31.0, 'Ureia 31 mg/dL'),
+]);
+ok(count($fica) === 1 && $fica[0]['name_printed'] === 'Ureia' && $foram === 2, 'one line backing two different values keeps neither');
+[$fica, $foram] = drop_looped_results([
+    $linha('Glicose', '92', 92.0, 'Glicose 92 mg/dL'),
+    ['page' => 4] + $linha('Glicose', '92', 92.0, 'Glicose 92 mg/dL'),
+]);
+ok(count($fica) === 2 && $foram === 0, 'the same value printed on two pages is two readings, not a loop');
+
 /* ── Pages are read in groups, so the groups have to go back together ── */
 $grupo = fn (array $over) => $over + ['doc_type' => 'other', 'laboratory' => '', 'collection_date' => '',
     'results' => [], 'body_composition' => null, 'prescription_items' => []];

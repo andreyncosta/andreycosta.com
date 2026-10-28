@@ -403,6 +403,47 @@ function read_page_group(string $model, array $group, int $total, string $extraI
 }
 
 /**
+ * Results a model emitted more than once for the same printed line. These models fall into
+ * a repetition loop on some pages: the same name and the same quote come back six times, and
+ * the values that come with them do not even match. Both readers of the same family loop the
+ * same way, so agreement does not catch it and the repeats would load into the series.
+ *
+ * The quote is the evidence for a value. Where one line yields the same value twice, one of
+ * them is kept; where it yields different values, none is: the evidence cannot say which is
+ * right, and guessing is not an option here.
+ * @return array{0: list<array>, 1: int} the results that stand, and how many were dropped
+ */
+function drop_looped_results(array $results): array
+{
+    $byLine = [];
+    foreach ($results as $r) {
+        $line = ($r['page'] ?? 0) . '|' . ($r['column'] ?? '') . '|' . norm_text($r['name_printed'] ?? '') . '|' . norm_text($r['quote'] ?? '');
+        $byLine[$line][] = $r;
+    }
+    $kept = [];
+    $dropped = 0;
+    foreach ($byLine as $group) {
+        if (count($group) === 1) {
+            $kept[] = $group[0];
+            continue;
+        }
+        $first = $group[0];
+        $same = true;
+        foreach ($group as $r) {
+            if (!same_value($first, $r)) {
+                $same = false;
+                break;
+            }
+        }
+        $dropped += count($group) - ($same ? 1 : 0);
+        if ($same) {
+            $kept[] = $first;
+        }
+    }
+    return [$kept, $dropped];
+}
+
+/**
  * The groups back into one document: the lists are concatenated in page order, and a header
  * field takes the first group that printed it, since later pages repeat it or leave it out.
  * @param list<array> $parts
@@ -420,7 +461,11 @@ function merge_page_groups(array $parts): array
                 $merged[$field] = (string) ($p[$field] ?? '');
             }
         }
-        $merged['results'] = array_merge($merged['results'], $p['results'] ?? []);
+        [$results, $looped] = drop_looped_results($p['results'] ?? []);
+        if ($looped > 0) {
+            error_log("[eixo] $looped repeated result(s) dropped from a page group");
+        }
+        $merged['results'] = array_merge($merged['results'], $results);
         $merged['prescription_items'] = array_merge($merged['prescription_items'], $p['prescription_items'] ?? []);
         $composition = $p['body_composition'] ?? null;
         if (!is_array($composition)) {
