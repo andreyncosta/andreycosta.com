@@ -368,9 +368,17 @@ function replicate_http(string $method, string $url, ?array $body): array
     if ($body !== null) {
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body, JSON_UNESCAPED_UNICODE));
     }
-    $raw = curl_exec($ch);
-    $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-    $curlError = curl_error($ch);
+    // The account's prediction rate limit is a few per minute, so a throttled call waits its
+    // turn instead of failing the document and paying again for the reading that already worked.
+    for ($attempt = 1; ; $attempt++) {
+        $raw = curl_exec($ch);
+        $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        $curlError = curl_error($ch);
+        if ($status !== 429 || $attempt >= 3) {
+            break;
+        }
+        sleep(12);
+    }
     curl_close($ch);
     if (!is_string($raw)) {
         return $fail('connection', provider_detail($curlError));
