@@ -67,6 +67,8 @@ ok(json_from_model_text("```json\n{\"a\": 1}\n```") === ['a' => 1], 'JSON found 
 ok(json_from_model_text('Segue o resultado: {"a": {"b": 2}} — pronto.') === ['a' => ['b' => 2]], 'JSON found between prose');
 ok(json_from_model_text('{"q": "uma } chave no texto", "n": 3}') === ['q' => 'uma } chave no texto', 'n' => 3], 'a brace inside a string does not close the object');
 ok(json_from_model_text('nenhum objeto aqui') === null, 'a reply with no object is rejected');
+ok(json_from_model_text('{"a": 1}' . "\n\nObservação: o item {X} não foi encontrado.") === ['a' => 1], 'prose with braces after the object does not break it');
+ok(json_from_model_text("Aqui está:\n```json\n{\"a\": [1, 2]}\n```\nEspero ter ajudado.") === ['a' => [1, 2]], 'a fence surrounded by prose is read');
 
 $exSchema = extraction_schema();
 $perfect = synthetic_report(11)['fixture'];

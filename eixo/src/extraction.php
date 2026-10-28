@@ -375,22 +375,29 @@ function merge_page_groups(array $parts): array
 function replicate_predict(string $model, string $prompt): array
 {
     $cfg = eixo_config();
-    $deadline = microtime(true) + (float) $cfg['replicate_timeout'];
+    $started = microtime(true);
+    $deadline = $started + (float) $cfg['replicate_timeout'];
     $input = ['prompt' => $prompt, 'max_tokens' => (int) $cfg['replicate_max_tokens'], 'temperature' => 0];
     $res = replicate_http('POST', rtrim((string) $cfg['replicate_base_url'], '/') . '/models/' . $model . '/predictions', ['input' => $input]);
     if (!$res['ok']) {
         return $res;
     }
     $pred = $res['json'];
+    $blips = 0;
     while (in_array($pred['status'] ?? '', ['starting', 'processing'], true)) {
         if (microtime(true) > $deadline) {
             return ['ok' => false, 'text' => null, 'in' => null, 'out' => null, 'error' => 'timeout', 'detail' => null];
         }
-        sleep(2);
+        sleep(microtime(true) - $started < 60 ? 2 : 5);
         $get = replicate_http('GET', (string) ($pred['urls']['get'] ?? ''), null);
         if (!$get['ok']) {
-            return $get;
+            // A blip while asking for the state should not throw away a generation already paid for.
+            if (++$blips >= 5) {
+                return $get;
+            }
+            continue;
         }
+        $blips = 0;
         $pred = $get['json'];
     }
     $metrics = is_array($pred['metrics'] ?? null) ? $pred['metrics'] : [];
@@ -418,16 +425,16 @@ function replicate_http(string $method, string $url, ?array $body): array
     if ($url === '') {
         return $fail('bad_response');
     }
+    // No 'Prefer: wait': a conexão presa estourava o tempo do cURL e deixava para trás uma
+    // predição já criada, paga e sem dono. O POST volta na hora e o estado vem por consulta.
     $headers = ['Authorization: Bearer ' . $cfg['replicate_key'], 'Content-Type: application/json'];
-    if ($method === 'POST') {
-        $headers[] = 'Prefer: wait=60';
-    }
     $ch = curl_init($url);
     curl_setopt_array($ch, [
         CURLOPT_CUSTOMREQUEST => $method,
         CURLOPT_HTTPHEADER => $headers,
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 120,
+        CURLOPT_CONNECTTIMEOUT => 15,
+        CURLOPT_TIMEOUT => 30,
     ]);
     if ($body !== null) {
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body, JSON_UNESCAPED_UNICODE));
@@ -462,8 +469,47 @@ function replicate_http(string $method, string $url, ?array $body): array
 
 /* ── Reply parsing and schema validation ─────────────────────────────────── */
 
-/** The first complete JSON object in a reply: fence, preamble and trailing prose are ignored. */
+/**
+ * The JSON object out of a model reply. A reply arrives bare, wrapped in prose or inside a
+ * markdown fence, so the same reply is read several ways and the first that decodes wins.
+ * Nothing is repaired here: a reply that decodes no way at all is refused.
+ */
 function json_from_model_text(string $text): ?array
+{
+    foreach (json_candidates($text) as $candidate) {
+        $data = json_decode($candidate, true);
+        if (is_array($data)) {
+            return $data;
+        }
+    }
+    return null;
+}
+
+/**
+ * The same reply read several ways, cheapest first: bare, inside a fence, from the first
+ * brace to the last, and the first run of braces that balances.
+ * @return list<string>
+ */
+function json_candidates(string $text): array
+{
+    $candidates = [trim($text)];
+    if (preg_match('/```(?:json)?\s*(\{.*\})\s*```/s', $text, $fenced)) {
+        $candidates[] = $fenced[1];
+    }
+    $first = strpos($text, '{');
+    $last = strrpos($text, '}');
+    if ($first !== false && $last > $first) {
+        $candidates[] = substr($text, $first, $last - $first + 1);
+    }
+    $balanced = balanced_object($text);
+    if ($balanced !== null) {
+        $candidates[] = $balanced;
+    }
+    return $candidates;
+}
+
+/** The first run of braces that balances, counting quotes and escapes. */
+function balanced_object(string $text): ?string
 {
     $start = strpos($text, '{');
     if ($start === false) {
@@ -478,7 +524,7 @@ function json_from_model_text(string $text): ?array
         if ($inString) {
             if ($escaped) {
                 $escaped = false;
-            } elseif ($ch === '\\') {
+            } elseif ($ch === "\\") {
                 $escaped = true;
             } elseif ($ch === '"') {
                 $inString = false;
@@ -490,8 +536,7 @@ function json_from_model_text(string $text): ?array
         } elseif ($ch === '{') {
             $depth++;
         } elseif ($ch === '}' && --$depth === 0) {
-            $data = json_decode(substr($text, $start, $i - $start + 1), true);
-            return is_array($data) ? $data : null;
+            return substr($text, $start, $i - $start + 1);
         }
     }
     return null;
