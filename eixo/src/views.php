@@ -3,6 +3,16 @@ declare(strict_types=1);
 
 /* Layout and shared view pieces. Copy is Portuguese; the product page links to English. */
 
+/**
+ * O carimbo do próprio arquivo na URL do asset. Com um número fixo, um navegador que já
+ * tinha a folha de estilo seguia servindo a versão velha depois de todo deploy.
+ */
+function asset_version(string $file): string
+{
+    $path = __DIR__ . '/../assets/' . $file;
+    return (string) (is_file($path) ? filemtime($path) : 1);
+}
+
 function layout(string $title, string $body, array $opts = []): void
 {
     security_headers();
@@ -23,8 +33,8 @@ function layout(string $title, string $body, array $opts = []): void
     echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
         . '<meta name="robots" content="noindex"><title>' . h($title) . ' · Eixo</title>'
         . '<link rel="icon" href="/assets/favicon.svg"><link rel="manifest" href="' . h(url() . 'assets/manifest.webmanifest') . '">'
-        . '<link rel="stylesheet" href="/assets/site.css"><link rel="stylesheet" href="' . h(url() . 'assets/eixo.css?v=1') . '">'
-        . '<script src="' . h(url() . 'assets/eixo.js?v=1') . '" defer></script></head><body>'
+        . '<link rel="stylesheet" href="/assets/site.css"><link rel="stylesheet" href="' . h(url() . 'assets/eixo.css?v=' . asset_version('eixo.css')) . '">'
+        . '<script src="' . h(url() . 'assets/eixo.js?v=' . asset_version('eixo.js')) . '" defer></script></head><body>'
         . '<header class="app-bar"><a class="site-brand" href="' . h(url()) . '"><span class="site-mark" aria-hidden="true">ei</span>Eixo</a>' . $nav . '</header>'
         . '<main class="app" id="main">' . ($flash ? '<p class="flash" role="status">' . h($flash) . '</p>' : '') . $body . '</main>'
         . '<footer class="app-foot"><p>O Eixo organiza e mostra seus documentos. Não interpreta exames, não diagnostica e não sugere doses: leve seus dados ao seu médico.</p>'
