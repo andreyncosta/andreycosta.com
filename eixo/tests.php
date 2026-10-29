@@ -131,6 +131,28 @@ ok(array_column($merged['body_composition']['metrics'], 'name_printed') === ['pe
 ok(array_column($merged['prescription_items'], 'drug') === ['metformina'], 'prescription items are concatenated');
 ok(merge_page_groups([]) === ['doc_type' => 'other', 'laboratory' => '', 'collection_date' => '', 'results' => [], 'body_composition' => null, 'prescription_items' => []], 'no group read leaves an empty document, never a half one');
 
+/* ── Each provider gets the schema in its own dialect ── */
+ok(reader_spec('A')[0] === 'openai' && reader_spec('B')[0] === 'google', 'the readers name their provider');
+ok(reader_spec('X') === reader_spec('A'), 'an unknown reader falls back to A');
+ok(provider_enforces_schema('openai') && provider_enforces_schema('google') && !provider_enforces_schema('replicate'), 'only the direct APIs enforce the schema');
+
+$oa = to_openai_schema(extraction_schema());
+ok(($oa['additionalProperties'] ?? null) === false, 'strict mode needs additionalProperties false');
+ok($oa['required'] === array_keys($oa['properties']), 'strict mode needs every property required');
+ok(($oa['properties']['results']['items']['properties']['value_number']['anyOf'][1]['type'] ?? '') === 'null', 'a nullable number stays a union for OpenAI');
+
+$go = to_google_schema(extraction_schema());
+ok($go['type'] === 'OBJECT' && $go['properties']['results']['type'] === 'ARRAY', 'Google wants the types in capitals');
+ok(!array_key_exists('additionalProperties', $go), 'Google rejects additionalProperties');
+ok(($go['properties']['results']['items']['properties']['value_number']['nullable'] ?? false) === true, 'a nullable number becomes nullable for Google');
+ok(($go['properties']['doc_type']['enum'][0] ?? '') === 'lab_report', 'an enum survives the conversion');
+ok(!isset($go['properties']['results']['items']['properties']['operator']['enum']), 'an enum holding an empty string is dropped, which Google refuses');
+
+$comEsquema = extraction_prompt('pagina', 'tarefa', null, true);
+$semEsquema = extraction_prompt('pagina', 'tarefa', null, false);
+ok(str_contains($comEsquema, 'JSON Schema') && !str_contains($semEsquema, 'JSON Schema'), 'the schema only travels in the prompt where nobody enforces it');
+ok(mb_strlen($semEsquema) < mb_strlen($comEsquema) - 1000, 'leaving it out saves a real chunk of the prompt');
+
 /* ── Nome do exame e indicador do cartão ── */
 ok(exam_key('CORTISOL........') === 'cortisol', 'the dot leader from the PDF leaves the name');
 ok(exam_key('Colesterol HDL, soro') === 'colesterol hdl', 'the specimen tacked onto the name leaves it');

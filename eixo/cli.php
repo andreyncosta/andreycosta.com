@@ -43,7 +43,7 @@ Eixo CLI
   diag [DOC]           recent document/reading error codes and a minimal live call to each AI provider
                        with DOC: re-run both readings on that document and print the provider error text
                        with DOC --text: only report the PDF text layer (no AI call, no cost)
-  models               check that the configured Replicate models exist and answer to this key
+  models               a minimal live call to each reader, to see that the key and the model answer
   config KEY VALUE...  set a model in config.php (never touches keys or secrets)
   requeue              put failed documents back in the queue
   reextract DOC --yes  undo what the extraction wrote for one document and read it again
@@ -97,10 +97,12 @@ return [
     'dpo_name' => '',             // encarregado
     'dpo_email' => '',
     'mail_from' => '',            // sender for `invite --send`
-    'replicate_key' => '',        // one key for every reader: replicate.com/account/api-tokens
-    'replicate_model_a' => 'openai/gpt-5-mini',                // reader A, on the page text
-    'replicate_model_b' => 'google/gemini-2.5-flash',          // reader B, another company
-    'replicate_tiebreak_model' => 'openai/gpt-oss-120b',       // only when A and B disagree
+    'openai_key' => '',           // platform.openai.com/api-keys
+    'gemini_api_key' => '',       // aistudio.google.com/apikey
+    'replicate_key' => '',        // só para leitores escritos como replicate:dono/modelo
+    'reader_a' => 'openai:gpt-5-mini',               // reader A, on the page text
+    'reader_b' => 'google:gemini-3-flash-preview',   // reader B, another company
+    'reader_tiebreak' => 'openai:gpt-5-nano',        // only when A and B disagree
     'max_upload_mb' => 20,
     'max_documents_per_30_days' => 40,
 ];
@@ -127,7 +129,7 @@ function cmd_invite(string $email, bool $send): void
 function cmd_eval(int $n, bool $yes): void
 {
     if (!$yes) {
-        echo "This sends $n synthetic report(s) to the Replicate readers (real cost, roughly 2-3 readings each). Re-run with --yes.\n";
+        echo "This sends $n synthetic report(s) to the configured readers (real cost, roughly 2-3 readings each). Re-run with --yes.\n";
         return;
     }
     $email = 'eval+' . time() . '@eixo.invalid';
@@ -168,7 +170,7 @@ function cmd_check(): void
         'schema up to date' => (int) (meta_get('schema_version') ?? 0) === EIXO_SCHEMA_VERSION,
         'sqlite integrity' => row('PRAGMA integrity_check')['integrity_check'] === 'ok',
         'composer vendor installed' => is_file(__DIR__ . '/vendor/autoload.php'),
-        'Replicate key set' => $c['replicate_key'] !== '',
+        'reader keys set' => reader_keys_missing() === [],
         'pdftotext available' => is_executable((string) $c['pdftotext']),
         'controller and DPO named' => $c['controller_name'] !== '' && $c['dpo_name'] !== '',
         'synthetic eval recorded' => meta_get('eval_last') !== null,
@@ -232,7 +234,8 @@ function cmd_diag(): void
     foreach (['A', 'B', 'C'] as $reader) {
         $model = reader_model($reader);
         $t = microtime(true);
-        $r = replicate_predict($model, 'Reply with exactly: ok');
+        [$fornecedor, $modelo] = reader_spec($reader);
+        $r = model_predict($fornecedor, $modelo, 'Reply with exactly: ok');
         printf("probe %s %s: %.0fs %s %s in=%s out=%s\n", $reader, $model, microtime(true) - $t,
             $r['ok'] ? 'ok' : ($r['error'] ?? 'failed'),
             provider_detail((string) ($r['ok'] ? $r['text'] : ($r['detail'] ?? ''))),
@@ -318,23 +321,24 @@ function cmd_diag_doc(int $docId, bool $textOnly = false): void
 
 function cmd_models(): void
 {
-    $base = rtrim((string) eixo_config()['replicate_base_url'], '/');
+    foreach (reader_keys_missing() as $falta) {
+        echo "chave ausente: $falta\n";
+    }
     foreach (['A', 'B', 'C'] as $reader) {
-        $model = reader_model($reader);
-        $res = replicate_http('GET', $base . '/models/' . $model, null);
-        if (!$res['ok']) {
-            echo "$reader $model: {$res['error']} " . mb_substr((string) $res['detail'], 0, 200) . "\n";
-            continue;
-        }
-        echo "$reader $model: ok · " . mb_substr((string) ($res['json']['description'] ?? ''), 0, 90) . "\n";
+        [$fornecedor, $modelo] = reader_spec($reader);
+        $t = microtime(true);
+        $r = model_predict($fornecedor, $modelo, 'Responda apenas com a palavra ok.');
+        printf("%s %s:%s %.0fs %s %s\n", $reader, $fornecedor, $modelo, microtime(true) - $t,
+            $r['ok'] ? 'ok' : ($r['error'] ?? 'falhou'),
+            mb_substr(provider_detail((string) ($r['ok'] ? $r['text'] : ($r['detail'] ?? ''))), 0, 120));
     }
 }
 
 /** Edits only the model/effort lines of config.php, so the server can be tuned from a cron without opening the file. */
 function cmd_config(string $key, string $value): void
 {
-    $allowed = ['replicate_model_a', 'replicate_model_b', 'replicate_tiebreak_model'];
-    if (!in_array($key, $allowed, true) || !preg_match('#^[a-z0-9.\-]{1,40}/[a-z0-9.\-]{1,60}$#', $value)) {
+    $allowed = ['reader_a', 'reader_b', 'reader_tiebreak'];
+    if (!in_array($key, $allowed, true) || !preg_match('#^(openai|google|replicate):[a-z0-9.\-/]{1,80}$#', $value)) {
         echo 'usage: config ' . implode('|', $allowed) . " VALUE\n";
         return;
     }

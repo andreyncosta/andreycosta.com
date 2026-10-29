@@ -3,11 +3,12 @@ declare(strict_types=1);
 
 /*
  * Extraction pipeline. The models only transcribe; code compares, checks and decides.
- * Every reader runs on Replicate, on the document's text layer (minimized).
+ * Every reader runs on the document's text layer (minimized), in groups of pages.
+ * Who answers each one is configured in src/leitores.php as fornecedor:modelo.
  *
- *   A: replicate_model_a, on the page text
- *   B: replicate_model_b, a different model family, on the same page text
- *   C: replicate_tiebreak_model, only when A and B disagree (tie-break)
+ *   A: reader_a, on the page text
+ *   B: reader_b, another company, on the same page text
+ *   C: reader_tiebreak, only when A and B disagree, and only on the pages in dispute
  *
  * A value is loaded only when two readings agree and it passes the cross-check
  * (RN-02); everything else goes to quarantine (RN-10). These models read text, so a
@@ -194,7 +195,7 @@ function read_document(string $reader, array $doc, string $extraInstruction = ''
     if ($providers === 'fake') {
         return fake_read($reader, $doc);
     }
-    $res = replicate_read($reader, $doc, $extraInstruction);
+    $res = read_pages($reader, $doc, $extraInstruction);
     if ($res['ok']) {
         $res['payload'] = empty_text_to_null($res['payload']);
     }
@@ -225,27 +226,20 @@ function provider_detail(string $msg): string
 
 /* ── Replicate ───────────────────────────────────────────────────────────── */
 
-/** The model behind each reader. C is the tie-break, asked only when A and B disagree. */
-function reader_model(string $reader): string
-{
-    $cfg = eixo_config();
-    return (string) match ($reader) {
-        'B' => $cfg['replicate_model_b'],
-        'C' => $cfg['replicate_tiebreak_model'],
-        default => $cfg['replicate_model_a'],
-    };
-}
-
 /**
  * Everything the model needs in one string: these models take no system prompt and enforce
  * no schema, so the instructions, the schema and the document travel together and the reply
  * is validated here instead of by the provider.
  */
-function extraction_prompt(string $text, string $task, ?array $repair): string
+function extraction_prompt(string $text, string $task, ?array $repair, bool $comEsquema = true): string
 {
+    // Onde o fornecedor impõe o esquema, repeti-lo no prompt só gastaria uns dois mil
+    // tokens de entrada por chamada sem mudar nada na resposta.
     $prompt = extraction_instructions()
-        . "\n\nReturn one JSON object and nothing else: no explanation, no markdown fence. It must validate against this JSON Schema:\n"
-        . json_encode(extraction_schema(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+        . ($comEsquema
+            ? "\n\nReturn one JSON object and nothing else: no explanation, no markdown fence. It must validate against this JSON Schema:\n"
+                . json_encode(extraction_schema(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+            : '')
         . "\n\nDocument text layer, page by page:\n\n" . $text . "\n" . $task;
     if ($repair) {
         $prompt .= "\n\nYour previous reply did not fit the schema:\n- " . implode("\n- ", array_slice($repair, 0, 20))
@@ -259,17 +253,15 @@ function extraction_prompt(string $text, string $task, ?array $repair): string
  * a document with no text layer fails with no_text_layer instead of being read badly.
  *
  * The pages go in groups, not all at once: a whole report asked for in a single call takes
- * minutes to generate and Replicate interrupts it, while a group of pages comes back in about
- * a minute and can be retried on its own. The groups are put back together here.
+ * minutes to generate and gets interrupted, while a group of pages comes back in about a
+ * minute and can be retried on its own. The groups are put back together here.
  */
-function replicate_read(string $reader, array $doc, string $extraInstruction): array
+function read_pages(string $reader, array $doc, string $extraInstruction): array
 {
     $cfg = eixo_config();
+    [$fornecedor, $modelo] = reader_spec($reader);
     $model = reader_model($reader);
-    $base = ['ok' => false, 'payload' => null, 'provider' => 'replicate', 'model' => $model, 'mode' => 'text_layer', 'in' => null, 'out' => null, 'error' => null];
-    if ((string) $cfg['replicate_key'] === '') {
-        return ['error' => 'no_api_key'] + $base;
-    }
+    $base = ['ok' => false, 'payload' => null, 'provider' => $fornecedor, 'model' => $modelo, 'mode' => 'text_layer', 'in' => null, 'out' => null, 'error' => null];
     $pages = $doc['pages'];
     if ($pages === null || mb_strlen(implode('', $pages)) <= 200) {
         return ['error' => 'no_text_layer'] + $base;
@@ -280,7 +272,7 @@ function replicate_read(string $reader, array $doc, string $extraInstruction): a
     $in = 0;
     $out = 0;
     $parts = [];
-    foreach (array_chunk($pages, max(1, (int) $cfg['replicate_pages_per_call']), true) as $index => $group) {
+    foreach (array_chunk($pages, max(1, (int) $cfg['reader_pages_per_call']), true) as $index => $group) {
         if ($wanted !== null && !array_intersect(array_map(fn (int $i): int => $i + 1, array_keys($group)), $wanted)) {
             continue;
         }
@@ -289,7 +281,7 @@ function replicate_read(string $reader, array $doc, string $extraInstruction): a
             $parts[] = $kept;
             continue;
         }
-        $call = read_page_group($model, $group, $total, $extraInstruction);
+        $call = read_page_group($fornecedor, $modelo, $group, $total, $extraInstruction);
         $in += $call['in'];
         $out += $call['out'];
         $base['in'] = $in ?: null;
@@ -323,7 +315,7 @@ function remembered_group(array $doc, string $reader, string $model, int $index,
     }
     $row = row('SELECT payload_enc FROM page_group_readings WHERE document_id = ? AND reader = ? AND group_index = ?
         AND pages_per_call = ? AND model = ? AND prompt_version = ?',
-        [$doc['document_id'], $reader, $index, (int) eixo_config()['replicate_pages_per_call'], $model, group_prompt_key($extraInstruction)]);
+        [$doc['document_id'], $reader, $index, (int) eixo_config()['reader_pages_per_call'], $model, group_prompt_key($extraInstruction)]);
     return $row ? dec((int) $doc['user_id'], $row['payload_enc']) : null;
 }
 
@@ -334,7 +326,7 @@ function remember_group(array $doc, string $reader, string $model, int $index, s
     }
     q('INSERT OR REPLACE INTO page_group_readings(document_id, reader, group_index, pages_per_call, model, prompt_version, payload_enc, created_at)
         VALUES (?,?,?,?,?,?,?,?)',
-        [$doc['document_id'], $reader, $index, (int) eixo_config()['replicate_pages_per_call'], $model,
+        [$doc['document_id'], $reader, $index, (int) eixo_config()['reader_pages_per_call'], $model,
             group_prompt_key($extraInstruction), enc((int) $doc['user_id'], $payload), now()]);
 }
 
@@ -358,7 +350,7 @@ function forget_group_readings(int $docId): void
  * @param array<int,string> $group page text, still keyed by its zero-based page index
  * @return array{ok:bool,payload:?array,in:int,out:int,error:?string,detail:?string}
  */
-function read_page_group(string $model, array $group, int $total, string $extraInstruction): array
+function read_page_group(string $fornecedor, string $modelo, array $group, int $total, string $extraInstruction): array
 {
     $text = '';
     $numbers = [];
@@ -374,7 +366,8 @@ function read_page_group(string $model, array $group, int $total, string $extraI
     $out = 0;
     $errors = [];
     for ($attempt = 0; $attempt < 3; $attempt++) {
-        $call = replicate_predict($model, extraction_prompt($text, $task, $errors ?: null));
+        $call = model_predict($fornecedor, $modelo,
+            extraction_prompt($text, $task, $errors ?: null, !provider_enforces_schema($fornecedor)));
         $in += (int) ($call['in'] ?? 0);
         $out += (int) ($call['out'] ?? 0);
         if (!$call['ok']) {
@@ -478,150 +471,6 @@ function merge_page_groups(array $parts): array
         }
     }
     return $merged;
-}
-
-/**
- * The input for one model. Every model on Replicate declares its own input: the ceiling on
- * the reply is max_tokens for one, max_completion_tokens for another, max_output_tokens for
- * a third, and some take no temperature at all. Sending a field a model does not declare
- * fails the call with 422, so the declaration is read and obeyed.
- */
-function replicate_input(string $model, string $prompt): array
-{
-    $ceiling = (int) eixo_config()['replicate_max_tokens'];
-    $props = model_input_properties($model);
-    if (!$props) {
-        return ['prompt' => $prompt, 'max_tokens' => $ceiling];
-    }
-    $input = ['prompt' => $prompt];
-    foreach (['max_tokens', 'max_completion_tokens', 'max_output_tokens', 'max_new_tokens'] as $field) {
-        if (isset($props[$field])) {
-            $declared = $props[$field]['maximum'] ?? null;
-            $input[$field] = $declared === null ? $ceiling : min($ceiling, (int) $declared);
-            break;
-        }
-    }
-    if (isset($props['temperature'])) {
-        $input['temperature'] = 0;
-    }
-    return $input;
-}
-
-/**
- * What a model declares it accepts, asked once per run. An unanswered question returns
- * nothing, and the caller falls back to the field every open-weight model here takes.
- * @return array<string,array>
- */
-function model_input_properties(string $model): array
-{
-    static $known = [];
-    if (!array_key_exists($model, $known)) {
-        $res = replicate_http('GET', rtrim((string) eixo_config()['replicate_base_url'], '/') . '/models/' . $model, null);
-        $known[$model] = $res['ok']
-            ? ($res['json']['latest_version']['openapi_schema']['components']['schemas']['Input']['properties'] ?? [])
-            : [];
-    }
-    return $known[$model];
-}
-
-/**
- * One prediction: created, then asked for until it reaches a final state. Nothing holds the
- * connection, so a reading that takes minutes never depends on one long-lived request.
- * @return array{ok:bool,text:?string,in:?int,out:?int,error:?string,detail:?string}
- */
-function replicate_predict(string $model, string $prompt): array
-{
-    $cfg = eixo_config();
-    $started = microtime(true);
-    $deadline = $started + (float) $cfg['replicate_timeout'];
-    $input = replicate_input($model, $prompt);
-    $res = replicate_http('POST', rtrim((string) $cfg['replicate_base_url'], '/') . '/models/' . $model . '/predictions', ['input' => $input]);
-    if (!$res['ok']) {
-        return $res;
-    }
-    $pred = $res['json'];
-    $blips = 0;
-    while (in_array($pred['status'] ?? '', ['starting', 'processing'], true)) {
-        if (microtime(true) > $deadline) {
-            return ['ok' => false, 'text' => null, 'in' => null, 'out' => null, 'error' => 'timeout', 'detail' => null];
-        }
-        sleep(microtime(true) - $started < 60 ? 2 : 5);
-        $get = replicate_http('GET', (string) ($pred['urls']['get'] ?? ''), null);
-        if (!$get['ok']) {
-            // A blip while asking for the state should not throw away a generation already paid for.
-            if (++$blips >= 5) {
-                return $get;
-            }
-            continue;
-        }
-        $blips = 0;
-        $pred = $get['json'];
-    }
-    $metrics = is_array($pred['metrics'] ?? null) ? $pred['metrics'] : [];
-    $usage = ['in' => $metrics['input_token_count'] ?? null, 'out' => $metrics['output_token_count'] ?? null];
-    if (($pred['status'] ?? '') !== 'succeeded') {
-        $code = ($pred['status'] ?? '') === 'canceled' ? 'canceled' : 'prediction_failed';
-        return ['ok' => false, 'text' => null, 'error' => $code, 'detail' => provider_detail((string) ($pred['error'] ?? ''))] + $usage;
-    }
-    $output = $pred['output'] ?? null;
-    $text = is_array($output) ? implode('', array_map('strval', $output)) : (is_string($output) ? $output : null);
-    if ($text === null || trim($text) === '') {
-        return ['ok' => false, 'text' => null, 'error' => 'empty_output', 'detail' => null] + $usage;
-    }
-    return ['ok' => true, 'text' => $text, 'error' => null, 'detail' => null] + $usage;
-}
-
-/**
- * One HTTP call to the Replicate API.
- * @return array{ok:bool,json:?array,text:?string,in:?int,out:?int,error:?string,detail:?string}
- */
-function replicate_http(string $method, string $url, ?array $body): array
-{
-    $cfg = eixo_config();
-    $fail = fn (string $code, ?string $detail = null) => ['ok' => false, 'json' => null, 'text' => null, 'in' => null, 'out' => null, 'error' => $code, 'detail' => $detail];
-    if ($url === '') {
-        return $fail('bad_response');
-    }
-    // No 'Prefer: wait': a conexão presa estourava o tempo do cURL e deixava para trás uma
-    // predição já criada, paga e sem dono. O POST volta na hora e o estado vem por consulta.
-    $headers = ['Authorization: Bearer ' . $cfg['replicate_key'], 'Content-Type: application/json'];
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
-        CURLOPT_CUSTOMREQUEST => $method,
-        CURLOPT_HTTPHEADER => $headers,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_CONNECTTIMEOUT => 15,
-        CURLOPT_TIMEOUT => 30,
-    ]);
-    if ($body !== null) {
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body, JSON_UNESCAPED_UNICODE));
-    }
-    // The account's prediction rate limit is a few per minute, so a throttled call waits its
-    // turn instead of failing the document and paying again for the reading that already worked.
-    for ($attempt = 1; ; $attempt++) {
-        $raw = curl_exec($ch);
-        $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-        $curlError = curl_error($ch);
-        if ($status !== 429 || $attempt >= 3) {
-            break;
-        }
-        sleep(12);
-    }
-    curl_close($ch);
-    if (!is_string($raw)) {
-        return $fail('connection', provider_detail($curlError));
-    }
-    if ($status === 429) {
-        return $fail('rate_limited', provider_detail($raw));
-    }
-    if ($status >= 400) {
-        return $fail('api_' . $status, provider_detail($raw));
-    }
-    $json = json_decode($raw, true);
-    if (!is_array($json)) {
-        return $fail('bad_response', provider_detail($raw));
-    }
-    return ['ok' => true, 'json' => $json, 'text' => null, 'in' => null, 'out' => null, 'error' => null, 'detail' => null];
 }
 
 /* ── Reply parsing and schema validation ─────────────────────────────────── */

@@ -9,6 +9,7 @@ if (is_file(__DIR__ . '/../vendor/autoload.php')) {
 require __DIR__ . '/core.php';
 require __DIR__ . '/auth.php';
 require __DIR__ . '/ucum.php';
+require __DIR__ . '/leitores.php';
 require __DIR__ . '/extraction.php';
 require __DIR__ . '/data.php';
 require __DIR__ . '/exames.php';
