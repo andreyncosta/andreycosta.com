@@ -223,8 +223,10 @@ function empty_text_to_null(array $data): array
  * desacordo por causa da divisão, e não do que estava escrito no laudo.
  *
  * O que foi impresso continua intacto, que é a prova de origem (RNF-09). Só se preenche o
- * que o leitor deixou em branco: nada que ele afirmou é sobrescrito, e um texto com mais de
- * um número não rende valor nenhum, porque não há como dizer qual deles é o resultado.
+ * que o leitor deixou em branco: nada que ele afirmou é sobrescrito. E o número só sai de lá
+ * quando não sobra nada além dele e da dimensão — \"3+\" e \"2 cruzes\" são resultados
+ * semiquantitativos, não os números 3 e 2, e uma linha de tabela que desabou numa célula não
+ * diz qual dos seus números é o resultado.
  */
 function tidy_result(array $r): array
 {
@@ -232,7 +234,8 @@ function tidy_result(array $r): array
     if (trim((string) ($r['unit_printed'] ?? '')) === '' && $corte['unit'] !== '') {
         $r['unit_printed'] = $corte['unit'];
     }
-    if (($r['value_number'] ?? null) === null && $corte['number'] !== null && $corte['numbers'] === 1) {
+    if (($r['value_number'] ?? null) === null && $corte['number'] !== null && $corte['numbers'] === 1
+        && $corte['rest'] === '') {
         $r['value_number'] = $corte['number'];
         $r['value_text'] = null;
     }

@@ -66,6 +66,12 @@ ok(printed_with_unit('182 mg/dL', 'mg/dL') === '182 mg/dL', 'the unit is not pri
 ok(printed_with_unit('4,2 g/dl', 'g/dL') === '4,2 g/dl', 'another spelling of the same unit counts');
 ok(printed_with_unit('182', 'mg/dL') === '182 mg/dL', 'a value without the unit still gets it');
 ok(printed_with_unit('34', '') === '34', 'no unit, nothing appended');
+ok(printed_with_unit('Não reagente', 'g') === 'Não reagente g', 'the g of reagente is not a gram');
+ok(printed_with_unit('12%', '%') === '12%', 'a percent sign glued to the number counts');
+$cruzes = tidy_result(['value_printed' => '3+ cruzes', 'unit_printed' => null, 'value_number' => null, 'operator' => '']);
+ok($cruzes['value_number'] === null, 'a semi-quantitative result does not become a number');
+$asterisco = tidy_result(['value_printed' => '182 mg/dL *', 'unit_printed' => null, 'value_number' => null, 'operator' => '']);
+ok($asterisco['value_number'] === null, 'leftovers after the unit stop the extraction');
 $glued = tidy_result(['value_printed' => '182 mg/dL', 'unit_printed' => null, 'value_number' => null, 'operator' => '']);
 ok($glued['value_number'] === 182.0 && $glued['unit_printed'] === 'mg/dL' && $glued['value_printed'] === '182 mg/dL',
     'number and unit recovered, printed value untouched');

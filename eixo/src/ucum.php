@@ -191,6 +191,19 @@ function unit_like(string $trecho): bool
 }
 
 /**
+ * A dimensão aparece inteira dentro deste texto? Procurar o pedaço solto confundiria o "g"
+ * de grama com o "g" de "reagente", de modo que uma unidade que começa ou termina em letra
+ * ou algarismo exige fronteira desse lado. O "%" não exige: ele vem colado no número.
+ */
+function unit_in_text(string $texto, string $unidade): bool
+{
+    $u = preg_quote($unidade, '/');
+    $antes = preg_match('/^[\p{L}\p{N}]/u', $unidade) ? '(?<![\p{L}\p{N}])' : '';
+    $depois = preg_match('/[\p{L}\p{N}]$/u', $unidade) ? '(?![\p{L}\p{N}])' : '';
+    return (bool) preg_match('/' . $antes . $u . $depois . '/iu', $texto);
+}
+
+/**
  * O valor como o laboratório imprimiu, com a dimensão uma vez só. Muitos laudos imprimem
  * valor e unidade na mesma célula ("182 mg/dL") e o leitor copia as duas coisas, de modo
  * que repetir o campo da unidade ao lado dava "182 mg/dL mg/dL" na tela.
@@ -202,7 +215,7 @@ function printed_with_unit(?string $printed, ?string $unit): string
     if ($u === '' || $texto === '') {
         return $texto !== '' ? $texto : $u;
     }
-    if (stripos($texto, $u) !== false) {
+    if (unit_in_text($texto, $u)) {
         return $texto;
     }
     $dentro = split_printed($texto)['unit'];

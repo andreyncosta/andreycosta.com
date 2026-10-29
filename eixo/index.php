@@ -582,7 +582,7 @@ function action_fix(int $uid): void
     // A correção passa pelo mesmo separador de número e dimensão da leitura, de modo que
     // "182 mg/dL" digitado no campo do valor rende 182 com mg/dL, e não um texto sem número.
     $corte = split_printed($printed);
-    $num = $corte['numbers'] === 1 ? $corte['number'] : null;
+    $num = $corte['numbers'] === 1 && $corte['rest'] === '' ? $corte['number'] : null;
     if ($unit === '' && $corte['unit'] !== '') {
         $unit = $corte['unit'];
     }
