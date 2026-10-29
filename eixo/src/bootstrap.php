@@ -11,6 +11,7 @@ require __DIR__ . '/auth.php';
 require __DIR__ . '/ucum.php';
 require __DIR__ . '/extraction.php';
 require __DIR__ . '/data.php';
+require __DIR__ . '/exames.php';
 require __DIR__ . '/views.php';
 require __DIR__ . '/synthetic.php';
 

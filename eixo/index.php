@@ -287,14 +287,38 @@ function page_dashboard(int $uid): void
     $quar = quarantine_for($uid);
     $pending = (int) row("SELECT COUNT(*) n FROM documents WHERE user_id = ? AND status IN ('queued','processing')", [$uid])['n'];
     $q = trim((string) ($_GET['q'] ?? ''));
-    $groups = [];
+    $ctx = patient_context($uid);
+
+    // Três grupos: o que o paciente escolheu seguir, o que saiu da faixa, e o resto
+    // guardado por seção. A página abre com o que pede atenção, não com tudo.
+    $fixados = [];
+    $atencao = [];
+    $secoes = [];
     foreach ($series as $s) {
-        if ($q !== '' && !str_contains(norm_text($s['payload']['label'] . ' ' . ($s['payload']['section'] ?? '')), norm_text($q))) {
+        $exame = exam_of($s['payload']);
+        $busca = $exame['nome'] . ' ' . ($s['payload']['label'] ?? '') . ' ' . ($s['payload']['section'] ?? '');
+        if ($q !== '' && !str_contains(norm_text($busca), norm_text($q))) {
             continue;
         }
-        $groups[$s['pinned'] ? 'Fixados' : ($s['payload']['section'] ?: 'Outros exames')][] = $s;
+        $ind = exam_indicator($s, $ctx);
+        if ($s['pinned']) {
+            $fixados[] = $s;
+        } elseif (in_array($ind['posicao'], ['acima', 'abaixo'], true) || ($ind['tipo'] === 'qualitativo' && $ind['cor'] === 'ruim')) {
+            $atencao[] = $s;
+        } else {
+            $secoes[($s['payload']['section'] ?? '') ?: 'Outros exames'][] = $s;
+        }
     }
-    uksort($groups, fn ($a, $b) => $a === 'Fixados' ? -1 : ($b === 'Fixados' ? 1 : strcmp($a, $b)));
+    ksort($secoes);
+
+    $cartoes = function (array $lista) use ($ctx): string {
+        $out = '<div class="cards exams">';
+        foreach ($lista as $s) {
+            $out .= exam_card_html($s, $ctx);
+        }
+        return $out . '</div>';
+    };
+
     $html = '<div class="page-head"><h1>Visão geral</h1><a class="btn" href="' . h(url('upload')) . '">Enviar laudos</a></div>';
     if ($pending) {
         $html .= '<p class="note">' . $pending . ' documento(s) em leitura. A página de documentos mostra o andamento.</p>';
@@ -308,16 +332,21 @@ function page_dashboard(int $uid): void
     $html .= '<form class="search" method="get"><input type="hidden" name="r" value=""><label class="sr-only" for="q">Buscar exame</label><input id="q" name="q" value="' . h($q) . '" placeholder="Buscar exame (TSH, glicada, ferritina…)"><button class="btn ghost">Buscar</button></form>';
     if (!$series) {
         $html .= '<p class="empty">Nenhum exame ainda. Envie seus laudos em PDF ou foto; cada valor confirmado aparece aqui, agrupado pelas seções do próprio laudo.</p>';
+    } elseif (!$fixados && !$atencao && !$secoes) {
+        $html .= '<p class="empty">Nenhum exame corresponde a “' . h($q) . '”.</p>';
     }
-    foreach ($groups as $g => $list) {
-        $html .= '<h2>' . h($g) . '</h2><div class="cards">';
-        foreach ($list as $s) {
-            $last = $s['last'];
-            $html .= '<a class="card" href="' . h(url('series', ['id' => $s['id']])) . '"><span class="card-title">' . h($s['payload']['label']) . '</span>'
-                . '<span class="card-value">' . value_html(['value_printed' => $last['value_printed'], 'unit_printed' => $last['unit'], 'converted' => $last['converted']]) . flag_html($last['flag']) . '</span>'
-                . '<span class="muted">' . h(br_date($last['date'])) . ' · ' . count($s['points']) . ' ponto(s) · faixa: ' . h($last['reference_printed'] ?? '—') . '</span></a>';
-        }
-        $html .= '</div>';
+    if ($fixados) {
+        $html .= '<h2>Acompanhando</h2>' . $cartoes($fixados);
+    }
+    if ($atencao) {
+        $html .= '<h2>Fora da faixa</h2><p class="muted">Comparado com a faixa que o próprio laboratório imprimiu para o seu sexo e idade.</p>' . $cartoes($atencao);
+    }
+    // As seções abrem fechadas, a não ser que não haja nada antes delas para ler.
+    $abrirPrimeira = !$fixados && !$atencao;
+    foreach ($secoes as $nome => $lista) {
+        $html .= '<details class="exam-group"' . ($abrirPrimeira ? ' open' : '') . '><summary>' . h($nome)
+            . ' <span class="count">(' . count($lista) . ')</span></summary>' . $cartoes($lista) . '</details>';
+        $abrirPrimeira = false;
     }
     layout('Visão geral', $html, ['nav' => 'patient', 'active' => '']);
 }

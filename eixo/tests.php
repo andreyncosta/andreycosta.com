@@ -131,6 +131,50 @@ ok(array_column($merged['body_composition']['metrics'], 'name_printed') === ['pe
 ok(array_column($merged['prescription_items'], 'drug') === ['metformina'], 'prescription items are concatenated');
 ok(merge_page_groups([]) === ['doc_type' => 'other', 'laboratory' => '', 'collection_date' => '', 'results' => [], 'body_composition' => null, 'prescription_items' => []], 'no group read leaves an empty document, never a half one');
 
+/* ── Nome do exame e indicador do cartão ── */
+ok(exam_key('CORTISOL........') === 'cortisol', 'the dot leader from the PDF leaves the name');
+ok(exam_key('Colesterol HDL, soro') === 'colesterol hdl', 'the specimen tacked onto the name leaves it');
+ok(exam_of(['label' => 'HEMOGLOBINA GLICADA'])['nome'] === 'Hemoglobina glicada', 'a printed name becomes the dictionary name');
+ok(exam_of(['label' => 'x', 'loinc' => '2085-9'])['nome'] === 'HDL', 'the LOINC code wins over the printed name');
+ok(exam_of(['label' => 'EXAME MUITO ESPECIFICO'])['nome'] === 'Exame Muito Especifico', 'a name outside the dictionary loses the all-caps');
+ok(exam_of(['label' => 'LDL'])['direcao'] === 'baixo' && exam_of(['label' => 'HDL'])['direcao'] === 'alto', 'LDL and HDL carry a fixed direction');
+
+$ctxF = ['sexo' => 'female', 'idade' => 40];
+$ctxM = ['sexo' => 'male', 'idade' => 40];
+$faixas = [
+    ['kind' => 'interval', 'condition' => 'Homens', 'label' => null, 'low' => 13.0, 'high' => 17.0],
+    ['kind' => 'interval', 'condition' => 'Mulheres', 'label' => null, 'low' => 12.0, 'high' => 15.5],
+];
+ok(pick_range($faixas, $ctxM)['high'] === 17.0, 'the range for men is picked for a man');
+ok(pick_range($faixas, $ctxF)['high'] === 15.5, 'the range for women is picked for a woman');
+ok(pick_range($faixas, ['sexo' => '', 'idade' => null]) === null, 'with no sex on file no conditioned range is assumed');
+ok(range_position(16.0, pick_range($faixas, $ctxF)) === 'acima', 'above the range for a woman is reported');
+ok(range_position(16.0, pick_range($faixas, $ctxM)) === 'dentro', 'the same value is inside the range for a man');
+ok(qualitative_sign('Não reagente') === 'bom' && qualitative_sign('POSITIVO') === 'ruim', 'negative is the healthy one, positive is not');
+ok(qualitative_sign('amarelo citrino') === null, 'text that is neither negative nor positive gets no colour');
+
+$ponto = fn (float $v, string $d, array $faixa = []) => ['value' => $v, 'value_printed' => (string) $v,
+    'value_text' => null, 'unit' => 'mg/dL', 'date' => $d, 'ranges' => $faixa,
+    'reference_printed' => $faixa ? '70 a 99' : null];
+$serie = fn (string $nome, array $pts) => ['id' => 1, 'pinned' => 0, 'payload' => ['label' => $nome],
+    'points' => $pts, 'last' => end($pts)];
+
+$i = exam_indicator($serie('LDL', [$ponto(160.0, '2026-01-01'), $ponto(130.0, '2026-06-01')]), $ctxM);
+ok($i['seta'] === '↓' && $i['cor'] === 'bom', 'LDL coming down is green');
+$i = exam_indicator($serie('LDL', [$ponto(130.0, '2026-01-01'), $ponto(160.0, '2026-06-01')]), $ctxM);
+ok($i['seta'] === '↑' && $i['cor'] === 'ruim', 'LDL going up is red');
+$i = exam_indicator($serie('LDL', [$ponto(130.0, '2026-06-01')]), $ctxM);
+ok($i['seta'] === '' && $i['legenda'] === 'primeiro resultado', 'a single point gets no arrow');
+
+$faixaG = [['kind' => 'interval', 'condition' => '', 'label' => null, 'low' => 70.0, 'high' => 99.0]];
+$i = exam_indicator($serie('Glicose', [$ponto(120.0, '2026-01-01', $faixaG), $ponto(95.0, '2026-06-01', $faixaG)]), $ctxM);
+ok($i['cor'] === 'bom' && $i['posicao'] === 'dentro', 'coming back inside the range is green');
+$i = exam_indicator($serie('Glicose', [$ponto(95.0, '2026-01-01', $faixaG), $ponto(120.0, '2026-06-01', $faixaG)]), $ctxM);
+ok($i['cor'] === 'ruim' && $i['posicao'] === 'acima', 'leaving the range is red');
+$i = exam_indicator($serie('Glicose', [$ponto(80.0, '2026-01-01', $faixaG), $ponto(90.0, '2026-06-01', $faixaG)]), $ctxM);
+ok($i['seta'] === '↑' && $i['cor'] === 'neutro', 'moving inside the range is neither good nor bad');
+ok(str_contains($i['faixa'], '70 a 99'), 'the chosen range shows on the card');
+
 /* ── Pipeline with fake readers ── */
 function add_doc(int $uid, string $bytes, string $mime = 'application/pdf'): int
 {

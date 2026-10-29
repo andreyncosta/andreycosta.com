@@ -218,3 +218,38 @@ function ai_disclosure_html(): string
 {
     return '<p class="note">Estes dados foram organizados com apoio de inteligência artificial: dois modelos de fornecedores diferentes transcrevem cada laudo, e o código só carrega o que as duas leituras confirmam e o que passa na checagem contra o texto do laudo. Nenhum número é calculado ou interpretado pela IA. <a href="' . h(url('ai')) . '">Ficha de transparência</a>.</p>';
 }
+
+/**
+ * Um exame na visão geral: nome curto, valor de agora com a seta da última
+ * mudança, e a faixa que o laboratório imprimiu para este paciente. O resto
+ * (histórico, laudo de origem, conversões) vive na página da série.
+ */
+function exam_card_html(array $series, array $ctx): string
+{
+    $exame = exam_of($series['payload'] ?? []);
+    $ind = exam_indicator($series, $ctx);
+    $titulo = $exame['nome'];
+    $classe = 'card exam' . ($ind['cor'] !== 'neutro' ? ' is-' . $ind['cor'] : '');
+
+    if ($ind['tipo'] === 'qualitativo') {
+        $marca = '<span class="dot dot-' . h($ind['cor']) . '" aria-hidden="true"></span>';
+        $valor = '<span class="exam-value">' . $marca . h($ind['valor']) . '</span>';
+    } else {
+        $seta = $ind['seta'] !== ''
+            ? '<span class="arrow" aria-hidden="true">' . h($ind['seta']) . '</span>'
+            : '';
+        $valor = '<span class="exam-value">' . h($ind['valor'])
+            . ($ind['unidade'] !== '' ? ' <span class="exam-unit">' . h($ind['unidade']) . '</span>' : '')
+            . $seta . '</span>';
+    }
+
+    $rodape = $ind['faixa'] !== ''
+        ? '<span class="exam-range">faixa ' . h($ind['faixa']) . '</span>'
+        : '<span class="exam-range none">sem faixa no laudo</span>';
+
+    return '<a class="' . $classe . '" href="' . h(url('series', ['id' => $series['id']])) . '">'
+        . '<span class="exam-name" title="' . h((string) ($series['payload']['label'] ?? '')) . '">' . h($titulo) . '</span>'
+        . $valor
+        . '<span class="sr-only">' . h($ind['legenda']) . '</span>'
+        . $rodape . '</a>';
+}
