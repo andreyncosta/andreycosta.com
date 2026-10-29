@@ -52,7 +52,7 @@ function deny(int $code = 404, string $msg = 'Não encontrado.'): never
 /** Value as the lab printed it, with the unit, plus a note when the series shows it converted. */
 function value_html(array $p): string
 {
-    $v = h(trim(($p['value_printed'] ?? '') . ' ' . ($p['unit_printed'] ?? $p['unit'] ?? '')));
+    $v = h(printed_with_unit($p['value_printed'] ?? '', $p['unit_printed'] ?? $p['unit'] ?? ''));
     if (!empty($p['converted'])) {
         $v .= ' <span class="muted">(' . h(br_number((float) $p['converted']['value']) . ' ' . $p['converted']['unit']) . ' na série)</span>';
     }
@@ -202,7 +202,7 @@ function summary_html(array $s, callable $docUrl, callable $seriesUrl): string
         $out .= '<p class="muted">As leituras não concordaram ou o valor não passou na checagem. Ficam fora das séries e dos gráficos; confira no laudo original.</p><ul class="plain">';
         foreach ($s['quarantine'] as $q) {
             $p = $q['p'];
-            $out .= '<li>' . h(($p['name_printed'] ?? '') . ': ' . ($p['value_printed'] ?? '') . ' ' . ($p['unit_printed'] ?? '')) . ' <a class="src" href="' . h($docUrl((int) $q['document_id'], $p['page'] ?? 0)) . '">[laudo, pág. ' . (int) ($p['page'] ?? 0) . ']</a></li>';
+            $out .= '<li>' . h(($p['name_printed'] ?? '') . ': ' . printed_with_unit($p['value_printed'] ?? '', $p['unit_printed'] ?? '')) . ' <a class="src" href="' . h($docUrl((int) $q['document_id'], $p['page'] ?? 0)) . '">[laudo, pág. ' . (int) ($p['page'] ?? 0) . ']</a></li>';
         }
         $out .= '</ul>';
     }

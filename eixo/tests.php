@@ -40,6 +40,45 @@ ok(ucum_convert(90, 'mg/dL', 'g/L', null, null) === null, 'no conversion without
 ok(ucum_from_printed('nmol/l') === 'nmol/L', 'mol keeps its l');
 ok(unit_matches_property('mmol/L', 'MCnc') === 'mismatch', 'unit/property mismatch detected');
 ok(unit_matches_property('xyz', 'MCnc') === 'unverified', 'unknown unit is unverified');
+/* ── Dimensions table and number extraction ── */
+ok(br_parse_number('1.234,5') === 1234.5, 'Brazilian thousands and decimal');
+ok(br_parse_number('1.234') === 1234.0, 'three digits after the dot are thousands');
+ok(br_parse_number('12.5') === 12.5, 'a lone dot with two digits is decimal');
+ok(br_parse_number('0,01') === 0.01, 'comma decimal');
+ok(br_parse_number('nao reagente') === null, 'text is not a number');
+ok(ucum_from_printed('x 10³/mm³') === '10*3/mm3', 'power of ten with a leading x');
+ok(ucum_from_printed('mm/1h') === 'mm/h', 'sedimentation rate in the first hour');
+ok(ucum_from_printed('mL/min/1,73m²') === 'mL/min/{1.73_m2}', 'eGFR body surface is an annotation');
+ok(ucum_from_printed('mg/L (0,876 mg/dL)') === 'mg/L', 'a conversion in brackets is not part of the unit');
+ok(ucum_parse('mL/min/{1.73_m2}')[1] == ['T' => -1, 'V' => 1], 'annotations carry no dimension');
+ok(unit_matches_property('mL/min/{1.73_m2}', 'VRat') === 'ok', 'eGFR unit matches a volume rate');
+ok(unit_label('g/dl') === 'g/dL' && unit_label('fl') === 'fL', 'one spelling per unit');
+ok(unit_label('mIU/mL') === 'mUI/mL' && unit_label('µUI/mL') === 'µUI/mL', 'international units in Portuguese');
+ok(unit_label('escore de risco') === 'escore de risco', 'an unknown unit is shown as printed');
+$corte = split_printed('RESULTADO: < 0,01 µUI/mL');
+ok($corte['operator'] === '<' && $corte['number'] === 0.01 && $corte['unit'] === 'µUI/mL' && $corte['numbers'] === 1,
+    'label, operator, number and unit split out of one cell');
+ok(split_printed('182 mg/dL')['unit'] === 'mg/dL', 'the unit comes off the printed value');
+ok(split_printed('70 a 99')['unit'] === '' && split_printed('70 a 99')['numbers'] === 2,
+    'a reference range is not a unit');
+ok(split_printed('4.567 1.234 a 5.678 /uL')['numbers'] > 1, 'a collapsed table row has several numbers');
+ok(printed_with_unit('182 mg/dL', 'mg/dL') === '182 mg/dL', 'the unit is not printed twice');
+ok(printed_with_unit('4,2 g/dl', 'g/dL') === '4,2 g/dl', 'another spelling of the same unit counts');
+ok(printed_with_unit('182', 'mg/dL') === '182 mg/dL', 'a value without the unit still gets it');
+ok(printed_with_unit('34', '') === '34', 'no unit, nothing appended');
+$glued = tidy_result(['value_printed' => '182 mg/dL', 'unit_printed' => null, 'value_number' => null, 'operator' => '']);
+ok($glued['value_number'] === 182.0 && $glued['unit_printed'] === 'mg/dL' && $glued['value_printed'] === '182 mg/dL',
+    'number and unit recovered, printed value untouched');
+$asserted = tidy_result(['value_printed' => '182 mg/dL', 'unit_printed' => 'mg/dL', 'value_number' => 180.0, 'operator' => '']);
+ok($asserted['value_number'] === 180.0, 'what the reader asserted is never overwritten');
+$row = tidy_result(['value_printed' => '4.567 1.234 a 5.678', 'unit_printed' => null, 'value_number' => null, 'operator' => '']);
+ok($row['value_number'] === null, 'several numbers in one cell yield no value');
+ok(same_value($glued, tidy_result(['value_printed' => '182', 'unit_printed' => 'mg/dL', 'value_number' => 182.0, 'operator' => ''])),
+    'readers that split the cell differently now agree');
+ok(same_value(['value_printed' => 'RESULTADO: Não reagente'], ['value_printed' => 'Não reagente']),
+    'the cell label does not break the agreement');
+ok(unit_key('g/dl') === unit_key('g/dL') && unit_key('mil/mm³') === unit_key('10*3/mm3'),
+    'the range catalogue keys units by dimension');
 
 /* ── TOTP and crypto ── */
 $secret = base32_encode(random_bytes(20));

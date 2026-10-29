@@ -529,12 +529,12 @@ function document_html(int $uid, array $d, string $fileUrl, bool $owner): string
                 . '<td>' . value_html($p) . flag_html($p['flag_printed']) . ($r['origin'] === 'patient_correction' ? '<br><span class="muted">corrigido pelo paciente</span>' : '') . provenance_html($p, $fileUrl) . '</td>'
                 . '<td>' . ranges_html($p['reference_printed']) . '</td>'
                 . '<td>' . h($state) . '<br><span class="muted">' . h(resolution_label($p['resolution'] ?? 'ab')) . ($checks ? '; ' . h($checks) : '') . '</span>'
-                . (!empty($p['alternative']) ? '<br><span class="muted">outra leitura: ' . h(trim(($p['alternative']['value_printed'] ?? '') . ' ' . ($p['alternative']['unit_printed'] ?? ''))) . '</span>' : '') . $fix . '</td></tr>';
+                . (!empty($p['alternative']) ? '<br><span class="muted">outra leitura: ' . h(printed_with_unit($p['alternative']['value_printed'] ?? '', $p['alternative']['unit_printed'] ?? '')) . '</span>' : '') . $fix . '</td></tr>';
         }
         $html .= '</tbody></table></div>';
     }
     if (!empty($m['body_unconfirmed'])) {
-        $html .= '<h2>Métricas de bioimpedância não confirmadas</h2><ul class="plain">' . implode('', array_map(fn ($x) => '<li>' . h(($x['name_printed'] ?? '') . ': ' . ($x['value_printed'] ?? '') . ' ' . ($x['unit_printed'] ?? '')) . '</li>', $m['body_unconfirmed'])) . '</ul>';
+        $html .= '<h2>Métricas de bioimpedância não confirmadas</h2><ul class="plain">' . implode('', array_map(fn ($x) => '<li>' . h(($x['name_printed'] ?? '') . ': ' . printed_with_unit($x['value_printed'] ?? '', $x['unit_printed'] ?? '')) . '</li>', $m['body_unconfirmed'])) . '</ul>';
     }
     if (!empty($m['prescription'])) {
         $html .= '<h2>Itens da receita</h2><ul class="plain">';
@@ -579,13 +579,14 @@ function action_fix(int $uid): void
     $p = dec($uid, $r['payload_enc']);
     $printed = trim((string) ($_POST['value'] ?? ''));
     $unit = trim((string) ($_POST['unit'] ?? ''));
-    preg_match('/^\s*(<=|>=|<|>)?\s*([0-9.,]+)\s*$/', $printed, $mm);
-    $num = null;
-    if ($mm) {
-        $raw = $mm[2];
-        $num = (float) (str_contains($raw, ',') ? str_replace(['.', ','], ['', '.'], $raw) : $raw);
+    // A correção passa pelo mesmo separador de número e dimensão da leitura, de modo que
+    // "182 mg/dL" digitado no campo do valor rende 182 com mg/dL, e não um texto sem número.
+    $corte = split_printed($printed);
+    $num = $corte['numbers'] === 1 ? $corte['number'] : null;
+    if ($unit === '' && $corte['unit'] !== '') {
+        $unit = $corte['unit'];
     }
-    $new = ['value_printed' => $printed, 'operator' => $mm[1] ?? '', 'value_number' => $num, 'value_text' => $num === null ? $printed : null,
+    $new = ['value_printed' => $printed, 'operator' => $corte['operator'], 'value_number' => $num, 'value_text' => $num === null ? $printed : null,
         'unit_printed' => $unit !== '' ? $unit : null, 'unit_ucum' => ucum_from_printed($unit), 'series_value' => $num, 'converted' => null,
         'resolution' => 'patient', 'checks' => [], 'alternative' => ['value_printed' => $p['value_printed'], 'unit_printed' => $p['unit_printed']]] + $p;
     // A corrected value keeps the series only when its unit is the series unit; otherwise it stays unconverted in its own series.

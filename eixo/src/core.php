@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 const EIXO_SCHEMA_VERSION = 3;
 const EIXO_CONSENT_VERSION = '2026-10-20';
-const EIXO_PROMPT_VERSION = 'extract-2026-10-29';
+const EIXO_PROMPT_VERSION = 'extract-2026-10-29b';
 const ALLOWED_MIME = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 
 function eixo_data_dir(): string
@@ -428,6 +428,34 @@ function br_date(?string $iso): string
     }
     [$y, $m, $d] = explode('-', substr($iso, 0, 10));
     return "$d/$m/$y";
+}
+
+/**
+ * Um número como o laudo brasileiro o imprime, de volta a float. "1.234,5" é mil duzentos e
+ * trinta e quatro e meio; "1.234", com três casas depois do ponto e nenhuma vírgula, é mil
+ * duzentos e trinta e quatro, que é como o laudo escreve a contagem de leucócitos.
+ */
+function br_parse_number(?string $raw): ?float
+{
+    $r = trim((string) $raw);
+    if ($r === '' || !preg_match('/^\d+(?:[.,]\d+)*$/', $r)) {
+        return null;
+    }
+    $virgula = strrpos($r, ',');
+    $ponto = strrpos($r, '.');
+    if ($virgula !== false && $ponto !== false) {
+        // O último separador manda: o outro é separador de milhar.
+        return $virgula > $ponto
+            ? (float) str_replace(['.', ','], ['', '.'], $r)
+            : (float) str_replace(',', '', $r);
+    }
+    if ($virgula !== false) {
+        return substr_count($r, ',') === 1 ? (float) str_replace(',', '.', $r) : (float) str_replace(',', '', $r);
+    }
+    if ($ponto !== false) {
+        return preg_match('/^\d{1,3}(\.\d{3})+$/', $r) ? (float) str_replace('.', '', $r) : (float) $r;
+    }
+    return (float) $r;
 }
 
 function br_number(?float $v): string

@@ -58,13 +58,27 @@ function ucum_from_printed(?string $printed): ?string
     if ($u === '') {
         return null;
     }
-    $u = str_replace(['µ', 'μ', '³', '²', ' '], ['u', 'u', '3', '2', ''], $u);
+    // O leitor às vezes traz a conversão entre parênteses junto da unidade: "mg/L (0,876 mg/dL)".
+    $u = trim((string) preg_replace('/\s*\([^)]*\)\s*$/u', '', $u));
+    // Potência de dez com expoente alto, e o "x" que o laudo põe antes dela: "x 10³/mm³".
+    $u = strtr($u, ['⁰' => '^0', '¹' => '^1', '²' => '^2', '³' => '^3', '⁴' => '^4', '⁵' => '^5',
+        '⁶' => '^6', '⁷' => '^7', '⁸' => '^8', '⁹' => '^9']);
+    $u = (string) preg_replace('/^\s*[xX×]\s*(?=\d)/u', '', $u);
+    $u = str_replace(['µ', 'μ', ' '], ['u', 'u', ''], $u);
+    // 10^3 é a potência de dez do UCUM; mm^3 e m^2 são expoentes presos à letra.
+    $u = (string) preg_replace('/(?<![A-Za-z])(\d+)\^(\d+)/', '$1*$2', $u);
+    $u = (string) preg_replace('/([A-Za-z\]}%])\^(-?\d+)/', '$1$2', $u);
     $lower = mb_strtolower($u);
     $special = [
         'mmhg' => '[mm_Hg]', 'kg/m2' => 'kg/m2', 'anos' => 'a', 'ano' => 'a', 'graus' => 'deg', '°' => 'deg', 'º' => 'deg',
         'ohm' => 'Ohm', 'ohms' => 'Ohm', 'ω' => 'Ohm', 'kcal' => 'kcal', 'kcal/dia' => 'kcal/d', 'kcal/d' => 'kcal/d',
         'mil/mm3' => '10*3/mm3', 'milhões/mm3' => '10*6/mm3', 'milhoes/mm3' => '10*6/mm3', '/mm3' => '/mm3',
-        'mm/h' => 'mm/h', 'mm/1ahora' => 'mm/h', 'pol' => '[in_i]', 'lb' => '[lb_av]', 'nível' => '1', 'nivel' => '1', 'índice' => '1',
+        'mm/h' => 'mm/h', 'mm/1ahora' => 'mm/h', 'mm/1h' => 'mm/h', 'mm/1hora' => 'mm/h',
+        'mm/1ªhora' => 'mm/h', 'mm/1ª.hora' => 'mm/h', 'mm/hora' => 'mm/h', 'mm/primeirahora' => 'mm/h',
+        // A área corporal de 1,73 m² é anotação, não dimensão: diz a quem a taxa foi normalizada.
+        'ml/min/1,73m2' => 'mL/min/{1.73_m2}', 'ml/min/1.73m2' => 'mL/min/{1.73_m2}',
+        'ml/min/1,73' => 'mL/min/{1.73_m2}', 'ml/min/1,73m' => 'mL/min/{1.73_m2}',
+        'pol' => '[in_i]', 'lb' => '[lb_av]', 'nível' => '1', 'nivel' => '1', 'índice' => '1',
     ];
     if (isset($special[$lower])) {
         return $special[$lower];
@@ -72,10 +86,131 @@ function ucum_from_printed(?string $printed): ?string
     // International units: UI / IU in any case, with prefixes µ (u) or m.
     $u = preg_replace('/(?<![A-Za-z])([um]?)(UI|IU|ui)(?![A-Za-z])/', '$1[IU]', $u);
     $u = preg_replace('/m[Ee][Qq]/', 'meq', $u);
-    $u = preg_replace('/(?<![A-Za-z])(\d+)\^(\d+)/', '$1*$2', $u);
     // Litre terms: dl → dL, ml → mL, l → L (but never the "l" of "mol").
     $u = preg_replace('/(^|[\/.])([dmunpckf]?)l(?=$|[\/.])/', '$1$2L', $u);
     return ucum_parse($u) === null ? null : $u;
+}
+
+/* ── A dimensão na tela e o número dentro do que foi impresso ───────────── */
+
+/**
+ * A tabela de dimensões: uma grafia de tela por unidade. O mesmo exame chega escrito
+ * "g/dl", "g/dL" e "G/DL" em laudos diferentes, e o cartão precisa mostrar uma forma só.
+ * A chave é o UCUM, de modo que todas as grafias de uma unidade caem na mesma linha.
+ *
+ * @return array<string,string> UCUM => grafia
+ */
+function unit_table(): array
+{
+    return [
+        'mg/dL' => 'mg/dL', 'g/dL' => 'g/dL', 'mg/L' => 'mg/L', 'g/L' => 'g/L', 'ug/dL' => 'µg/dL',
+        'ug/L' => 'µg/L', 'ng/mL' => 'ng/mL', 'ng/dL' => 'ng/dL', 'pg/mL' => 'pg/mL', 'pg' => 'pg',
+        'fL' => 'fL', 'mg/mL' => 'mg/mL', 'ug/mL' => 'µg/mL',
+        'U/L' => 'U/L', 'mU/L' => 'mU/L', 'U/mL' => 'U/mL', 'kat/L' => 'kat/L',
+        '[IU]/mL' => 'UI/mL', 'm[IU]/mL' => 'mUI/mL', 'u[IU]/mL' => 'µUI/mL',
+        '[IU]/L' => 'UI/L', 'm[IU]/L' => 'mUI/L', 'u[IU]/L' => 'µUI/L',
+        'mol/L' => 'mol/L', 'mmol/L' => 'mmol/L', 'umol/L' => 'µmol/L', 'nmol/L' => 'nmol/L',
+        'pmol/L' => 'pmol/L', 'mmol/mol' => 'mmol/mol', 'meq/L' => 'mEq/L',
+        '%' => '%', '1' => '',
+        '/mm3' => '/mm³', '10*3/mm3' => 'mil/mm³', '10*6/mm3' => 'milhões/mm³',
+        '10*3/uL' => 'mil/µL', '10*6/uL' => 'milhões/µL', '/uL' => '/µL',
+        'mm/h' => 'mm/h', 'mL/min/{1.73_m2}' => 'mL/min/1,73m²', 'mL/min' => 'mL/min',
+        'g' => 'g', 'kg' => 'kg', 'cm' => 'cm', 'm' => 'm', 'kg/m2' => 'kg/m²',
+        '[mm_Hg]' => 'mmHg', 'Ohm' => 'Ω', 'kcal' => 'kcal', 'kcal/d' => 'kcal/dia',
+        's' => 's', 'min' => 'min', 'h' => 'h', 'd' => 'dias', 'a' => 'anos', 'deg' => 'graus',
+    ];
+}
+
+/**
+ * A grafia de tela desta unidade. Quando a tabela não conhece a dimensão, vale o que o
+ * laboratório imprimiu: inventar uma grafia seria afirmar o que o laudo não diz.
+ */
+function unit_label(?string $printed): string
+{
+    $p = trim((string) $printed);
+    if ($p === '') {
+        return '';
+    }
+    $ucum = ucum_from_printed($p);
+    return $ucum === null ? $p : (unit_table()[$ucum] ?? $p);
+}
+
+/**
+ * Separa um resultado como impresso em rótulo, operador, número e dimensão. O laudo
+ * imprime as quatro coisas numa célula só ("RESULTADO: < 0,01 µUI/mL") e cada leitor
+ * divide isso de um jeito. A dimensão é aceita apenas quando a tabela de unidades a
+ * reconhece, para que um trecho de frase ou o início de uma faixa de referência não passe
+ * por unidade.
+ *
+ * numbers conta quantos números o texto traz: um resultado tem um; uma linha de tabela que
+ * desabou numa célula tem vários, e aí não se pode dizer qual deles é o resultado.
+ *
+ * @return array{operator:string,number:?float,number_printed:string,unit:string,rest:string,clean:string,numbers:int}
+ */
+function split_printed(?string $printed): array
+{
+    $texto = trim((string) $printed);
+    // O rótulo da célula vem colado no valor em alguns laudos.
+    $limpo = trim((string) preg_replace('/^\s*(resultados?|valor(?:es)?|result)\s*[:.\x{2013}-]\s*/iu', '', $texto));
+    $op = '';
+    if (preg_match('/^(<=|>=|<|>|\x{2264}|\x{2265})\s*/u', $limpo, $m)) {
+        $op = ["\u{2264}" => '<=', "\u{2265}" => '>='][$m[1]] ?? $m[1];
+        $limpo = trim(mb_substr($limpo, mb_strlen($m[0])));
+    }
+    $conta = fn (string $t): int => (int) preg_match_all('/\d+(?:[.,]\d+)*/u', $t);
+    if (!preg_match('/^(\d+(?:[.,]\d+)*)/u', $limpo, $m)) {
+        return ['operator' => $op, 'number' => null, 'number_printed' => '', 'unit' => '',
+            'rest' => $limpo, 'clean' => $limpo, 'numbers' => $conta($limpo)];
+    }
+    $impresso = $m[1];
+    $resto = trim(mb_substr($limpo, mb_strlen($impresso)));
+    $unidade = '';
+    if (unit_like($resto)) {
+        $unidade = $resto;
+        $resto = '';
+    }
+    return ['operator' => $op, 'number' => br_parse_number($impresso), 'number_printed' => $impresso,
+        'unit' => $unidade, 'rest' => $resto, 'clean' => $limpo, 'numbers' => 1 + $conta($resto)];
+}
+
+/**
+ * Este trecho de texto é uma unidade? Exige uma letra ou um por cento, nenhum número solto
+ * e o aval do parser. Sem a regra do número solto, o "a 99" de uma faixa de referência
+ * passaria por unidade: o UCUM lê "a99" como ano elevado a 99.
+ */
+function unit_like(string $trecho): bool
+{
+    $t = trim($trecho);
+    if ($t === '' || mb_strlen($t) > 24 || !preg_match('/[A-Za-z\x{00b5}\x{03bc}%]/u', $t)) {
+        return false;
+    }
+    if (preg_match('/(^|\s)\d+(?:[.,]\d+)*(\s|$)/u', $t)) {
+        return false;
+    }
+    return ucum_from_printed($t) !== null;
+}
+
+/**
+ * O valor como o laboratório imprimiu, com a dimensão uma vez só. Muitos laudos imprimem
+ * valor e unidade na mesma célula ("182 mg/dL") e o leitor copia as duas coisas, de modo
+ * que repetir o campo da unidade ao lado dava "182 mg/dL mg/dL" na tela.
+ */
+function printed_with_unit(?string $printed, ?string $unit): string
+{
+    $texto = trim((string) $printed);
+    $u = trim((string) $unit);
+    if ($u === '' || $texto === '') {
+        return $texto !== '' ? $texto : $u;
+    }
+    if (stripos($texto, $u) !== false) {
+        return $texto;
+    }
+    $dentro = split_printed($texto)['unit'];
+    $ucum = ucum_from_printed($u);
+    if ($dentro !== '' && $ucum !== null && ucum_from_printed($dentro) === $ucum) {
+        return $texto;
+    }
+    return $texto . ' ' . $u;
 }
 
 /** @return array{0:float,1:array<string,int>}|null */
@@ -84,6 +219,13 @@ function ucum_parse(string $unit): ?array
     $unit = trim($unit);
     if ($unit === '') {
         return null;
+    }
+    // Anotações entre chaves não têm dimensão nem fator: "{1.73_m2}" apenas diz a quem o valor
+    // foi normalizado. Saem antes da divisão em termos, que usa o ponto como produto.
+    $unit = (string) preg_replace('/\{[^}]*\}/', '', $unit);
+    $unit = rtrim($unit, '/.');
+    if ($unit === '') {
+        return [1.0, []];
     }
     $factor = 1.0;
     $dims = [];
@@ -171,6 +313,7 @@ function property_dims(?string $property): ?array
         'Mass' => ['M' => 1],
         'Len' => ['Len' => 1],
         'EntVol' => ['V' => 1],
+        'VRat' => ['V' => 1, 'T' => -1],
         'Time' => ['T' => 1],
         'Vel' => ['Len' => 1, 'T' => -1],
         'Pres' => ['PRESS' => 1],

@@ -106,7 +106,7 @@ You transcribe Brazilian medical documents (lab reports, body-composition printo
 Rules:
 - Copy, never compute. Do not convert units, do not calculate indices, do not fix values that look wrong, do not fill in anything that is not printed. When something is not printed, use an empty string for text fields and null for numbers.
 - One entry in "results" per printed result. Results printed in a "previous results" / "resultados anteriores" column are separate entries with column "previous" and the date printed for that column in result_date. Current results use column "current" and result_date empty unless the report prints a different date for that test.
-- value_printed is the result exactly as printed, including any operator or text ("< 0,01", "Não reagente", "5,4"). operator holds only the comparison sign. value_number is the numeric part with a dot as decimal separator and no thousands separator (Brazilian "1.234,5" is 1234.5); null when the result is not numeric. value_text holds non-numeric results.
+- value_printed is the result exactly as printed, including any operator or text ("< 0,01", "Não reagente", "5,4"). operator holds only the comparison sign. value_number is the numeric part with a dot as decimal separator and no thousands separator (Brazilian "1.234,5" is 1234.5); null when the result is not numeric. value_text holds non-numeric results. When the report prints the value and the unit in the same cell ("182 mg/dL"), or a cell label together with them ("RESULTADO: 182 mg/dL"), value_printed keeps the cell as printed, while value_number still holds only the number and unit_printed only the unit.
 - unit_printed is the unit as printed. reference_printed is the reference text as printed. reference_ranges structures it: one entry per range or category; condition holds who it applies to as printed (sex, age, cycle phase, trimester) or empty.
 - flag_printed: only an abnormality mark printed by the lab (H, L, *, "Alto", bold note). Empty if none. Never add your own.
 - section: the report section heading the result sits under (e.g. "Hormônios", "Bioquímica").
@@ -193,12 +193,9 @@ function minimize_text(string $text): string
 function read_document(string $reader, array $doc, string $extraInstruction = ''): array
 {
     $providers = (string) eixo_config()['providers'];
-    if ($providers === 'fake') {
-        return fake_read($reader, $doc);
-    }
-    $res = read_pages($reader, $doc, $extraInstruction);
-    if ($res['ok']) {
-        $res['payload'] = empty_text_to_null($res['payload']);
+    $res = $providers === 'fake' ? fake_read($reader, $doc) : read_pages($reader, $doc, $extraInstruction);
+    if ($res['ok'] && is_array($res['payload'] ?? null)) {
+        $res['payload'] = tidy_payload(empty_text_to_null($res['payload']));
     }
     return $res;
 }
@@ -218,6 +215,49 @@ function empty_text_to_null(array $data): array
     }
     return $data;
 }
+
+/**
+ * O número e a dimensão separados do texto impresso. O laudo imprime valor, unidade e, às
+ * vezes, o rótulo da célula num campo só, e cada leitor divide isso de um jeito: um devolve
+ * "182 mg/dL" com a unidade em branco, o outro "182" com mg/dL ao lado. Ficavam em
+ * desacordo por causa da divisão, e não do que estava escrito no laudo.
+ *
+ * O que foi impresso continua intacto, que é a prova de origem (RNF-09). Só se preenche o
+ * que o leitor deixou em branco: nada que ele afirmou é sobrescrito, e um texto com mais de
+ * um número não rende valor nenhum, porque não há como dizer qual deles é o resultado.
+ */
+function tidy_result(array $r): array
+{
+    $corte = split_printed($r['value_printed'] ?? null);
+    if (trim((string) ($r['unit_printed'] ?? '')) === '' && $corte['unit'] !== '') {
+        $r['unit_printed'] = $corte['unit'];
+    }
+    if (($r['value_number'] ?? null) === null && $corte['number'] !== null && $corte['numbers'] === 1) {
+        $r['value_number'] = $corte['number'];
+        $r['value_text'] = null;
+    }
+    if (trim((string) ($r['operator'] ?? '')) === '' && $corte['operator'] !== '') {
+        $r['operator'] = $corte['operator'];
+    }
+    return $r;
+}
+
+/** tidy_result em tudo que o leitor devolveu com valor e dimensão. */
+function tidy_payload(array $payload): array
+{
+    foreach ($payload['results'] ?? [] as $i => $r) {
+        if (is_array($r)) {
+            $payload['results'][$i] = tidy_result($r);
+        }
+    }
+    foreach ($payload['body_composition']['metrics'] ?? [] as $i => $m) {
+        if (is_array($m)) {
+            $payload['body_composition']['metrics'][$i] = tidy_result($m);
+        }
+    }
+    return $payload;
+}
+
 
 /** Provider error text for the server log: whitespace collapsed, capped; API errors do not echo document content. */
 function provider_detail(string $msg): string
@@ -730,7 +770,8 @@ function same_value(array $a, array $b): bool
         if ($an === null || $bn === null || abs((float) $an - (float) $bn) > 1e-9 * max(1.0, abs((float) $an))) {
             return false;
         }
-    } elseif (norm_text($a['value_text'] ?? $a['value_printed'] ?? '') !== norm_text($b['value_text'] ?? $b['value_printed'] ?? '')) {
+    } elseif (norm_text(split_printed($a['value_text'] ?? $a['value_printed'] ?? '')['clean'])
+        !== norm_text(split_printed($b['value_text'] ?? $b['value_printed'] ?? '')['clean'])) {
         return false;
     }
     return norm_unit($a['unit_printed'] ?? null) === norm_unit($b['unit_printed'] ?? null);

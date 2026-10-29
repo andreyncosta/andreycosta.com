@@ -409,13 +409,19 @@ function exam_indicator(array $series, array $ctx): array
     $pontos = $series['points'] ?? [];
     $ultimo = $series['last'] ?? null;
     $anterior = count($pontos) >= 2 ? $pontos[count($pontos) - 2] : null;
-    $unidade = trim((string) ($ultimo['unit'] ?? ''));
+    // A dimensão sai do campo da unidade; quando ele veio vazio, do próprio valor impresso.
+    // O catálogo é consultado com a grafia do laudo, e a tela mostra a grafia da tabela.
+    $impressa = trim((string) ($ultimo['unit'] ?? ''));
+    if ($impressa === '') {
+        $impressa = split_printed($ultimo['value_printed'] ?? '')['unit'];
+    }
+    $unidade = unit_label($impressa);
     $faixa = pick_range($ultimo['ranges'] ?? [], $ctx);
     // Laudo sem faixa: vale a que este mesmo laboratório imprimiu antes, dito na tela.
     $doCatalogo = false;
     if ($faixa === null && ($ctx['user_id'] ?? 0) > 0) {
         $faixa = pick_range(catalogued_ranges((int) $ctx['user_id'], $ultimo['lab'] ?? null,
-            (string) ($series['payload']['label'] ?? ''), $unidade), $ctx);
+            (string) ($series['payload']['label'] ?? ''), $impressa), $ctx);
         $doCatalogo = $faixa !== null;
     }
     $textoFaixa = range_text($faixa, $ultimo['reference_printed'] ?? null, $unidade)
@@ -423,7 +429,7 @@ function exam_indicator(array $series, array $ctx): array
 
     $agora = is_numeric($ultimo['value'] ?? null) ? (float) $ultimo['value'] : null;
     if ($agora === null) {
-        $impresso = trim((string) ($ultimo['value_printed'] ?? $ultimo['value_text'] ?? ''));
+        $impresso = split_printed($ultimo['value_printed'] ?? $ultimo['value_text'] ?? '')['clean'];
         $sinal = qualitative_sign($impresso) ?? ($exame['direcao'] === 'negativo' ? 'neutro' : 'neutro');
         return ['tipo' => 'qualitativo', 'valor' => $impresso !== '' ? $impresso : '—', 'unidade' => '',
             'seta' => '', 'cor' => $sinal, 'legenda' => $sinal === 'bom' ? 'resultado negativo' : ($sinal === 'ruim' ? 'resultado positivo' : 'resultado sem leitura automática'),
@@ -464,6 +470,16 @@ function exam_indicator(array $series, array $ctx): array
  * laudo chega sem ela — e continua sendo faixa do laboratório, não minha.
  */
 
+/**
+ * A chave de unidade do catálogo: o UCUM, quando a tabela de dimensões reconhece a grafia.
+ * Sem isso, "g/dl" e "mil/mm³" abrem linhas separadas das de "g/dL" e "10*3/mm3", e a
+ * faixa guardada num laudo não serve ao seguinte.
+ */
+function unit_key(?string $printed): string
+{
+    return ucum_from_printed((string) $printed) ?? exam_key((string) $printed);
+}
+
 /** A chave de laboratório: o nome como impresso, normalizado. */
 function lab_key(?string $laboratory): string
 {
@@ -475,7 +491,7 @@ function remember_lab_ranges(int $userId, array $payload): void
 {
     $lab = lab_key($payload['laboratory'] ?? null);
     $exame = exam_key((string) ($payload['name_printed'] ?? ''));
-    $unidade = exam_key((string) ($payload['unit_printed'] ?? ''));
+    $unidade = unit_key($payload['unit_printed'] ?? null);
     if ($lab === '' || $exame === '') {
         return;
     }
@@ -509,7 +525,7 @@ function catalogued_ranges(int $userId, ?string $laboratory, string $printedName
     }
     $out = [];
     foreach (rows('SELECT payload_enc FROM lab_ranges WHERE user_id = ? AND lab_key = ? AND exam_key = ? AND unit_key = ?
-        ORDER BY seen DESC, last_seen DESC', [$userId, $lab, $exame, exam_key((string) $unit)]) as $r) {
+        ORDER BY seen DESC, last_seen DESC', [$userId, $lab, $exame, unit_key($unit)]) as $r) {
         $out[] = dec($userId, $r['payload_enc']);
     }
     return $out;

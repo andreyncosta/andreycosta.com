@@ -277,7 +277,7 @@ function fhir_bundle(int $userId): array
             'code' => ['text' => $p['name_printed'], 'coding' => $p['loinc']['code'] ? [['system' => 'http://loinc.org', 'code' => $p['loinc']['code']]] : []],
             'subject' => ['reference' => 'Patient/p' . $userId], 'effectiveDateTime' => $r['observed_on'],
             'derivedFrom' => $r['document_id'] ? [['reference' => 'DocumentReference/d' . $r['document_id']]] : [],
-            'note' => [['text' => 'Como impresso: ' . ($p['value_printed'] ?? '') . ' ' . ($p['unit_printed'] ?? '') . ' · página ' . ($p['page'] ?? '?') . ' · origem ' . $r['origin'] . ' · estado ' . $r['status']]],
+            'note' => [['text' => 'Como impresso: ' . printed_with_unit($p['value_printed'] ?? '', $p['unit_printed'] ?? '') . ' · página ' . ($p['page'] ?? '?') . ' · origem ' . $r['origin'] . ' · estado ' . $r['status']]],
             'referenceRange' => [['text' => $p['reference_printed'] ?? null]],
         ];
         if (($p['value_number'] ?? null) !== null) {
