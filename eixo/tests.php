@@ -131,6 +131,14 @@ ok(array_column($merged['body_composition']['metrics'], 'name_printed') === ['pe
 ok(array_column($merged['prescription_items'], 'drug') === ['metformina'], 'prescription items are concatenated');
 ok(merge_page_groups([]) === ['doc_type' => 'other', 'laboratory' => '', 'collection_date' => '', 'results' => [], 'body_composition' => null, 'prescription_items' => []], 'no group read leaves an empty document, never a half one');
 
+/* ── A header field read by two readers ── */
+ok(meta_either('Fleury', '') === 'Fleury', 'one reader with the lab name and one without keeps the name');
+ok(meta_either('', 'Sabin') === 'Sabin', 'it works the other way round too');
+ok(meta_either('Fleury', 'FLEURY ') === 'Fleury', 'the same name written differently still agrees');
+ok(meta_either('Fleury', 'Sabin') === null, 'two different names cancel each other');
+ok(meta_either(null, null) === null, 'neither reader printed it');
+ok(str_contains(extraction_instructions(), 'laboratory is the name of the laboratory'), 'the instructions say what goes in laboratory');
+
 /* ── Each provider gets the schema in its own dialect ── */
 ok(reader_spec('A')[0] === 'openai' && reader_spec('B')[0] === 'google', 'the readers name their provider');
 ok(reader_spec('X') === reader_spec('A'), 'an unknown reader falls back to A');

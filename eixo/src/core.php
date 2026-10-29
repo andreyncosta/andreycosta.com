@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 const EIXO_SCHEMA_VERSION = 3;
 const EIXO_CONSENT_VERSION = '2026-10-20';
-const EIXO_PROMPT_VERSION = 'extract-2026-10-24';
+const EIXO_PROMPT_VERSION = 'extract-2026-10-29';
 const ALLOWED_MIME = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 
 function eixo_data_dir(): string

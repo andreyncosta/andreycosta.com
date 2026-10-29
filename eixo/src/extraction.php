@@ -112,6 +112,7 @@ Rules:
 - section: the report section heading the result sits under (e.g. "Hormônios", "Bioquímica").
 - page is the 1-based page number. quote is the exact line of text where the value appears, verbatim, including the value.
 - loinc_code: your best LOINC code for the test given name, specimen, unit and method; loinc_property is that code's property (MCnc, SCnc, CCnc, ACnc, NCnc, MFr, NFr, SFr, VFr, Ratio, Mass, Len, Time, Pres, ...). loinc_confidence from 0 to 1. Use empty and 0 when unsure.
+- laboratory is the name of the laboratory or clinic that issued the report, as printed on it ("Fleury", "Sabin", "Hermes Pardini"). It identifies the lab, not the patient, so always keep it: it is what ties a value to the reference range and the method behind it.
 - Dates as YYYY-MM-DD. collection_date is the specimen collection date ("coleta"), not the release date.
 - body_composition: for bioimpedance printouts, the device and every metric printed (weight, fat mass, % fat, lean mass, skeletal muscle mass, total/intra/extracellular water, phase angle, visceral fat, BMR...). Otherwise null.
 - prescription_items: medications or supplements on a prescription. Otherwise an empty array.
@@ -876,6 +877,22 @@ function process_document(int $docId): void
 }
 
 /**
+ * Um campo de cabeçalho lido por dois leitores. O laboratório não é um valor medido: quando
+ * um leitor o traz e o outro deixa em branco, vale o que foi lido — perder o nome do
+ * laboratório custa a faixa de referência, o método e a detecção de troca de laboratório na
+ * série. Só dois nomes diferentes de verdade descartam o campo.
+ */
+function meta_either(?string $a, ?string $b): ?string
+{
+    $na = trim((string) $a);
+    $nb = trim((string) $b);
+    if ($na === '' || $nb === '') {
+        return $na !== '' ? $na : ($nb !== '' ? $nb : null);
+    }
+    return norm_text($na) === norm_text($nb) ? $na : null;
+}
+
+/**
  * Compares readings A and B, asks C on disputes, and runs the cross-check.
  * @return array<string,mixed>
  */
@@ -883,7 +900,7 @@ function reconcile(int $userId, int $docId, array $pa, array $pb, ?array $pages,
 {
     $agreeMeta = fn (string $f) => norm_text($pa[$f] ?? '') === norm_text($pb[$f] ?? '') ? ($pa[$f] ?? null) : null;
     $collection = valid_date($pa['collection_date'] ?? null) && ($pa['collection_date'] ?? null) === ($pb['collection_date'] ?? null) ? $pa['collection_date'] : null;
-    $lab = $agreeMeta('laboratory');
+    $lab = meta_either($pa['laboratory'] ?? null, $pb['laboratory'] ?? null);
     $docType = ($pa['doc_type'] ?? '') === ($pb['doc_type'] ?? '') ? $pa['doc_type'] : ($pa['doc_type'] ?? 'other');
 
     $ka = keyed_results($pa);
