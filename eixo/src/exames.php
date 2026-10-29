@@ -257,7 +257,7 @@ function patient_context(int $userId): array
     if ($nascimento !== '' && ($d = date_create($nascimento))) {
         $idade = (int) date_diff($d, date_create('today'))->y;
     }
-    return ['sexo' => (string) ($p['sex'] ?? ''), 'idade' => $idade];
+    return ['sexo' => (string) ($p['sex'] ?? ''), 'idade' => $idade, 'user_id' => $userId];
 }
 
 /**
@@ -411,7 +411,15 @@ function exam_indicator(array $series, array $ctx): array
     $anterior = count($pontos) >= 2 ? $pontos[count($pontos) - 2] : null;
     $unidade = trim((string) ($ultimo['unit'] ?? ''));
     $faixa = pick_range($ultimo['ranges'] ?? [], $ctx);
-    $textoFaixa = range_text($faixa, $ultimo['reference_printed'] ?? null, $unidade);
+    // Laudo sem faixa: vale a que este mesmo laboratório imprimiu antes, dito na tela.
+    $doCatalogo = false;
+    if ($faixa === null && ($ctx['user_id'] ?? 0) > 0) {
+        $faixa = pick_range(catalogued_ranges((int) $ctx['user_id'], $ultimo['lab'] ?? null,
+            (string) ($series['payload']['label'] ?? ''), $unidade), $ctx);
+        $doCatalogo = $faixa !== null;
+    }
+    $textoFaixa = range_text($faixa, $ultimo['reference_printed'] ?? null, $unidade)
+        . ($doCatalogo ? ' · de um laudo anterior deste laboratório' : '');
 
     $agora = is_numeric($ultimo['value'] ?? null) ? (float) $ultimo['value'] : null;
     if ($agora === null) {
@@ -447,4 +455,62 @@ function exam_indicator(array $series, array $ctx): array
     }
     return ['tipo' => 'numero', 'valor' => br_number($agora), 'unidade' => $unidade,
         'seta' => $seta, 'cor' => $cor, 'legenda' => $legenda, 'faixa' => $textoFaixa, 'posicao' => $posicao];
+}
+
+
+/* ── Catálogo de faixas por laboratório ─────────────────────────────────────
+ * O mesmo laboratório imprime a mesma faixa para o mesmo exame em todo laudo.
+ * Guardar o que ele já imprimiu deixa o cartão mostrar uma faixa quando um
+ * laudo chega sem ela — e continua sendo faixa do laboratório, não minha.
+ */
+
+/** A chave de laboratório: o nome como impresso, normalizado. */
+function lab_key(?string $laboratory): string
+{
+    return exam_key((string) $laboratory);
+}
+
+/** Guarda as faixas estruturadas que este resultado trouxe. */
+function remember_lab_ranges(int $userId, array $payload): void
+{
+    $lab = lab_key($payload['laboratory'] ?? null);
+    $exame = exam_key((string) ($payload['name_printed'] ?? ''));
+    $unidade = exam_key((string) ($payload['unit_printed'] ?? ''));
+    if ($lab === '' || $exame === '') {
+        return;
+    }
+    foreach ($payload['reference_ranges'] ?? [] as $r) {
+        if (!is_array($r) || !in_array($r['kind'] ?? '', ['interval', 'upper', 'lower'], true)) {
+            continue;
+        }
+        if (($r['low'] ?? null) === null && ($r['high'] ?? null) === null) {
+            continue;
+        }
+        $cond = exam_key((string) ($r['condition'] ?? ''));
+        q('INSERT INTO lab_ranges(user_id, lab_key, exam_key, unit_key, condition_key, payload_enc, seen, first_seen, last_seen)
+            VALUES (?,?,?,?,?,?,1,?,?)
+            ON CONFLICT(user_id, lab_key, exam_key, unit_key, condition_key)
+            DO UPDATE SET payload_enc = excluded.payload_enc, seen = seen + 1, last_seen = excluded.last_seen',
+            [$userId, $lab, $exame, $unidade, $cond, enc($userId, $r), now(), now()]);
+    }
+}
+
+/**
+ * As faixas que este laboratório já imprimiu para este exame, mais vistas
+ * primeiro. Serve de recurso quando o laudo da vez não trouxe faixa nenhuma.
+ * @return list<array>
+ */
+function catalogued_ranges(int $userId, ?string $laboratory, string $printedName, ?string $unit): array
+{
+    $lab = lab_key($laboratory);
+    $exame = exam_key($printedName);
+    if ($lab === '' || $exame === '') {
+        return [];
+    }
+    $out = [];
+    foreach (rows('SELECT payload_enc FROM lab_ranges WHERE user_id = ? AND lab_key = ? AND exam_key = ? AND unit_key = ?
+        ORDER BY seen DESC, last_seen DESC', [$userId, $lab, $exame, exam_key((string) $unit)]) as $r) {
+        $out[] = dec($userId, $r['payload_enc']);
+    }
+    return $out;
 }

@@ -95,17 +95,13 @@ function resolution_label(string $r): string
 }
 
 /** Chart container: data is JSON in a non-executed script tag, drawn by eixo.js. */
-function chart_html(array $series, array $markers, string $id = 'chart'): string
+function chart_html(array $series, array $markers, string $id = 'chart', array $ctx = []): string
 {
     $points = [];
     foreach ($series['points'] as $p) {
-        $range = null;
-        foreach ($p['ranges'] as $rg) {
-            if (in_array($rg['kind'] ?? '', ['interval', 'upper', 'lower'], true) && empty($rg['condition'])) {
-                $range = ['low' => $rg['low'] ?? null, 'high' => $rg['high'] ?? null];
-                break;
-            }
-        }
+        // A faixa sombreada é a que vale para este paciente, como no cartão.
+        $escolhida = pick_range($p['ranges'] ?? [], $ctx + ['sexo' => '', 'idade' => null]);
+        $range = $escolhida ? ['low' => $escolhida['low'] ?? null, 'high' => $escolhida['high'] ?? null] : null;
         if ($range && !empty($p['converted']) && ($p['value'] ?? null) !== null && ($p['converted']['value'] ?? 0) != 0) {
             // Range printed in the original unit: scale with the same factor as the value.
             $factor = $p['value'] ? (float) $p['converted']['value'] / (float) $p['value'] : 1.0;
@@ -235,9 +231,9 @@ function exam_card_html(array $series, array $ctx): string
         $marca = '<span class="dot dot-' . h($ind['cor']) . '" aria-hidden="true"></span>';
         $valor = '<span class="exam-value">' . $marca . h($ind['valor']) . '</span>';
     } else {
-        $seta = $ind['seta'] !== ''
-            ? '<span class="arrow" aria-hidden="true">' . h($ind['seta']) . '</span>'
-            : '';
+        // Triângulo cheio num chip colorido, não a seta tipográfica: tem de se ler de longe.
+        $glifo = ['↑' => '▲', '↓' => '▼', '→' => '='][$ind['seta']] ?? '';
+        $seta = $glifo !== '' ? '<span class="arrow" aria-hidden="true">' . $glifo . '</span>' : '';
         $valor = '<span class="exam-value">' . h($ind['valor'])
             . ($ind['unidade'] !== '' ? ' <span class="exam-unit">' . h($ind['unidade']) . '</span>' : '')
             . $seta . '</span>';

@@ -658,7 +658,7 @@ function page_series(int $uid, int $id, bool $post): void
     $html = '<div class="page-head"><h1>' . h($s['payload']['label']) . '</h1><form method="post" class="inline">' . csrf_field() . '<button class="btn ghost" name="action" value="pin">' . ($s['pinned'] ? 'Desafixar' : 'Fixar na visão geral') . '</button></form></div>'
         . '<p class="muted">' . ($s['payload']['loinc'] ? 'LOINC ' . h($s['payload']['loinc']) . ' (proposto pela IA) · ' : 'Série agrupada pelo nome impresso (sem correspondência LOINC forte) · ') . 'unidade da série: ' . h($s['payload']['unit_printed'] ?? '—') . '</p>'
         . (count($units) > 1 ? '<p class="note">Esta série tem valores em unidades diferentes, juntadas por você. O gráfico mostra cada valor na unidade em que veio.</p>' : '')
-        . chart_html($s, dose_markers(medications_for($uid)))
+        . chart_html($s, dose_markers(medications_for($uid)), 'chart', patient_context($uid))
         . series_table_html($s, fn ($doc, $page) => url('doc', ['id' => $doc]))
         . '<h2>Juntar ou separar</h2><p class="muted">O Eixo só junta séries com correspondência forte (mesmo código, material e propriedade). Se este exame aparece em outra série por diferença de nome, você pode juntar; na dúvida, mantenha separado: juntar por engano cria tendência falsa.</p>'
         . ($candidates ? '<form method="post" class="form compact">' . csrf_field() . '<input type="hidden" name="action" value="merge"><label>Juntar a esta série<select name="other">' . $candidates . '</select></label><button class="btn ghost" data-confirm="Juntar as duas séries num só gráfico?">Juntar</button></form>' : '')

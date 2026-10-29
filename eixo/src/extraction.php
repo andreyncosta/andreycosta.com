@@ -1104,6 +1104,7 @@ function persist_outcome(int $userId, array $doc, array $o, ?array $pages): void
             q('INSERT INTO results(user_id, document_id, series_id, status, origin, observed_on, payload_enc, created_at) VALUES (?,?,?,?,?,?,?,?)', [
                 $userId, $docId, $status === 'loaded' ? $series['id'] : null, $status, 'extraction', valid_date($observed) ? $observed : null, enc($userId, $payload), now(),
             ]);
+            remember_lab_ranges($userId, $payload);
             $counts[$status]++;
         }
 
