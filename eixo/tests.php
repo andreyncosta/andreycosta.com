@@ -177,11 +177,13 @@ ok(array_column($merged['prescription_items'], 'drug') === ['metformina'], 'pres
 ok(merge_page_groups([]) === ['doc_type' => 'other', 'laboratory' => '', 'collection_date' => '', 'results' => [], 'body_composition' => null, 'prescription_items' => []], 'no group read leaves an empty document, never a half one');
 
 /* ── A header field read by two readers ── */
-ok(meta_either('Fleury', '') === 'Fleury', 'one reader with the lab name and one without keeps the name');
-ok(meta_either('', 'Sabin') === 'Sabin', 'it works the other way round too');
-ok(meta_either('Fleury', 'FLEURY ') === 'Fleury', 'the same name written differently still agrees');
-ok(meta_either('Fleury', 'Sabin') === null, 'two different names cancel each other');
-ok(meta_either(null, null) === null, 'neither reader printed it');
+ok(meta_vote(['Fleury', '', null]) === 'Fleury', 'the only reader who named the lab decides');
+ok(meta_vote(['', 'Sabin', null]) === 'Sabin', 'it works whichever reader it was');
+ok(meta_vote(['Fleury', 'FLEURY ', null]) === 'Fleury', 'the same name written differently still agrees');
+ok(meta_vote(['Fleury', 'Sabin', 'Fleury']) === 'Fleury', 'two readers out of three carry the name');
+ok(meta_vote(['Fleury', 'Sabin', null]) === null, 'two names and no third vote cancel each other');
+ok(meta_vote(['Fleury', 'Sabin', 'Hermes Pardini']) === null, 'three different names leave the field empty');
+ok(meta_vote([null, null, null]) === null, 'no reader printed it');
 ok(str_contains(extraction_instructions(), 'laboratory is the name of the laboratory'), 'the instructions say what goes in laboratory');
 
 /* ── Each provider gets the schema in its own dialect ── */

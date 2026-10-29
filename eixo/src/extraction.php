@@ -921,19 +921,36 @@ function process_document(int $docId): void
 }
 
 /**
- * Um campo de cabeçalho lido por dois leitores. O laboratório não é um valor medido: quando
- * um leitor o traz e o outro deixa em branco, vale o que foi lido — perder o nome do
- * laboratório custa a faixa de referência, o método e a detecção de troca de laboratório na
- * série. Só dois nomes diferentes de verdade descartam o campo.
+ * O nome do laboratório, por maioria entre os três leitores. Não é um valor medido, mas
+ * também não é campo que se possa tirar de um leitor só: o cabeçalho de um laudo brasileiro
+ * traz vários nomes — a marca, a unidade que coletou, a rede, o convênio — e cada leitor
+ * escolhe um deles. Medido nos dois laudos deste repositório, os três leitores devolveram
+ * três nomes sem nada em comum num deles, e dois iguais no outro.
+ *
+ * Quando dois leitores escrevem o mesmo nome, é esse. Quando só um escreveu algum nome,
+ * vale o dele. Quando todos discordam, o campo fica vazio: aí não se sabe qual nome da
+ * página é o laboratório, e chutar poria a faixa de referência errada no catálogo.
+ *
+ * @param list<?string> $nomes
  */
-function meta_either(?string $a, ?string $b): ?string
+function meta_vote(array $nomes): ?string
 {
-    $na = trim((string) $a);
-    $nb = trim((string) $b);
-    if ($na === '' || $nb === '') {
-        return $na !== '' ? $na : ($nb !== '' ? $nb : null);
+    $votos = [];
+    foreach ($nomes as $n) {
+        $limpo = trim((string) $n);
+        if ($limpo === '') {
+            continue;
+        }
+        $k = norm_text($limpo);
+        $votos[$k] ??= ['nome' => $limpo, 'n' => 0];
+        $votos[$k]['n']++;
     }
-    return norm_text($na) === norm_text($nb) ? $na : null;
+    if (!$votos) {
+        return null;
+    }
+    $votos = array_values($votos);
+    usort($votos, fn (array $a, array $b) => $b['n'] <=> $a['n']);
+    return count($votos) === 1 || $votos[0]['n'] >= 2 ? $votos[0]['nome'] : null;
 }
 
 /**
@@ -944,7 +961,6 @@ function reconcile(int $userId, int $docId, array $pa, array $pb, ?array $pages,
 {
     $agreeMeta = fn (string $f) => norm_text($pa[$f] ?? '') === norm_text($pb[$f] ?? '') ? ($pa[$f] ?? null) : null;
     $collection = valid_date($pa['collection_date'] ?? null) && ($pa['collection_date'] ?? null) === ($pb['collection_date'] ?? null) ? $pa['collection_date'] : null;
-    $lab = meta_either($pa['laboratory'] ?? null, $pb['laboratory'] ?? null);
     $docType = ($pa['doc_type'] ?? '') === ($pb['doc_type'] ?? '') ? $pa['doc_type'] : ($pa['doc_type'] ?? 'other');
 
     $ka = keyed_results($pa);
@@ -961,6 +977,7 @@ function reconcile(int $userId, int $docId, array $pa, array $pb, ?array $pages,
 
     // Tie-break: one more reading, on the file, that must match one of the two.
     $kc = [];
+    $labC = null;
     if ($disputed) {
         $list = [];
         $onlyPages = [];
@@ -977,8 +994,11 @@ function reconcile(int $userId, int $docId, array $pa, array $pb, ?array $pages,
         store_reading($userId, $docId, 'C', $c);
         if ($c['ok']) {
             $kc = keyed_results($c['payload']);
+            $labC = $c['payload']['laboratory'] ?? null;
         }
     }
+
+    $lab = meta_vote([$pa['laboratory'] ?? null, $pb['laboratory'] ?? null, $labC]);
 
     $final = [];
     foreach ($agreed as $k => [$ra, $rb, $how]) {
