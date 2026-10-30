@@ -927,6 +927,10 @@ function process_document(int $docId): void
  * escolhe um deles. Medido nos dois laudos deste repositório, os três leitores devolveram
  * três nomes sem nada em comum num deles, e dois iguais no outro.
  *
+ * Antes de contar, o nome completo e a marca que ele contém valem como um voto só:
+ * "Fleury Medicina e Saúde" e "Fleury" são o mesmo laboratório, e vale a marca, que é a
+ * forma que se repete de um laudo para o outro.
+ *
  * Quando dois leitores escrevem o mesmo nome, é esse. Quando só um escreveu algum nome,
  * vale o dele. Quando todos discordam, o campo fica vazio: aí não se sabe qual nome da
  * página é o laboratório, e chutar poria a faixa de referência errada no catálogo.
@@ -935,22 +939,52 @@ function process_document(int $docId): void
  */
 function meta_vote(array $nomes): ?string
 {
-    $votos = [];
+    $limpos = [];
     foreach ($nomes as $n) {
         $limpo = trim((string) $n);
-        if ($limpo === '') {
-            continue;
+        if ($limpo !== '') {
+            $limpos[] = $limpo;
         }
-        $k = norm_text($limpo);
-        $votos[$k] ??= ['nome' => $limpo, 'n' => 0];
-        $votos[$k]['n']++;
     }
-    if (!$votos) {
+    if (!$limpos) {
         return null;
+    }
+    $votos = [];
+    foreach ($limpos as $n) {
+        $marca = brand_within($n, $limpos);
+        $k = norm_text($marca);
+        $votos[$k] ??= ['nome' => $marca, 'n' => 0];
+        $votos[$k]['n']++;
     }
     $votos = array_values($votos);
     usort($votos, fn (array $a, array $b) => $b['n'] <=> $a['n']);
     return count($votos) === 1 || $votos[0]['n'] >= 2 ? $votos[0]['nome'] : null;
+}
+
+/**
+ * A marca dentro do nome completo. Um leitor escreve "Fleury Medicina e Saúde" e o outro
+ * "Fleury": é o mesmo laboratório, e a marca é a forma que se repete de um laudo para o
+ * outro, de modo que é ela que serve de chave no catálogo de faixas. Só vale quando todas
+ * as palavras do nome curto estão no longo, e o curto tem corpo suficiente para não ser
+ * uma preposição solta.
+ *
+ * @param list<string> $candidatos
+ */
+function brand_within(string $nome, array $candidatos): string
+{
+    $palavras = fn (string $x): array => array_values(array_filter(explode(' ', norm_text($x))));
+    $longo = $palavras($nome);
+    $melhor = $nome;
+    foreach ($candidatos as $outro) {
+        $curto = $palavras($outro);
+        if ($curto === [] || mb_strlen(norm_text($outro)) < 3 || mb_strlen($outro) >= mb_strlen($melhor)) {
+            continue;
+        }
+        if (!array_diff($curto, $longo)) {
+            $melhor = $outro;
+        }
+    }
+    return $melhor;
 }
 
 /**

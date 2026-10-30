@@ -184,6 +184,13 @@ ok(meta_vote(['Fleury', 'Sabin', 'Fleury']) === 'Fleury', 'two readers out of th
 ok(meta_vote(['Fleury', 'Sabin', null]) === null, 'two names and no third vote cancel each other');
 ok(meta_vote(['Fleury', 'Sabin', 'Hermes Pardini']) === null, 'three different names leave the field empty');
 ok(meta_vote([null, null, null]) === null, 'no reader printed it');
+ok(meta_vote(['Fleury Medicina e Saúde', 'Fleury', 'Clínica São Jorge']) === 'Fleury',
+    'the full name and the brand it contains are one vote, and the brand wins');
+ok(meta_vote(['Laboratório Sabin', 'Sabin']) === 'Sabin', 'two readers, one of them long-winded');
+ok(meta_vote(['Delboni Auriemo', 'Alta Diagnósticos', 'Dasa']) === null,
+    'three unrelated names still leave the field empty');
+ok(brand_within('Laboratório de Análises', ['de']) === 'Laboratório de Análises',
+    'a loose preposition is not a brand');
 ok(str_contains(extraction_instructions(), 'laboratory is the name of the laboratory'), 'the instructions say what goes in laboratory');
 
 /* ── Each provider gets the schema in its own dialect ── */
