@@ -6,7 +6,7 @@ declare(strict_types=1);
  * sessions, CSRF and the audit trail. Nothing here may write health data to logs.
  */
 
-const EIXO_SCHEMA_VERSION = 3;
+const EIXO_SCHEMA_VERSION = 4;
 const EIXO_CONSENT_VERSION = '2026-10-20';
 const EIXO_PROMPT_VERSION = 'extract-2026-10-29b';
 const ALLOWED_MIME = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
@@ -38,6 +38,9 @@ function eixo_config(): array
             'reader_a' => 'openai:gpt-5-mini',
             'reader_b' => 'google:gemini-3-flash-preview',
             'reader_tiebreak' => 'openai:gpt-5-nano',
+            // Quem repõe a camada de texto de um laudo digitalizado ou de uma foto. Não extrai
+            // nada: só transcreve, e por isso o modelo mais barato que leia página serve.
+            'reader_transcriber' => 'google:gemini-3.5-flash-lite',
             'reader_max_tokens' => 32000,
             'reader_pages_per_call' => 5,
             'reader_timeout' => 900,
@@ -53,6 +56,9 @@ function eixo_config(): array
             'patient_idle_minutes' => 60,
             'doctor_idle_minutes' => 30,
             'pdftotext' => '/usr/bin/pdftotext',
+            // O Ghostscript fatia o PDF digitalizado em grupos de páginas para a transcrição.
+            // Sem ele o laudo inteiro vai numa chamada só, que é pior mas funciona.
+            'gs' => '/usr/bin/gs',
             'providers' => 'live',
         ];
         $file = eixo_data_dir() . '/config.php';

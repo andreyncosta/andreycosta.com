@@ -175,6 +175,174 @@ function pdf_pages_text(string $pdfBytes): ?array
     return $pages;
 }
 
+/* ── Camada de texto reposta ─────────────────────────────────────────────
+ * Um laudo digitalizado e uma foto de laudo não têm camada de texto, e até aqui o eixo
+ * recusava os dois. Mas a conferência de cada valor contra a página é o que sustenta a
+ * precisão (RN-02): sem texto não há contra o que conferir, e mandar a imagem direto aos
+ * dois leitores tiraria essa trava justamente onde ela é mais necessária.
+ *
+ * Então a camada de texto é reposta: um terceiro modelo transcreve a página, literalmente,
+ * e o que ele devolve passa a fazer o papel do texto do PDF. A transcrição é independente
+ * da extração, de modo que um valor que um leitor invente continua não estando na página.
+ */
+
+/**
+ * Quantas páginas tem o PDF, pelo Ghostscript. Null quando o binário não está na máquina:
+ * aí o laudo vai inteiro numa chamada só, em vez de ser fatiado em grupos de páginas.
+ */
+function pdf_page_count(string $pdfBytes): ?int
+{
+    $bin = (string) eixo_config()['gs'];
+    if (!is_executable($bin) || !function_exists('proc_open')) {
+        return null;
+    }
+    $tmp = tempnam(sys_get_temp_dir(), 'eixo');
+    file_put_contents($tmp, $pdfBytes);
+    $n = null;
+    try {
+        $proc = @proc_open([$bin, '-q', '-dNODISPLAY', '-dNOSAFER', '-c',
+            '(' . $tmp . ') (r) file runpdfbegin pdfpagecount = quit'],
+            [1 => ['pipe', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
+        if (is_resource($proc)) {
+            $saida = trim((string) stream_get_contents($pipes[1]));
+            fclose($pipes[1]);
+            proc_close($proc);
+            $n = ctype_digit($saida) && (int) $saida > 0 ? (int) $saida : null;
+        }
+    } finally {
+        unlink($tmp);
+    }
+    return $n;
+}
+
+/** Um PDF só com as páginas de $de a $ate. Null quando o Ghostscript não está na máquina. */
+function pdf_subset(string $pdfBytes, int $de, int $ate): ?string
+{
+    $bin = (string) eixo_config()['gs'];
+    if (!is_executable($bin) || !function_exists('proc_open')) {
+        return null;
+    }
+    $tmp = tempnam(sys_get_temp_dir(), 'eixo');
+    $destino = tempnam(sys_get_temp_dir(), 'eixo');
+    file_put_contents($tmp, $pdfBytes);
+    $bytes = null;
+    try {
+        $proc = @proc_open([$bin, '-q', '-dNOPAUSE', '-dBATCH', '-sDEVICE=pdfwrite',
+            '-dFirstPage=' . $de, '-dLastPage=' . $ate, '-sOutputFile=' . $destino, $tmp],
+            [1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
+        if (is_resource($proc) && proc_close($proc) === 0) {
+            $lido = (string) file_get_contents($destino);
+            $bytes = $lido !== '' ? $lido : null;
+        }
+    } finally {
+        unlink($tmp);
+        unlink($destino);
+    }
+    return $bytes;
+}
+
+/**
+ * O que se pede a quem transcreve. Os identificadores saem já aqui, antes de a transcrição
+ * existir: é a minimização na origem (RNF-07), e não um apagamento depois.
+ */
+function transcription_prompt(int $firstPage, int $totalPages): string
+{
+    return sprintf(
+        'Transcribe this document exactly as printed, page by page.'
+        . ' This file holds the page(s) starting at number %d of a report with %d page(s) in all.'
+        . ' Before each page write a line of its own: === Página N === , with N the number of that'
+        . ' page in the whole report.'
+        . ' Keep every line, every number, every unit and every reference range exactly as printed,'
+        . ' in reading order.'
+        . ' Keep each table row on a single line, with two or more spaces between columns, so that a'
+        . ' value stays beside the name of its own test.'
+        . ' Do not translate, do not convert, do not reorder, do not summarise, do not correct and'
+        . ' do not add anything that is not printed.'
+        . ' Where a character is unreadable, write a question mark.'
+        . ' Do not transcribe the name, CPF, address, record number or request number of the patient,'
+        . ' nor the name and CRM of the requesting physician: write [omitido] in their place.'
+        . ' Reply with the transcription only, as plain text, with no comment of your own.',
+        $firstPage, $totalPages);
+}
+
+/**
+ * A transcrição repartida em páginas pelo marcador que o prompt pede. Sem marcador nenhum,
+ * o que voltou conta como uma página só: é melhor uma página mal numerada do que nenhuma.
+ * @return list<string>
+ */
+function split_transcription(string $texto): array
+{
+    $partes = preg_split('/^[ \t]*=+[ \t]*P[áa]gina\b[^\r\n]*$/imu', $texto) ?: [];
+    $paginas = [];
+    foreach ($partes as $parte) {
+        $limpo = trim($parte);
+        if ($limpo !== '') {
+            $paginas[] = $limpo;
+        }
+    }
+    if ($paginas) {
+        return $paginas;
+    }
+    return trim($texto) === '' ? [] : [trim($texto)];
+}
+
+/**
+ * Repõe a camada de texto do documento. Os grupos de páginas são os mesmos da leitura, de
+ * modo que uma transcrição longa também não estoure o tempo do trabalhador do cron.
+ *
+ * @param array{bytes:string,mime:string} $doc
+ * @return array{pages:?list<string>,provider:string,model:string,in:int,out:int,error:?string,detail:?string}
+ */
+function transcribe_document(array $doc): array
+{
+    $cfg = eixo_config();
+    $partes = explode(':', (string) $cfg['reader_transcriber'], 2);
+    [$fornecedor, $modelo] = count($partes) === 2 ? $partes : ['replicate', $partes[0]];
+    $base = ['provider' => $fornecedor, 'model' => $fornecedor . ':' . $modelo, 'detail' => null];
+    $uma = fn (string $bytes, string $mime, int $de, int $total): array
+        => model_transcribe($fornecedor, $modelo, transcription_prompt($de, $total), $bytes, $mime);
+    $pronto = fn (array $r): array => ['pages' => $r['ok'] ? split_transcription((string) $r['text']) : null,
+        'in' => (int) ($r['in'] ?? 0), 'out' => (int) ($r['out'] ?? 0),
+        'error' => $r['error'], 'detail' => $r['detail']] + $base;
+
+    // Foto de laudo: uma página, uma chamada.
+    if ($doc['mime'] !== 'application/pdf') {
+        return $pronto($uma($doc['bytes'], $doc['mime'], 1, 1));
+    }
+
+    $total = pdf_page_count($doc['bytes']);
+    $porChamada = max(1, (int) $cfg['reader_pages_per_call']);
+    // Sem o Ghostscript não há como fatiar, e um laudo curto não precisa ser fatiado.
+    if ($total === null || $total <= $porChamada) {
+        return $pronto($uma($doc['bytes'], 'application/pdf', 1, $total ?? 1));
+    }
+
+    $paginas = [];
+    $in = 0;
+    $out = 0;
+    for ($de = 1; $de <= $total; $de += $porChamada) {
+        $ate = min($total, $de + $porChamada - 1);
+        $pedaco = pdf_subset($doc['bytes'], $de, $ate);
+        if ($pedaco === null) {
+            return ['pages' => null, 'in' => $in, 'out' => $out, 'error' => 'pdf_split_failed',
+                'detail' => 'páginas ' . $de . ' a ' . $ate] + $base;
+        }
+        $r = $uma($pedaco, 'application/pdf', $de, $total);
+        $in += (int) ($r['in'] ?? 0);
+        $out += (int) ($r['out'] ?? 0);
+        if (!$r['ok']) {
+            return ['pages' => null, 'in' => $in, 'out' => $out, 'error' => $r['error'],
+                'detail' => $r['detail']] + $base;
+        }
+        foreach (split_transcription((string) $r['text']) as $i => $pagina) {
+            $paginas[$de - 1 + $i] = $pagina;
+        }
+    }
+    ksort($paginas);
+    return ['pages' => array_values($paginas), 'in' => $in, 'out' => $out,
+        'error' => null, 'detail' => null] + $base;
+}
+
 /** Removes direct identifiers before text goes to a model (RNF-07). Values and units stay. */
 function minimize_text(string $text): string
 {
@@ -293,8 +461,9 @@ function extraction_prompt(string $text, string $task, ?array $repair, bool $com
 }
 
 /**
- * One reading. Every reader works on the page text, because these models take text only:
- * a document with no text layer fails with no_text_layer instead of being read badly.
+ * One reading. Every reader works on the page text: the PDF's own text layer, or, for a
+ * scan or a photo, the transcription that put one there. Working on text is what lets
+ * every value be checked against the page it came from.
  *
  * The pages go in groups, not all at once: a whole report asked for in a single call takes
  * minutes to generate and gets interrupted, while a group of pages comes back in about a
@@ -305,7 +474,8 @@ function read_pages(string $reader, array $doc, string $extraInstruction): array
     $cfg = eixo_config();
     [$fornecedor, $modelo] = reader_spec($reader);
     $model = reader_model($reader);
-    $base = ['ok' => false, 'payload' => null, 'provider' => $fornecedor, 'model' => $modelo, 'mode' => 'text_layer', 'in' => null, 'out' => null, 'error' => null];
+    $base = ['ok' => false, 'payload' => null, 'provider' => $fornecedor, 'model' => $modelo,
+        'mode' => (string) ($doc['text_from'] ?? 'text_layer'), 'in' => null, 'out' => null, 'error' => null];
     $pages = $doc['pages'];
     if ($pages === null || mb_strlen(implode('', $pages)) <= 200) {
         return ['error' => 'no_text_layer'] + $base;
@@ -896,8 +1066,24 @@ function process_document(int $docId): void
     }
     $bytes = load_blob($userId, $doc['blob_name']);
     $pages = $doc['mime'] === 'application/pdf' ? pdf_pages_text($bytes) : null;
+    $vindoDe = 'text_layer';
+    // Laudo digitalizado ou foto: a camada de texto é reposta antes das leituras, e a
+    // transcrição fica registrada como a leitura 'T', com fornecedor, modelo, custo e erro.
+    if ($pages === null || mb_strlen(implode('', $pages)) <= 200) {
+        $t = transcribe_document(['bytes' => $bytes, 'mime' => $doc['mime']]);
+        store_reading($userId, $docId, 'T', ['ok' => $t['pages'] !== null, 'payload' => null,
+            'provider' => $t['provider'], 'model' => $t['model'], 'mode' => 'file',
+            'in' => $t['in'] ?: null, 'out' => $t['out'] ?: null,
+            'error' => $t['error'], 'detail' => $t['detail']]);
+        if ($t['pages'] !== null) {
+            $pages = $t['pages'];
+            $vindoDe = 'transcribed';
+        } elseif (transient_error($t['error'])) {
+            throw new RuntimeException('transient:' . $t['error']);
+        }
+    }
     $input = ['bytes' => $bytes, 'mime' => $doc['mime'], 'pages' => $pages, 'sha256' => $doc['sha256'],
-        'document_id' => $docId, 'user_id' => $userId];
+        'text_from' => $vindoDe, 'document_id' => $docId, 'user_id' => $userId];
 
     $a = read_document('A', $input);
     store_reading($userId, $docId, 'A', $a);

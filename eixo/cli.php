@@ -172,6 +172,8 @@ function cmd_check(): void
         'composer vendor installed' => is_file(__DIR__ . '/vendor/autoload.php'),
         'reader keys set' => reader_keys_missing() === [],
         'pdftotext available' => is_executable((string) $c['pdftotext']),
+        'ghostscript available (splits scans)' => is_executable((string) $c['gs']),
+        'transcriber configured' => str_contains((string) $c['reader_transcriber'], ':'),
         'controller and DPO named' => $c['controller_name'] !== '' && $c['dpo_name'] !== '',
         'synthetic eval recorded' => meta_get('eval_last') !== null,
     ];

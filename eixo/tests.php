@@ -193,6 +193,33 @@ ok(brand_within('Laboratório de Análises', ['de']) === 'Laboratório de Análi
     'a loose preposition is not a brand');
 ok(str_contains(extraction_instructions(), 'laboratory is the name of the laboratory'), 'the instructions say what goes in laboratory');
 
+/* ── Text layer put back: scans and photos ── */
+ok(split_transcription("=== Página 1 ===\nGLICOSE  182 mg/dL\n=== Página 2 ===\nVHS  12 mm/1a hora")
+    === ['GLICOSE  182 mg/dL', 'VHS  12 mm/1a hora'], 'the marker splits the transcription into pages');
+ok(split_transcription("==== Pagina 3 ====\numa linha") === ['uma linha'],
+    'the marker counts without its accent and with any number of signs');
+ok(split_transcription('GLICOSE  182 mg/dL') === ['GLICOSE  182 mg/dL'],
+    'a transcription with no marker at all is one page');
+ok(split_transcription('') === [], 'nothing transcribed is no page at all');
+ok(split_transcription("=== Página 1 ===\n\n=== Página 2 ===\nsó a segunda tem texto")
+    === ['só a segunda tem texto'], 'a blank page does not become an empty page in the middle');
+ok(!str_contains(implode('|', split_transcription("=== Página 1 ===\nGLICOSE  182")), 'Página'),
+    'the marker itself does not end up inside the page text');
+ok(str_contains(transcription_prompt(6, 12), 'starting at number 6'), 'the transcriber is told where the slice starts');
+ok(str_contains(transcription_prompt(6, 12), '12 page(s) in all'), 'and how long the whole report is');
+ok(str_contains(transcription_prompt(1, 1), '[omitido]'), 'identifiers are left out at the source (RNF-07)');
+ok(str_contains(transcription_prompt(1, 1), 'exactly as printed')
+    && str_contains(transcription_prompt(1, 1), 'do not convert'),
+    'and nothing is converted or corrected on the way');
+// A transcrição é uma leitura como as outras: tem fornecedor, modelo, custo e erro.
+$docScan = add_doc($uid, '%PDF-1.4 um laudo sem camada de texto');
+store_reading($uid, $docScan, 'T', ['ok' => true, 'payload' => null, 'provider' => 'google',
+    'model' => 'google:gemini-3.5-flash-lite', 'mode' => 'file', 'in' => 582, 'out' => 900,
+    'error' => null, 'detail' => null]);
+$leituraT = row('SELECT input_mode, input_tokens FROM readings WHERE document_id = ? AND reader = ?', [$docScan, 'T']);
+ok(($leituraT['input_mode'] ?? '') === 'file' && (int) ($leituraT['input_tokens'] ?? 0) === 582,
+    'the transcription is stored as a reading of its own, with what it cost');
+
 /* ── Each provider gets the schema in its own dialect ── */
 ok(reader_spec('A')[0] === 'openai' && reader_spec('B')[0] === 'google', 'the readers name their provider');
 ok(reader_spec('X') === reader_spec('A'), 'an unknown reader falls back to A');
