@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 const EIXO_SCHEMA_VERSION = 4;
 const EIXO_CONSENT_VERSION = '2026-10-20';
-const EIXO_PROMPT_VERSION = 'extract-2026-10-29b';
+const EIXO_PROMPT_VERSION = 'extract-2026-10-31';
 const ALLOWED_MIME = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 
 function eixo_data_dir(): string
@@ -56,6 +56,12 @@ function eixo_config(): array
             'openai_key' => '',
             'openai_reasoning_effort' => 'low',
             'gemini_api_key' => '',
+            // A Anthropic e o terceiro fornecedor, e existe para o desempate: com dois, o
+            // arbitro sempre dividia familia com um dos dois lados que ele julga.
+            'anthropic_api_key' => '',
+            // O esforco faz as vezes do teto de raciocinio. Nao mandamos `thinking`, que cada
+            // modelo da Anthropic recusa de um jeito diferente; `effort` todos aceitam.
+            'anthropic_effort' => 'low',
             // Raciocínio ligado é o que põe estes modelos no laço de repetição.
             'google_thinking_budget' => 0,
             'replicate_key' => '',

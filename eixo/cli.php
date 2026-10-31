@@ -171,7 +171,11 @@ function cmd_check(): void
         'sqlite integrity' => row('PRAGMA integrity_check')['integrity_check'] === 'ok',
         'composer vendor installed' => is_file(__DIR__ . '/vendor/autoload.php'),
         'reader keys set' => reader_keys_missing() === [],
-        'pdftotext available' => is_executable((string) $c['pdftotext']),
+        // O que importa e haver camada de texto, nao haver um binario em particular: a
+        // Hostinger nao tem pdftotext, e o reserva em PHP devolve a tabela com as colunas
+        // no lugar. Cobrar o binario aqui era alarme falso, e alarme falso cansa quem le.
+        'text layer extractor available' => is_executable((string) $c['pdftotext'])
+            || class_exists(Smalot\PdfParser\Parser::class),
         'ghostscript available (splits scans)' => is_executable((string) $c['gs']),
         'transcriber configured' => str_contains((string) $c['reader_transcriber'], ':'),
         'controller and DPO named' => $c['controller_name'] !== '' && $c['dpo_name'] !== '',

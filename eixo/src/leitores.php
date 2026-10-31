@@ -38,7 +38,7 @@ function reader_model(string $reader): string
 /** Onde o fornecedor impõe o esquema, ele não precisa ir escrito no prompt. */
 function provider_enforces_schema(string $fornecedor): bool
 {
-    return in_array($fornecedor, ['openai', 'google'], true);
+    return in_array($fornecedor, ['openai', 'google', 'anthropic'], true);
 }
 
 /**
@@ -50,6 +50,7 @@ function model_predict(string $fornecedor, string $modelo, string $prompt): arra
     return match ($fornecedor) {
         'openai' => openai_predict($modelo, $prompt),
         'google' => google_predict($modelo, $prompt),
+        'anthropic' => anthropic_predict($modelo, $prompt),
         default => replicate_predict($modelo, $prompt),
     };
 }
@@ -66,6 +67,7 @@ function model_transcribe(string $fornecedor, string $modelo, string $prompt, st
     return match ($fornecedor) {
         'openai' => openai_transcribe($modelo, $prompt, $bytes, $mime),
         'google' => google_transcribe($modelo, $prompt, $bytes, $mime),
+        'anthropic' => anthropic_transcribe($modelo, $prompt, $bytes, $mime),
         default => ['ok' => false, 'text' => null, 'in' => null, 'out' => null,
             'error' => 'no_file_input', 'detail' => $fornecedor . ' não recebe arquivo'],
     };
@@ -279,6 +281,98 @@ function openai_predict(string $model, string $prompt): array
         return ['ok' => false, 'text' => null, 'error' => 'empty_output', 'detail' => null] + $uso;
     }
     return ['ok' => true, 'text' => $texto, 'error' => null, 'detail' => null] + $uso;
+}
+
+/* ── Anthropic ───────────────────────────────────────────────────────────── */
+
+/**
+ * O terceiro fornecedor existe para o desempate. Com dois, o árbitro sempre dividia família
+ * com um dos dois lados que ele julga, e concordar por parentesco não é concordar por acerto.
+ *
+ * A chamada não manda o campo `thinking`: o raciocínio é adaptativo por padrão e cada modelo
+ * recusa uma configuração diferente dele, enquanto `effort` é aceito por todos. É a mesma
+ * lição do teto de raciocínio do Google, aprendida antes de custar uma leitura.
+ */
+function anthropic_http(array $corpo): array
+{
+    $cfg = eixo_config();
+    return reader_http('https://api.anthropic.com/v1/messages',
+        ['x-api-key: ' . $cfg['anthropic_api_key'], 'anthropic-version: 2023-06-01'],
+        $corpo, (int) $cfg['reader_timeout']);
+}
+
+/** O texto de uma resposta da Anthropic, com o que ela custou. */
+function anthropic_colher(array $r): array
+{
+    $falha = fn (string $code, ?string $detail = null) => ['ok' => false, 'text' => null, 'in' => null, 'out' => null, 'error' => $code, 'detail' => $detail];
+    if ($r['status'] !== 200) {
+        return $falha(reader_error_code($r['status'], $r['curl']), provider_detail($r['raw'] ?: $r['curl']));
+    }
+    $j = json_decode($r['raw'], true);
+    if (!is_array($j)) {
+        return $falha('bad_response', provider_detail($r['raw']));
+    }
+    $uso = ['in' => $j['usage']['input_tokens'] ?? null, 'out' => $j['usage']['output_tokens'] ?? null];
+    $parada = (string) ($j['stop_reason'] ?? '');
+    if ($parada === 'max_tokens') {
+        return ['ok' => false, 'text' => null, 'error' => 'truncated', 'detail' => 'a resposta bateu no teto de tokens'] + $uso;
+    }
+    // Uma recusa volta com 200 e sem o esquema: tratar como leitura que não houve, e não como texto.
+    if ($parada === 'refusal') {
+        return ['ok' => false, 'text' => null, 'error' => 'refused',
+            'detail' => (string) ($j['stop_details']['category'] ?? '')] + $uso;
+    }
+    // O raciocínio vem em blocos antes do texto, e a transcrição pode vir repartida: o que vale
+    // é a soma dos blocos de texto, não o primeiro bloco da lista.
+    $texto = '';
+    foreach ($j['content'] ?? [] as $bloco) {
+        if (($bloco['type'] ?? '') === 'text') {
+            $texto .= (string) ($bloco['text'] ?? '');
+        }
+    }
+    if (trim($texto) === '') {
+        return ['ok' => false, 'text' => null, 'error' => 'empty_output', 'detail' => null] + $uso;
+    }
+    return ['ok' => true, 'text' => $texto, 'error' => null, 'detail' => null] + $uso;
+}
+
+/**
+ * O dialeto da saída estruturada é o mesmo esquema estrito do modo da OpenAI:
+ * `additionalProperties: false` em todo objeto e todo campo listado em `required`.
+ */
+function anthropic_predict(string $model, string $prompt): array
+{
+    $cfg = eixo_config();
+    if ((string) $cfg['anthropic_api_key'] === '') {
+        return ['ok' => false, 'text' => null, 'in' => null, 'out' => null, 'error' => 'no_api_key', 'detail' => null];
+    }
+    return anthropic_colher(anthropic_http([
+        'model' => $model,
+        'max_tokens' => (int) $cfg['reader_max_tokens'],
+        'messages' => [['role' => 'user', 'content' => $prompt]],
+        'output_config' => [
+            'effort' => (string) $cfg['anthropic_effort'],
+            'format' => ['type' => 'json_schema', 'schema' => to_openai_schema(extraction_schema())],
+        ],
+    ]));
+}
+
+function anthropic_transcribe(string $model, string $prompt, string $bytes, string $mime): array
+{
+    $cfg = eixo_config();
+    if ((string) $cfg['anthropic_api_key'] === '') {
+        return ['ok' => false, 'text' => null, 'in' => null, 'out' => null, 'error' => 'no_api_key', 'detail' => null];
+    }
+    // O PDF vai num bloco de documento e a foto num bloco de imagem: são blocos diferentes,
+    // e mandar um no lugar do outro derruba a chamada.
+    $parte = ['type' => $mime === 'application/pdf' ? 'document' : 'image',
+        'source' => ['type' => 'base64', 'media_type' => $mime, 'data' => base64_encode($bytes)]];
+    return anthropic_colher(anthropic_http([
+        'model' => $model,
+        'max_tokens' => (int) $cfg['reader_max_tokens'],
+        'messages' => [['role' => 'user', 'content' => [$parte, ['type' => 'text', 'text' => $prompt]]]],
+        'output_config' => ['effort' => (string) $cfg['anthropic_effort']],
+    ]));
 }
 
 /* ── Google ──────────────────────────────────────────────────────────────── */

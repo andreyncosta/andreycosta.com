@@ -226,10 +226,19 @@ $especificados = array_map(fn (string $k): string => (string) eixo_config()[$k],
     ['reader_a', 'reader_b', 'reader_tiebreak', 'reader_transcriber']);
 ok(count(array_unique($especificados)) === 4, 'the four models are four different models');
 foreach ($especificados as $spec) {
-    ok((bool) preg_match('#^(openai|google|replicate):[A-Za-z0-9.\-/]{1,80}$#', $spec),
+    ok((bool) preg_match('#^(openai|google|anthropic|replicate):[A-Za-z0-9.\-/]{1,80}$#', $spec),
         'the model spec is well formed: ' . $spec);
 }
 ok(reader_spec('C')[1] !== reader_spec('A')[1], 'the tie-break is not reader A over again');
+// Medido em 31/10/2026: sem esta regra o gemini-3.1-flash-lite e o 3.5-flash-lite leem o
+// diferencial do leucograma como um resultado so e devolvem 11 de 16 valores, enquanto com
+// ela os dois vao a 16 de 16. Ela tambem faz os leitores concordarem sobre quantos
+// resultados a linha tem, que e o que a RN-02 precisa para carregar um valor.
+$instrucoes = extraction_instructions();
+ok(str_contains($instrucoes, 'one entry per named result'),
+    'the prompt splits several results printed on one line');
+ok(str_contains($instrucoes, 'those are two results'),
+    'the prompt separates a percentage from its absolute count');
 
 /* ── Each provider gets the schema in its own dialect ── */
 ok(reader_spec('A')[0] === 'openai' && reader_spec('B')[0] === 'google', 'the readers name their provider');
