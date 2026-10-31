@@ -219,6 +219,17 @@ store_reading($uid, $docScan, 'T', ['ok' => true, 'payload' => null, 'provider' 
 $leituraT = row('SELECT input_mode, input_tokens FROM readings WHERE document_id = ? AND reader = ?', [$docScan, 'T']);
 ok(($leituraT['input_mode'] ?? '') === 'file' && (int) ($leituraT['input_tokens'] ?? 0) === 582,
     'the transcription is stored as a reading of its own, with what it cost');
+// Os quatro modelos precisam estar bem escritos e ser distintos: dois leitores iguais não
+// são duas leituras, e um transcritor igual a um leitor põe o texto e a extração no mesmo
+// modelo, que é justamente o que a conferência contra a página existe para evitar.
+$especificados = array_map(fn (string $k): string => (string) eixo_config()[$k],
+    ['reader_a', 'reader_b', 'reader_tiebreak', 'reader_transcriber']);
+ok(count(array_unique($especificados)) === 4, 'the four models are four different models');
+foreach ($especificados as $spec) {
+    ok((bool) preg_match('#^(openai|google|replicate):[A-Za-z0-9.\-/]{1,80}$#', $spec),
+        'the model spec is well formed: ' . $spec);
+}
+ok(reader_spec('C')[1] !== reader_spec('A')[1], 'the tie-break is not reader A over again');
 
 /* ── Each provider gets the schema in its own dialect ── */
 ok(reader_spec('A')[0] === 'openai' && reader_spec('B')[0] === 'google', 'the readers name their provider');

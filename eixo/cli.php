@@ -334,12 +334,34 @@ function cmd_models(): void
             $r['ok'] ? 'ok' : ($r['error'] ?? 'falhou'),
             mb_substr(provider_detail((string) ($r['ok'] ? $r['text'] : ($r['detail'] ?? ''))), 0, 120));
     }
+    // O transcritor também: é ele que decide se um laudo digitalizado entra. Um modelo
+    // desligado precisa aparecer aqui, e não no laudo de alguém.
+    [$fornecedor, $modelo] = array_pad(explode(':', (string) eixo_config()['reader_transcriber'], 2), 2, '');
+    $t = microtime(true);
+    $r = model_transcribe($fornecedor, $modelo, 'Transcreva o que está escrito nesta imagem.',
+        tiny_png(), 'image/png');
+    printf("T %s:%s %.0fs %s %s\n", $fornecedor, $modelo, microtime(true) - $t,
+        $r['ok'] ? 'ok' : ($r['error'] ?? 'falhou'),
+        mb_substr(provider_detail((string) ($r['ok'] ? $r['text'] : ($r['detail'] ?? ''))), 0, 120));
+}
+
+/** Uma imagem mínima, só para provar que o modelo responde e aceita arquivo. */
+function tiny_png(): string
+{
+    $im = imagecreatetruecolor(96, 48);
+    imagefill($im, 0, 0, (int) imagecolorallocate($im, 255, 255, 255));
+    imagestring($im, 5, 8, 16, 'ok', (int) imagecolorallocate($im, 0, 0, 0));
+    ob_start();
+    imagepng($im);
+    $png = (string) ob_get_clean();
+    imagedestroy($im);
+    return $png;
 }
 
 /** Edits only the model/effort lines of config.php, so the server can be tuned from a cron without opening the file. */
 function cmd_config(string $key, string $value): void
 {
-    $allowed = ['reader_a', 'reader_b', 'reader_tiebreak'];
+    $allowed = ['reader_a', 'reader_b', 'reader_tiebreak', 'reader_transcriber'];
     if (!in_array($key, $allowed, true) || !preg_match('#^(openai|google|replicate):[a-z0-9.\-/]{1,80}$#', $value)) {
         echo 'usage: config ' . implode('|', $allowed) . " VALUE\n";
         return;

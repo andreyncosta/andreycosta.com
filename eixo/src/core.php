@@ -35,12 +35,21 @@ function eixo_config(): array
             'mail_from' => '',
             // Cada leitor é 'fornecedor:modelo'. A OpenAI e a Google impõem o esquema JSON;
             // a Replicate não impõe em invólucro nenhum, e lá ele viaja no prompt.
-            'reader_a' => 'openai:gpt-5-mini',
-            'reader_b' => 'google:gemini-3-flash-preview',
-            'reader_tiebreak' => 'openai:gpt-5-nano',
+            // Medido em 30/10/2026, sobre o laudo sintético, com o esquema real: todos os
+            // candidatos acertaram 19 de 19, então preço e prazo de desligamento decidiram.
+            // O gpt-5-mini desliga em 11/12/2026 e o gpt-5-nano no mesmo dia; o
+            // gemini-3-flash-preview é um preview. Nenhum dos quatro abaixo é depreciado.
+            // O luna é o degrau mais barato da OpenAI: US$ 0,10 / 0,50 por milhão.
+            'reader_a' => 'openai:gpt-6-luna',
+            // O flash-lite 3.1 é o mais barato do Google que não é depreciado, e o único
+            // testado que aceita thinkingBudget 0 sem recusar a chamada.
+            'reader_b' => 'google:gemini-3.1-flash-lite',
+            // O desempate lê só as páginas em disputa, então o volume é pequeno e vale
+            // pagar pelo modelo mais capaz: é ele que decide o que entra na série.
+            'reader_tiebreak' => 'openai:gpt-6.1-terra',
             // Quem repõe a camada de texto de um laudo digitalizado ou de uma foto. Não extrai
             // nada: só transcreve, e por isso o modelo mais barato que leia página serve.
-            'reader_transcriber' => 'google:gemini-3.5-flash-lite',
+            'reader_transcriber' => 'openai:gpt-5.6-luna',
             'reader_max_tokens' => 32000,
             'reader_pages_per_call' => 5,
             'reader_timeout' => 900,
