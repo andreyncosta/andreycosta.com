@@ -288,6 +288,20 @@ ok(str_contains($instrucoes, 'one entry per named result'),
     'the prompt splits several results printed on one line');
 ok(str_contains($instrucoes, 'those are two results'),
     'the prompt separates a percentage from its absolute count');
+// O leucograma do laudo real nao vem em linha corrida: vem em tabela, com a coluna % de um
+// lado e a /mm3 do outro, e dois pares de colunas de referencia depois. A camada de texto do
+// PDF achata a tabela numa linha so, e a linha do total de leucocitos comeca com a celula de
+// % VAZIA. Medido em 01/11/2026 no texto exato de um laudo em producao: sem esta regra o
+// gpt-6-luna puxava a referencia '100' para o lugar do resultado e emitia um leucocito de
+// 100%, e o gemini-3.1-flash-lite grudava o cabecalho no nome nas 12 linhas do diferencial
+// ('BASTONETES /mm3'), que e nome que nenhum catalogo reconhece. Com ela, os tres leitores
+// devolvem as 13 celulas da tabela e as 12 da linha corrida, em duas amostras, sem sobra.
+ok(str_contains($instrucoes, 'one entry per filled result cell'),
+    'the prompt reads a result table one cell at a time');
+ok(str_contains($instrucoes, 'the row label alone'),
+    'the prompt keeps the column header out of the name');
+ok(str_contains($instrucoes, 'do not fill it with the value that follows'),
+    'the prompt refuses to slide a column into an empty cell');
 
 /* ── Each provider gets the schema in its own dialect ── */
 ok(reader_spec('A')[0] === 'openai' && reader_spec('B')[0] === 'google', 'the readers name their provider');
