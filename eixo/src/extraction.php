@@ -1004,9 +1004,13 @@ function cross_check(array $r, ?array $pages, array $otherQuotes, array $history
         $all = array_merge([(string) ($r['quote'] ?? '')], $otherQuotes);
         $checks['text'] = array_reduce($all, fn ($c, $qt) => $c && text_contains_value($qt, $r), true) ? 'quotes' : 'missing';
     }
-    // 2. Unit compatible with the proposed LOINC property.
+    // 2. Unit compatible with the property the exam is known to report. The catalogue comes
+    //    first and the model only as a fallback: a property the model read off the printed
+    //    unit would agree with that unit by construction, and check nothing.
     $ucum = ucum_from_printed($r['unit_printed'] ?? null);
-    $checks['unit'] = ($r['value_number'] ?? null) === null ? 'n/a' : unit_matches_property($ucum, $r['loinc_property'] ?? null);
+    $propriedade = exam_property_of($r['name_printed'] ?? null, $r['loinc_code'] ?? null)
+        ?? ($r['loinc_property'] ?? null);
+    $checks['unit'] = ($r['value_number'] ?? null) === null ? 'n/a' : unit_matches_property($ucum, $propriedade);
     // 3. Order of magnitude against the printed numeric range and the patient's history in the same lab.
     $checks['magnitude'] = 'ok';
     $v = $r['value_number'] ?? null;
@@ -1346,7 +1350,7 @@ function persist_outcome(int $userId, array $doc, array $o, ?array $pages): void
         }
 
         $counts = ['loaded' => 0, 'quarantine' => 0, 'skipped_existing' => 0];
-        $versions = ['prompt' => EIXO_PROMPT_VERSION, 'reader_a' => reader_model('A'), 'reader_b' => reader_model('B'), 'tiebreak' => reader_model('C'), 'ucum' => 'eixo-ucum-1', 'loinc' => 'model-proposed'];
+        $versions = ['prompt' => EIXO_PROMPT_VERSION, 'reader_a' => reader_model('A'), 'reader_b' => reader_model('B'), 'tiebreak' => reader_model('C'), 'ucum' => 'eixo-ucum-2', 'loinc' => 'catalogue-then-model'];
         foreach ($o['results'] as $item) {
             $r = $item['r'];
             $r['_collection_date'] = $o['collection_date'];

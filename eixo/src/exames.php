@@ -45,12 +45,16 @@ function exam_rows(): array
         ['VPM', 'faixa', '32623-1', 'vpm', 'volume plaquetario medio'],
 
         // Glicemia
-        ['Glicose', 'faixa', '2345-7', 'glicose', 'glicemia', 'glicemia de jejum', 'glicose em jejum'],
+        ['Glicose', 'faixa', '2345-7', 'glicose', 'glicemia', 'glicemia de jejum', 'glicose em jejum', 'glicose jejum', 'glicose de jejum'],
         ['Hemoglobina glicada', 'baixo', '4548-4', 'hemoglobina glicada', 'hba1c', 'a1c', 'glicada', 'hemoglobina glicosilada'],
         ['Insulina', 'faixa', '20448-7', 'insulina', 'insulina de jejum'],
         ['HOMA-IR', 'baixo', '', 'homa ir', 'homa', 'indice homa'],
         ['Peptídeo C', 'faixa', '1986-9', 'peptideo c'],
-        ['Frutosamina', 'baixo', '1558-6', 'frutosamina'],
+        // O 1558-6 e glicose pos-jejum, nao frutosamina. Com o codigo trocado, toda glicose
+        // de jejum em que o modelo propunha 1558-6 vinha rotulada "Frutosamina" na tela e
+        // entrava na serie errada, porque exam_of() resolve pelo LOINC antes do nome.
+        // A frutosamina brasileira sai em umol/L, que e o 15069-8 (SCnc).
+        ['Frutosamina', 'baixo', '15069-8', 'frutosamina'],
 
         // Lipídios
         ['Colesterol total', 'baixo', '2093-3', 'colesterol total', 'colesterol'],
@@ -184,6 +188,189 @@ function exam_rows(): array
  * O nome impresso reduzido ao que serve de chave: sem acento, sem a linha de
  * pontos do PDF, sem o material e o método que o laboratório anexa ao nome.
  */
+/**
+ * A propriedade que cada exame mede: a dimensão que o resultado dele pode ter.
+ *
+ * Esta é a metade que faltava à conferência de unidade da RN-02. Medido em 31/10/2026, os
+ * modelos devolveram `loinc_property` vazia em 173 dos 181 resultados em produção, e sem ela
+ * `unit_matches_property()` não tinha contra o que comparar: a unidade impressa era reconhecida
+ * em 22 das 23 grafias, e a conferência dava `unverified` em todas as 173.
+ *
+ * O catálogo vem antes do modelo de propósito. Perguntar a propriedade ao modelo convida a
+ * resposta circular — ele lê "mg/dL", responde "concentração de massa", e a conferência passa
+ * sem conferir nada. Aqui a fonte é independente do modelo e da unidade impressa, que são
+ * justamente as duas coisas que a conferência existe para cruzar.
+ *
+ * Cada exame guarda uma LISTA, porque há exame com mais de uma dimensão legítima: o diferencial
+ * do leucograma sai em % e em contagem absoluta, a prolactina em ng/mL num laboratório e em
+ * µUI/mL no vizinho, e as duas formas estão certas. Basta uma casar.
+ *
+ * Exame fora deste catálogo fica sem propriedade, e a conferência segue `unverified` como antes:
+ * ele só aperta onde sabe. Exame cujo resultado é qualitativo ou cuja unidade varia demais entre
+ * laboratórios — pH, sedimento urinário, sorologia por índice ou título — fica de fora por isso.
+ *
+ * @return array<string,list<string>> nome do catálogo => propriedades LOINC aceitas
+ */
+function exam_properties(): array
+{
+    return [
+        // Hemograma
+        'Hemoglobina' => ['MCnc'],
+        'Hematócrito' => ['VFr'],
+        'Hemácias' => ['NCnc'],
+        'VCM' => ['EntVol'],
+        'HCM' => ['EntMass'],
+        'CHCM' => ['EntMCnc'],
+        'RDW' => ['Ratio'],
+        'Leucócitos' => ['NCnc'],
+        // O diferencial sai em % e em contagem absoluta, e as duas estão certas.
+        'Neutrófilos' => ['NFr', 'NCnc'],
+        'Linfócitos' => ['NFr', 'NCnc'],
+        'Monócitos' => ['NFr', 'NCnc'],
+        'Eosinófilos' => ['NFr', 'NCnc'],
+        'Basófilos' => ['NFr', 'NCnc'],
+        'Plaquetas' => ['NCnc'],
+        'VPM' => ['EntVol'],
+        // Glicemia
+        'Glicose' => ['MCnc', 'SCnc'],
+        'Hemoglobina glicada' => ['MFr', 'SRto'],
+        'Insulina' => ['ACnc', 'SCnc'],
+        'HOMA-IR' => ['Ratio'],
+        'Peptídeo C' => ['MCnc', 'SCnc'],
+        'Frutosamina' => ['SCnc'],
+        // Lipídios
+        'Colesterol total' => ['MCnc', 'SCnc'],
+        'HDL' => ['MCnc', 'SCnc'],
+        'LDL' => ['MCnc', 'SCnc'],
+        'VLDL' => ['MCnc', 'SCnc'],
+        'Triglicérides' => ['MCnc', 'SCnc'],
+        'Colesterol não-HDL' => ['MCnc', 'SCnc'],
+        'Apolipoproteína A1' => ['MCnc'],
+        'Apolipoproteína B' => ['MCnc'],
+        'Lipoproteína (a)' => ['MCnc', 'SCnc'],
+        // Tireoide
+        'TSH' => ['ACnc'],
+        'T4 livre' => ['MCnc', 'SCnc'],
+        'T3' => ['MCnc', 'SCnc'],
+        'T3 livre' => ['MCnc', 'SCnc'],
+        'T4 total' => ['MCnc', 'SCnc'],
+        'Anti-TPO' => ['ACnc'],
+        'Anti-tireoglobulina' => ['ACnc'],
+        // Renal
+        'Creatinina' => ['MCnc', 'SCnc'],
+        'Ureia' => ['MCnc', 'SCnc'],
+        'Taxa de filtração glomerular' => ['VRat'],
+        'Ácido úrico' => ['MCnc', 'SCnc'],
+        'Cistatina C' => ['MCnc'],
+        'Relação albumina/creatinina' => ['MRto'],
+        // Hepático
+        'TGO (AST)' => ['CCnc'],
+        'TGP (ALT)' => ['CCnc'],
+        'Gama GT' => ['CCnc'],
+        'Fosfatase alcalina' => ['CCnc'],
+        'Bilirrubina total' => ['MCnc', 'SCnc'],
+        'Bilirrubina direta' => ['MCnc', 'SCnc'],
+        'Bilirrubina indireta' => ['MCnc', 'SCnc'],
+        'Albumina' => ['MCnc'],
+        'Proteínas totais' => ['MCnc'],
+        'INR' => ['Ratio'],
+        'Tempo de protrombina' => ['Time'],
+        // Eletrólitos e minerais
+        'Sódio' => ['SCnc', 'MCnc'],
+        'Potássio' => ['SCnc', 'MCnc'],
+        'Cloro' => ['SCnc', 'MCnc'],
+        'Cálcio' => ['MCnc', 'SCnc'],
+        'Cálcio iônico' => ['MCnc', 'SCnc'],
+        'Magnésio' => ['MCnc', 'SCnc'],
+        'Fósforo' => ['MCnc', 'SCnc'],
+        // Vitaminas e ferro
+        'Vitamina D' => ['MCnc', 'SCnc'],
+        'Vitamina B12' => ['MCnc', 'SCnc'],
+        'Ácido fólico' => ['MCnc', 'SCnc'],
+        'Ferro' => ['MCnc', 'SCnc'],
+        'Ferritina' => ['MCnc'],
+        'Transferrina' => ['MCnc'],
+        'Saturação de transferrina' => ['MFr', 'Ratio'],
+        'Capacidade de ligação do ferro' => ['MCnc', 'SCnc'],
+        'Zinco' => ['MCnc', 'SCnc'],
+        // Inflamação
+        'Proteína C reativa' => ['MCnc'],
+        'PCR ultrassensível' => ['MCnc'],
+        'VHS' => ['Vel'],
+        'Fibrinogênio' => ['MCnc'],
+        'Homocisteína' => ['SCnc'],
+        // Hormônios
+        'Testosterona total' => ['MCnc', 'SCnc'],
+        'Testosterona livre' => ['MCnc', 'SCnc'],
+        'SHBG' => ['SCnc'],
+        'Estradiol' => ['MCnc', 'SCnc'],
+        'Progesterona' => ['MCnc', 'SCnc'],
+        'FSH' => ['ACnc'],
+        'LH' => ['ACnc'],
+        // A prolactina sai em ng/mL num laboratório e em µUI/mL no vizinho.
+        'Prolactina' => ['MCnc', 'ACnc', 'SCnc'],
+        'Cortisol' => ['MCnc', 'SCnc'],
+        'DHEA-S' => ['MCnc', 'SCnc'],
+        'IGF-1' => ['MCnc'],
+        'PTH' => ['MCnc'],
+        'Androstenediona' => ['MCnc', 'SCnc'],
+        // Cardíaco
+        'Troponina' => ['MCnc'],
+        'CPK' => ['CCnc'],
+        'CK-MB' => ['CCnc', 'MCnc'],
+        'NT-proBNP' => ['MCnc'],
+        // Próstata
+        'PSA total' => ['MCnc'],
+        'PSA livre' => ['MCnc'],
+        'Relação PSA livre/total' => ['MFr', 'Ratio'],
+        // Pâncreas
+        'Amilase' => ['CCnc'],
+        'Lipase' => ['CCnc'],
+        // Urina
+        'Densidade urinária' => ['Ratio'],
+        // Sorologias
+        'Anti-HBs' => ['ACnc'],
+        'Toxoplasmose IgG' => ['ACnc'],
+        'Rubéola IgG' => ['ACnc'],
+        'CMV IgG' => ['ACnc'],
+        // Marcadores
+        'CEA' => ['MCnc'],
+        'CA 125' => ['ACnc'],
+        'Alfafetoproteína' => ['MCnc', 'ACnc'],
+    ];
+}
+
+/**
+ * A propriedade esperada deste resultado, pelo catálogo. Resolve pelo código LOINC quando o
+ * modelo propôs um que o catálogo conhece, e pelo nome impresso normalizado em seguida.
+ *
+ * @return list<string>|null nulo quando o exame não está no catálogo
+ */
+function exam_property_of(?string $printed, ?string $loinc): ?array
+{
+    static $porLoinc = null;
+    static $porNome = null;
+    if ($porLoinc === null) {
+        $props = exam_properties();
+        $porLoinc = [];
+        $porNome = [];
+        foreach (exam_rows() as $linha) {
+            [$nome, , $codigo] = $linha;
+            $p = $props[$nome] ?? null;
+            if ($p === null) {
+                continue;
+            }
+            if ($codigo !== '') {
+                $porLoinc[$codigo] = $p;
+            }
+            foreach (array_slice($linha, 3) as $apelido) {
+                $porNome[$apelido] ??= $p;
+            }
+        }
+    }
+    $codigo = trim((string) $loinc);
+    return $porLoinc[$codigo] ?? $porNome[exam_key((string) $printed)] ?? null;
+}
 function exam_key(string $printed): string
 {
     $s = mb_strtolower(trim($printed));

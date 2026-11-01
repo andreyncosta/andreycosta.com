@@ -345,9 +345,20 @@ function property_dims(?string $property): ?array
 /**
  * Unit/property compatibility for the cross-check (RN-02).
  * 'ok' | 'mismatch' | 'unverified' (unit or property unknown).
+ *
+ * @param string|list<string>|null $property uma propriedade, ou as aceitas pelo exame
  */
-function unit_matches_property(?string $ucum, ?string $property): string
+function unit_matches_property(?string $ucum, string|array|null $property): string
 {
+    // Um exame pode ter mais de uma dimensão legítima, e basta uma casar. Lista vazia
+    // conta como propriedade desconhecida, igual a nulo.
+    if (is_array($property)) {
+        $vereditos = array_map(fn (string $p): string => unit_matches_property($ucum, $p), $property);
+        if (in_array('ok', $vereditos, true)) {
+            return 'ok';
+        }
+        return in_array('mismatch', $vereditos, true) ? 'mismatch' : 'unverified';
+    }
     $parsed = $ucum ? ucum_parse($ucum) : null;
     $want = property_dims($property);
     if ($parsed === null || $want === null) {
@@ -358,6 +369,16 @@ function unit_matches_property(?string $ucum, ?string $property): string
     if ($property === 'CCnc' && isset($have['KAT'])) {
         $have['U'] = $have['KAT'];
         unset($have['KAT']);
+        ksort($have);
+    }
+    // Equivalente e mol sao dimensoes diferentes de proposito: 1 mEq de calcio e 0,5 mmol, e a
+    // conta depende da valencia. Mas o laboratorio brasileiro imprime sodio, potassio e cloro
+    // em mEq/L querendo dizer concentracao de substancia, e recusar isso mandaria valor bom
+    // para a quarentena. Aqui vale so para compatibilidade: converter segue proibido, porque
+    // ucum_convert() exige dimensoes iguais, e e la que um fator 2 silencioso faria estrago.
+    if ($property === 'SCnc' && isset($have['EQ'])) {
+        $have['N'] = $have['EQ'];
+        unset($have['EQ']);
         ksort($have);
     }
     // Arbitrary-unit concentrations (ACnc) also come as {index}/mL or U/mL on some kits.

@@ -52,6 +52,55 @@ ok(ucum_from_printed('mL/min/1,73m²') === 'mL/min/{1.73_m2}', 'eGFR body surfac
 ok(ucum_from_printed('mg/L (0,876 mg/dL)') === 'mg/L', 'a conversion in brackets is not part of the unit');
 ok(ucum_parse('mL/min/{1.73_m2}')[1] == ['T' => -1, 'V' => 1], 'annotations carry no dimension');
 ok(unit_matches_property('mL/min/{1.73_m2}', 'VRat') === 'ok', 'eGFR unit matches a volume rate');
+// O sodio e o potassio brasileiros saem em mEq/L querendo dizer concentracao de substancia.
+// Compativel sim, convertivel nao: o fator depende da valencia, e no calcio ele e 2.
+ok(unit_matches_property('meq/L', 'SCnc') === 'ok', 'mEq/L is a substance concentration');
+ok(unit_matches_property('meq/L', 'MCnc') === 'mismatch', 'mEq/L is still not a mass concentration');
+ok(ucum_convert(1.0, 'meq/L', 'mmol/L', 'SCnc', 'SCnc') === null,
+    'mEq/L is never converted to mmol/L: the factor is the valence');
+// O catalogo de propriedades por exame: a metade que faltava a conferencia de unidade. Um
+// nome com acento diferente do catalogo de exames viraria silenciosamente "sem propriedade",
+// e uma conferencia que nao confere nada e pior que uma que acusa.
+$nomesDoCatalogo = array_column(exam_rows(), 0);
+foreach (array_keys(exam_properties()) as $nome) {
+    ok(in_array($nome, $nomesDoCatalogo, true), 'the property catalogue names a real exam: ' . $nome);
+}
+foreach (exam_properties() as $nome => $props) {
+    ok($props !== [] && array_reduce($props, fn (bool $c, string $p): bool
+        => $c && property_dims($p) !== null, true), 'every property has a dimension: ' . $nome);
+}
+// Uma lista casa quando qualquer uma casa, e so acusa quando nenhuma casa e alguma conferiu.
+ok(unit_matches_property('%', ['NFr', 'NCnc']) === 'ok', 'a percentage differential matches');
+ok(unit_matches_property('/mm3', ['NFr', 'NCnc']) === 'ok', 'an absolute differential matches');
+ok(unit_matches_property('mg/dL', ['NFr', 'NCnc']) === 'mismatch', 'mg/dL is not a differential');
+ok(unit_matches_property('mg/dL', []) === 'unverified', 'an empty list verifies nothing');
+ok(unit_matches_property('xyz', ['MCnc']) === 'unverified', 'an unknown unit stays unverified');
+// E o caminho inteiro, do nome impresso ate o veredito, que e como o cross_check usa.
+ok(exam_property_of('Creatinina', '') === ['MCnc', 'SCnc'], 'the printed name resolves to properties');
+ok(exam_property_of('qualquer coisa inventada', '') === null, 'an exam outside the catalogue has none');
+ok(exam_property_of('', '2160-0') === ['MCnc', 'SCnc'], 'the LOINC code resolves too');
+// Dois exames com o mesmo LOINC, ou com o mesmo apelido, fazem um resultado ser arquivado
+// como o outro sem nenhum erro aparecer. Foi o que aconteceu com o 1558-6, que estava na
+// frutosamina e e da glicose de jejum: so apareceu quando o catalogo de propriedades
+// comecou a conferir unidade, e ate ali a glicose vinha rotulada como frutosamina.
+$codigos = array_values(array_filter(array_column(exam_rows(), 2)));
+ok(count($codigos) === count(array_unique($codigos)), 'no LOINC code names two exams');
+$todosApelidos = [];
+foreach (exam_rows() as $linha) {
+    foreach (array_slice($linha, 3) as $apelido) {
+        $todosApelidos[] = $apelido;
+    }
+}
+ok(count($todosApelidos) === count(array_unique($todosApelidos)), 'no alias names two exams');
+// E o caso que destravou tudo isto, ponta a ponta.
+ok(exam_property_of('Glicose - jejum', '1558-6') === ['MCnc', 'SCnc'],
+    'fasting glucose resolves to glucose, not to fructosamine');
+ok(unit_matches_property(ucum_from_printed('mg/dL'), exam_property_of('Glicose - jejum', '1558-6')) === 'ok',
+    'fasting glucose in mg/dL passes');
+ok(unit_matches_property(ucum_from_printed('mg/dL'), exam_property_of('Creatinina', '')) === 'ok',
+    'creatinine in mg/dL passes the real path');
+ok(unit_matches_property(ucum_from_printed('U/L'), exam_property_of('Creatinina', '')) === 'mismatch',
+    'creatinine in U/L is caught by the real path');
 ok(unit_label('g/dl') === 'g/dL' && unit_label('fl') === 'fL', 'one spelling per unit');
 ok(unit_label('mIU/mL') === 'mUI/mL' && unit_label('µUI/mL') === 'µUI/mL', 'international units in Portuguese');
 ok(unit_label('escore de risco') === 'escore de risco', 'an unknown unit is shown as printed');
@@ -387,16 +436,20 @@ process_document($doc3);
 $r3 = array_values(array_filter(document_results($uid, $doc3), fn ($r) => $r['p']['value_printed'] === '777,77'))[0];
 ok($r3['status'] === 'quarantine' && $r3['p']['checks']['text'] === 'missing', 'agreed value absent from the page is quarantined');
 
-// Unit incompatible with the proposed property → quarantine.
+// Unit incompatible with what the exam can report → quarantine. Agora quem decide e o
+// catalogo, nao a propriedade que o modelo propoe, entao o teste erra a UNIDADE: uma
+// pressao nao e dimensao de exame de sangue nenhum. Forcar a propriedade nao serviria
+// mais, porque o catalogo passa na frente dela de proposito.
 $rep4 = synthetic_report(10);
 $fx = $rep4['fixture'];
-$fx['results'][2]['loinc_property'] = 'SCnc';
+$fx['results'][2]['unit_printed'] = 'mmHg';
 fixture($rep4['pdf'], $fx);
 $doc4 = add_doc($uid, $rep4['pdf']);
 process_document($doc4);
 $name = $fx['results'][2]['name_printed'];
 $r4 = array_values(array_filter(document_results($uid, $doc4), fn ($r) => $r['p']['name_printed'] === $name && $r['p']['column'] === $fx['results'][2]['column']))[0];
-ok($r4['status'] === 'quarantine' && $r4['p']['checks']['unit'] === 'mismatch', 'unit/property mismatch quarantined');
+ok($r4['status'] === 'quarantine' && $r4['p']['checks']['unit'] === 'mismatch',
+    'a unit the exam cannot report is quarantined');
 
 // Same lab + collection date as an already processed document → duplicate, nothing loaded (RF-07).
 $dupPdf = $rep['pdf'] . "\n% copy";
