@@ -538,6 +538,19 @@ try {
 }
 ok($threw, 'access log is insert-only');
 
-exec('rm -rf ' . escapeshellarg($dir));
+// A limpeza era exec('rm -rf'), e exec esta em disable_functions na hospedagem: toda rodada
+// no servidor vazava uma arvore em /tmp, com banco e master.key de teste dentro. Em PHP puro
+// ela roda nos dois lugares, e rodar os testes no servidor deixa de exigir remendo.
+$apaga = function (string $caminho) use (&$apaga): void {
+    foreach (scandir($caminho) ?: [] as $nome) {
+        if ($nome === '.' || $nome === '..') {
+            continue;
+        }
+        $alvo = $caminho . '/' . $nome;
+        is_dir($alvo) && !is_link($alvo) ? $apaga($alvo) : unlink($alvo);
+    }
+    rmdir($caminho);
+};
+$apaga($dir);
 echo $failures ? "\n$failures of $count checks FAILED\n" : "all $count checks passed\n";
 exit($failures ? 1 : 0);
