@@ -52,7 +52,8 @@ function exam_rows(): array
         ['Peptídeo C', 'faixa', '1986-9', 'peptideo c'],
         // O 1558-6 e glicose pos-jejum, nao frutosamina. Com o codigo trocado, toda glicose
         // de jejum em que o modelo propunha 1558-6 vinha rotulada "Frutosamina" na tela e
-        // entrava na serie errada, porque exam_of() resolve pelo LOINC antes do nome.
+        // entrava na serie errada, porque exam_of() resolvia pelo LOINC antes do nome. A linha
+        // corrigida continua valendo; a ordem foi invertida em 02/11/2026.
         // A frutosamina brasileira sai em umol/L, que e o 15069-8 (SCnc).
         ['Frutosamina', 'baixo', '15069-8', 'frutosamina'],
 
@@ -341,8 +342,16 @@ function exam_properties(): array
 }
 
 /**
- * A propriedade esperada deste resultado, pelo catálogo. Resolve pelo código LOINC quando o
- * modelo propôs um que o catálogo conhece, e pelo nome impresso normalizado em seguida.
+ * A propriedade esperada deste resultado, pelo catálogo. Resolve pelo nome impresso
+ * normalizado, e pelo código LOINC só quando o nome não está no catálogo.
+ *
+ * A ordem inversa — código primeiro — vigorou até 02/11/2026 e saía caro. O código é palpite
+ * do modelo, de um leitor só e sem portão de concordância; o nome é o que o laboratório
+ * imprimiu. Um código errado que por azar pertence a outro exame do catálogo entrega a
+ * propriedade daquele outro exame. Medido nos dois laudos: um leitor propôs 2324-2 (Gama GT,
+ * CCnc) para a globulina ligadora de hormônios sexuais, e os seis valores em nmol/L — que é
+ * SCnc, como o catálogo diz da SHBG — foram barrados por unidade incompatível. Com o nome na
+ * frente, seis deixam de ser barrados e nenhum passa a ser.
  *
  * @return list<string>|null nulo quando o exame não está no catálogo
  */
@@ -369,7 +378,7 @@ function exam_property_of(?string $printed, ?string $loinc): ?array
         }
     }
     $codigo = trim((string) $loinc);
-    return $porLoinc[$codigo] ?? $porNome[exam_key((string) $printed)] ?? null;
+    return $porNome[exam_key((string) $printed)] ?? $porLoinc[$codigo] ?? null;
 }
 function exam_key(string $printed): string
 {
@@ -398,8 +407,16 @@ function exam_fallback_name(string $printed): string
 }
 
 /**
- * O exame de uma série: nome curto e direção. A busca é pelo LOINC quando a
- * série tem um forte, e pelo nome impresso normalizado em seguida.
+ * O exame de uma série: nome curto e direção. A busca é pelo nome impresso normalizado, e
+ * pelo código LOINC só quando o nome não está no catálogo — a mesma ordem de
+ * exam_property_of(), e pelo mesmo motivo.
+ *
+ * Aqui o código errado já era inofensivo, e vale registrar por quê: a série só guarda um
+ * código quando series_key() o considerou forte, e forte exige que os DOIS leitores proponham
+ * o mesmo código, com a mesma propriedade e confiança de 0,7 para cima. Nos três casos de
+ * código divergente medidos em 02/11/2026 os leitores não concordaram, a série ficou com a
+ * chave do nome e o rótulo na tela já saía certo. Quem segurava era o portão de concordância;
+ * agora a ordem segura também.
  * @return array{nome:string,direcao:string,conhecido:bool}
  */
 function exam_of(array $payload): array
@@ -421,7 +438,7 @@ function exam_of(array $payload): array
     }
     $printed = (string) ($payload['label'] ?? '');
     $loinc = (string) ($payload['loinc'] ?? '');
-    $achado = $porLoinc[$loinc] ?? $porNome[exam_key($printed)] ?? null;
+    $achado = $porNome[exam_key($printed)] ?? $porLoinc[$loinc] ?? null;
     return $achado
         ? ['nome' => $achado[0], 'direcao' => $achado[1], 'conhecido' => true]
         : ['nome' => exam_fallback_name($printed), 'direcao' => 'faixa', 'conhecido' => false];

@@ -412,6 +412,15 @@ function tidy_result(array $r): array
     if (trim((string) ($r['operator'] ?? '')) === '' && $corte['operator'] !== '') {
         $r['operator'] = $corte['operator'];
     }
+    // Codigo LOINC que nao tem a forma de um codigo LOINC nao e codigo: medido em 02/11/2026,
+    // os leitores devolveram 'insulin' e 'thyrotropin' (o nome do analito), '{LOINC}' (o
+    // placeholder do proprio prompt) e '八'. Nada disso colide com o catalogo, entao nao
+    // errava exame, mas ficava gravado no resultado e a tela imprimia "LOINC 八 (proposto pela
+    // IA)". A forma e a mesma que series_key() ja exigia para considerar a chave forte.
+    if (($r['loinc_code'] ?? null) !== null && !preg_match('/^\d{1,7}-\d$/', trim((string) $r['loinc_code']))) {
+        $r['loinc_code'] = null;
+        $r['loinc_confidence'] = 0;
+    }
     return $r;
 }
 
@@ -1017,9 +1026,17 @@ function cross_check(array $r, ?array $pages, array $otherQuotes, array $history
     //    first and the model only as a fallback: a property the model read off the printed
     //    unit would agree with that unit by construction, and check nothing.
     $ucum = ucum_from_printed($r['unit_printed'] ?? null);
-    $propriedade = exam_property_of($r['name_printed'] ?? null, $r['loinc_code'] ?? null)
-        ?? ($r['loinc_property'] ?? null);
-    $checks['unit'] = ($r['value_number'] ?? null) === null ? 'n/a' : unit_matches_property($ucum, $propriedade);
+    $doCatalogo = exam_property_of($r['name_printed'] ?? null, $r['loinc_code'] ?? null);
+    $propriedade = $doCatalogo ?? ($r['loinc_property'] ?? null);
+    $veredito = ($r['value_number'] ?? null) === null ? 'n/a' : unit_matches_property($ucum, $propriedade);
+    // Fora do catálogo quem opina é o modelo, e opinião dele não barra valor: ele deduz a
+    // propriedade da unidade impressa, então quando as duas discordam foi ele que se
+    // contradisse, e não o laudo que errou a unidade. Medido em 02/11/2026: quatro valores
+    // normais barrados assim — insulina e TSH em µUI/mL, FSH em mIU/mL, cortisol salivar em
+    // nmol/L —, todos de exame cujo nome impresso traz um qualificador que o catálogo não
+    // conhece ("INSULINA BASAL", "TSH - TIREOESTIMULANTE"). Sem catálogo não há veredito, e
+    // 'unverified' é o que isso quer dizer: não conferimos, e não conferir não reprova.
+    $checks['unit'] = $doCatalogo === null && $veredito === 'mismatch' ? 'unverified' : $veredito;
     // 3. Order of magnitude against the printed numeric range and the patient's history in the same lab.
     $checks['magnitude'] = 'ok';
     $v = $r['value_number'] ?? null;
@@ -1359,7 +1376,7 @@ function persist_outcome(int $userId, array $doc, array $o, ?array $pages): void
         }
 
         $counts = ['loaded' => 0, 'quarantine' => 0, 'skipped_existing' => 0];
-        $versions = ['prompt' => EIXO_PROMPT_VERSION, 'reader_a' => reader_model('A'), 'reader_b' => reader_model('B'), 'tiebreak' => reader_model('C'), 'ucum' => 'eixo-ucum-2', 'loinc' => 'catalogue-then-model'];
+        $versions = ['prompt' => EIXO_PROMPT_VERSION, 'reader_a' => reader_model('A'), 'reader_b' => reader_model('B'), 'tiebreak' => reader_model('C'), 'ucum' => 'eixo-ucum-2', 'loinc' => 'catalogue-by-name-then-code'];
         foreach ($o['results'] as $item) {
             $r = $item['r'];
             $r['_collection_date'] = $o['collection_date'];

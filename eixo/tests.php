@@ -101,6 +101,33 @@ ok(unit_matches_property(ucum_from_printed('mg/dL'), exam_property_of('Creatinin
     'creatinine in mg/dL passes the real path');
 ok(unit_matches_property(ucum_from_printed('U/L'), exam_property_of('Creatinina', '')) === 'mismatch',
     'creatinine in U/L is caught by the real path');
+// O codigo que o modelo propoe e palpite de um leitor so, sem portao de concordancia, e
+// quando ele por azar pertence a outro exame do catalogo a propriedade vinha do outro
+// exame. Medido em 02/11/2026: 2324-2 e o Gama GT (CCnc), e com ele na frente os seis
+// valores de SHBG em nmol/L (SCnc) eram barrados por unidade incompativel.
+ok(exam_property_of('GLOBULINA LIGADORA DE HORMÔNIOS SEXUAIS', '2324-2') === ['SCnc'],
+    'the printed name beats a LOINC code that belongs to another exam');
+ok(unit_matches_property(ucum_from_printed('nmol/L'),
+    exam_property_of('GLOBULINA LIGADORA DE HORMÔNIOS SEXUAIS', '2324-2')) === 'ok',
+    'SHBG in nmol/L passes once the name decides');
+ok(exam_property_of('', '2324-2') === ['CCnc'],
+    'the code still decides when the printed name is outside the catalogue');
+// Fora do catalogo quem opina e o modelo, e a opiniao dele nao reprova: ele deduz a
+// propriedade da unidade impressa, entao a discordancia acusa ele, nao o laudo. Quatro
+// valores normais eram barrados assim, todos de nome com qualificador desconhecido.
+$soModelo = ['name_printed' => 'INSULINA BASAL', 'value_printed' => '58,2', 'value_number' => 58.2,
+    'value_text' => null, 'unit_printed' => 'µUI/mL', 'operator' => '', 'page' => 1,
+    'quote' => 'INSULINA BASAL 58,2 µUI/mL', 'loinc_code' => null, 'loinc_property' => 'MCnc',
+    'result_date' => '2026-10-01', 'column' => 'current', 'reference_ranges' => []];
+$vere = cross_check($soModelo, ['INSULINA BASAL 58,2 µUI/mL'], [], []);
+ok($vere['checks']['unit'] === 'unverified' && $vere['pass'],
+    'a property only the model proposed never blocks a value');
+$doCatalogo = ['name_printed' => 'CREATININA'] + $soModelo;
+$doCatalogo['unit_printed'] = 'U/L';
+$doCatalogo['quote'] = 'CREATININA 58,2 U/L';
+$vere = cross_check($doCatalogo, ['CREATININA 58,2 U/L'], [], []);
+ok($vere['checks']['unit'] === 'mismatch' && !$vere['pass'],
+    'the catalogue still blocks a unit that cannot be the quantity');
 ok(unit_label('g/dl') === 'g/dL' && unit_label('fl') === 'fL', 'one spelling per unit');
 ok(unit_label('mIU/mL') === 'mUI/mL' && unit_label('µUI/mL') === 'µUI/mL', 'international units in Portuguese');
 ok(unit_label('escore de risco') === 'escore de risco', 'an unknown unit is shown as printed');
@@ -127,6 +154,17 @@ ok($glued['value_number'] === 182.0 && $glued['unit_printed'] === 'mg/dL' && $gl
 $asserted = tidy_result(['value_printed' => '182 mg/dL', 'unit_printed' => 'mg/dL', 'value_number' => 180.0, 'operator' => '']);
 ok($asserted['value_number'] === 180.0, 'what the reader asserted is never overwritten');
 $row = tidy_result(['value_printed' => '4.567 1.234 a 5.678', 'unit_printed' => null, 'value_number' => null, 'operator' => '']);
+// Os leitores devolveram o nome do analito, o placeholder do proprio prompt e um ideograma
+// no campo do codigo LOINC: 'insulin', '{LOINC}', '八'. Nao colide com o catalogo, mas
+// ficava gravado e a tela imprimia "LOINC 八 (proposto pela IA)".
+$codigo = fn (string $c) => tidy_result(['value_printed' => '2,73', 'unit_printed' => 'µUI/mL',
+    'value_number' => 2.73, 'operator' => '', 'loinc_code' => $c, 'loinc_confidence' => 0.9]);
+ok($codigo('{LOINC}')['loinc_code'] === null && $codigo('{LOINC}')['loinc_confidence'] === 0,
+    'a LOINC code that is not one is dropped, and its confidence with it');
+ok($codigo('insulin')['loinc_code'] === null && $codigo('八')['loinc_code'] === null,
+    'the analyte name and a hallucinated glyph are not codes either');
+ok($codigo('3016-3')['loinc_code'] === '3016-3' && $codigo('3016-3')['loinc_confidence'] === 0.9,
+    'a well-formed code survives untouched');
 ok($row['value_number'] === null, 'several numbers in one cell yield no value');
 ok(same_value($glued, tidy_result(['value_printed' => '182', 'unit_printed' => 'mg/dL', 'value_number' => 182.0, 'operator' => ''])),
     'readers that split the cell differently now agree');
@@ -348,7 +386,9 @@ ok(mb_strlen($semEsquema) < mb_strlen($comEsquema) - 1000, 'leaving it out saves
 ok(exam_key('CORTISOL........') === 'cortisol', 'the dot leader from the PDF leaves the name');
 ok(exam_key('Colesterol HDL, soro') === 'colesterol hdl', 'the specimen tacked onto the name leaves it');
 ok(exam_of(['label' => 'HEMOGLOBINA GLICADA'])['nome'] === 'Hemoglobina glicada', 'a printed name becomes the dictionary name');
-ok(exam_of(['label' => 'x', 'loinc' => '2085-9'])['nome'] === 'HDL', 'the LOINC code wins over the printed name');
+ok(exam_of(['label' => 'x', 'loinc' => '2085-9'])['nome'] === 'HDL', 'the LOINC code resolves when the printed name is unknown');
+ok(exam_of(['label' => 'T3 LIVRE', 'loinc' => '3053-6'])['nome'] === 'T3 livre',
+    'a printed name in the catalogue beats a code that names another exam');
 ok(exam_of(['label' => 'EXAME MUITO ESPECIFICO'])['nome'] === 'Exame Muito Especifico', 'a name outside the dictionary loses the all-caps');
 ok(exam_of(['label' => 'LDL'])['direcao'] === 'baixo' && exam_of(['label' => 'HDL'])['direcao'] === 'alto', 'LDL and HDL carry a fixed direction');
 
