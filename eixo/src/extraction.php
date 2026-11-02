@@ -626,7 +626,15 @@ function drop_looped_results(array $results): array
 {
     $byLine = [];
     foreach ($results as $r) {
-        $line = ($r['page'] ?? 0) . '|' . ($r['column'] ?? '') . '|' . norm_text($r['name_printed'] ?? '') . '|' . norm_text($r['quote'] ?? '');
+        // A unidade faz parte da identidade da linha. Sem ela, as duas celulas de um
+        // diferencial de leucograma — 'SEGMENTADOS 58 %' e 'SEGMENTADOS 4.344 /mm3' — caem na
+        // mesma chave, porque saem do mesmo nome e da mesma linha impressa, e como os valores
+        // diferem o detector joga as DUAS fora. Foi o que aconteceu em 01/11/2026: o log
+        // registrou '12 repeated result(s) dropped from a page group' e o diferencial inteiro
+        // sumiu de um laudo. Antes isso nao aparecia porque um leitor grudava o cabecalho no
+        // nome ('SEGMENTADOS /mm3'), e o nome sujo separava as chaves por acidente.
+        $line = ($r['page'] ?? 0) . '|' . ($r['column'] ?? '') . '|' . norm_text($r['name_printed'] ?? '') . '|' . norm_unit($r['unit_printed'] ?? null)
+            . '|' . norm_text($r['quote'] ?? '');
         $byLine[$line][] = $r;
     }
     $kept = [];

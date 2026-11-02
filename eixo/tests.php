@@ -205,6 +205,25 @@ ok(count($fica) === 1 && $fica[0]['name_printed'] === 'Ureia' && $foram === 2, '
     ['page' => 4] + $linha('Glicose', '92', 92.0, 'Glicose 92 mg/dL'),
 ]);
 ok(count($fica) === 2 && $foram === 0, 'the same value printed on two pages is two readings, not a loop');
+// Uma linha do leucograma imprime a porcentagem e a contagem absoluta, e a regra manda citar
+// a MESMA linha nas duas. Sao dois resultados legitimos, nao um laco: o que os distingue e a
+// unidade. Sem ela na chave, o detector jogava os doze fora e o diferencial sumia do laudo.
+$cel = fn (string $nome, string $valor, float $num, string $unidade) => ['page' => 1,
+    'column' => 'current', 'name_printed' => $nome, 'value_printed' => $valor,
+    'value_number' => $num, 'value_text' => '', 'unit_printed' => $unidade, 'operator' => '',
+    'quote' => 'SEGMENTADOS 58 4.344  40-70  1.480 a 7.700'];
+[$fica, $foram] = drop_looped_results([
+    $cel('SEGMENTADOS', '58', 58.0, '%'),
+    $cel('SEGMENTADOS', '4.344', 4344.0, '/mm3'),
+]);
+ok(count($fica) === 2 && $foram === 0,
+    'a percentage and an absolute count off the same line are two results, not a loop');
+[$fica, $foram] = drop_looped_results([
+    $cel('SEGMENTADOS', '58', 58.0, '%'),
+    $cel('SEGMENTADOS', '64', 64.0, '%'),
+]);
+ok(count($fica) === 0 && $foram === 2,
+    'one line backing two values in the SAME unit still keeps neither');
 
 /* ── Pages are read in groups, so the groups have to go back together ── */
 $grupo = fn (array $over) => $over + ['doc_type' => 'other', 'laboratory' => '', 'collection_date' => '',
