@@ -513,8 +513,11 @@ ok(count(quarantine_for($uid)) === 1, 'quarantine listed');
 // A value both readings agree on but that is not on the page (invented) → quarantine (RN-02).
 $rep3 = synthetic_report(9);
 $fx = $rep3['fixture'];
-$fx['results'][1]['value_number'] = 777.77;
-$fx['results'][1]['value_printed'] = '777,77';
+// Tem de ser um resultado atual: as linhas de histórico reimpresso saem antes da checagem, e
+// inventar um valor numa delas não testaria a RN-02, testaria o descarte.
+$iAtual = array_key_first(array_filter($fx['results'], fn ($r) => ($r['column'] ?? 'current') === 'current'));
+$fx['results'][$iAtual]['value_number'] = 777.77;
+$fx['results'][$iAtual]['value_printed'] = '777,77';
 fixture($rep3['pdf'], $fx);
 $doc3 = add_doc($uid, $rep3['pdf']);
 process_document($doc3);
