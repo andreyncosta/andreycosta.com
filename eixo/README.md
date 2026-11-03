@@ -106,6 +106,7 @@ php eixo/cli.php eval 10 --yes    # laudos sintéticos pelos modelos reais (cust
 
 ## Limites desta versão
 
+- O **laudo comparativo** que alguns laboratórios imprimem no fim não é lido. Ele repete cada exame com o valor de agora e até cinco anteriores, cada um com a sua data e a sua OS; diante de seis colunas numa linha as duas leituras divergem sobre qual é o valor, e a discordância ia parar na quarentena — era de onde vinha a maior parte dela. O histórico entra pelo laudo em que cada valor foi o resultado do dia, com a sua faixa e o seu método impressos ao lado.
 - Proveniência por página e trecho citado, não por região desenhada na imagem.
 - Fotos não têm camada de texto: a minimização de identificadores e a checagem “valor no texto” valem só para PDFs com texto.
 - LOINC proposto pelo modelo, sem tabela LOINC local; a confiança e a concordância entre leituras decidem a junção.

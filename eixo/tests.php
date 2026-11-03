@@ -469,7 +469,7 @@ ok($d['status'] === 'done', 'document done');
 $score = score_against_truth($uid, [$doc1 => $rep['truth']]);
 ok($score['wrong_loaded'] === 0 && $score['correct'] === $score['values'], 'perfect readers load every value correctly (' . $score['correct'] . '/' . $score['values'] . ')');
 $prev = rows("SELECT observed_on FROM results WHERE document_id = ? AND status = 'loaded'", [$doc1]);
-ok(count(array_unique(array_column($prev, 'observed_on'))) === 2, 'previous-column values keep their own date');
+ok(count(array_unique(array_column($prev, 'observed_on'))) === 1, 'comparative previous-result columns are dropped, not loaded');
 ok(!array_filter(array_column(rows('SELECT payload_enc FROM results'), 'payload_enc'), fn ($e) => str_contains(base64_decode($e) ?: '', 'Glicada') || str_contains($e, 'Glicada')), 'results stored encrypted');
 ok(!array_filter(array_column(rows('SELECT payload_enc FROM series'), 'payload_enc'), fn ($e) => str_contains(base64_decode($e) ?: '', 'TSH')), 'series stored encrypted');
 

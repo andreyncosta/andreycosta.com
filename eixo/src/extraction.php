@@ -105,7 +105,7 @@ You transcribe Brazilian medical documents (lab reports, body-composition printo
 
 Rules:
 - Copy, never compute. Do not convert units, do not calculate indices, do not fix values that look wrong, do not fill in anything that is not printed. When something is not printed, use an empty string for text fields and null for numbers.
-- One entry in "results" per printed result. Results printed in a "previous results" / "resultados anteriores" column are separate entries with column "previous" and the date printed for that column in result_date. Current results use column "current" and result_date empty unless the report prints a different date for that test.
+- One entry in "results" per printed result, and only for this report's CURRENT results. Ignore comparative history entirely: a "LAUDO COMPARATIVO" / "Resultados anteriores" block prints the same exams again across several older columns, one per past date and order number, and none of those belong in "results". When a row prints the current value beside older ones, take only the current column and leave the rest out. Current results use column "current" and result_date empty unless the report prints a different date for that test.
 - value_printed is the result exactly as printed, including any operator or text ("< 0,01", "Não reagente", "5,4"). operator holds only the comparison sign. value_number is the numeric part with a dot as decimal separator and no thousands separator (Brazilian "1.234,5" is 1234.5); null when the result is not numeric. value_text holds non-numeric results. When the report prints the value and the unit in the same cell ("182 mg/dL"), or a cell label together with them ("RESULTADO: 182 mg/dL"), value_printed keeps the cell as printed, while value_number still holds only the number and unit_printed only the unit.
 - unit_printed is the unit as printed. reference_printed is the reference text as printed. reference_ranges structures it: one entry per range or category; condition holds who it applies to as printed (sex, age, cycle phase, trimester) or empty.
 - A single printed line may carry several named results, as a leukocyte differential printed as "Diferencial: Neutrófilos 68% (6.712/mm3); Linfócitos 22% (2.171/mm3); ...". Emit one entry per named result, never one entry for the whole line, and quote is that line. When a component prints both a percentage and an absolute count, those are two results: one entry with the percentage and unit "%", one with the count and the unit printed for it.
@@ -690,6 +690,16 @@ function merge_page_groups(array $parts): array
         [$results, $looped] = drop_looped_results($p['results'] ?? []);
         if ($looped > 0) {
             error_log("[eixo] $looped repeated result(s) dropped from a page group");
+        }
+        // O laudo comparativo que alguns laboratórios imprimem no fim traz a mesma linha com o
+        // valor de agora e até cinco anteriores, cada um com a sua data e a sua OS. Diante de seis
+        // colunas as duas leituras divergem sobre qual é o valor, e a discordância virava
+        // quarentena — era de onde vinha a maior parte dela. O histórico entra pelo laudo em que
+        // cada valor foi o resultado do dia, com a sua faixa e o seu método impressos.
+        $antes = count($results);
+        $results = array_values(array_filter($results, fn ($r) => ($r['column'] ?? 'current') !== 'previous'));
+        if (($caiu = $antes - count($results)) > 0) {
+            error_log("[eixo] $caiu previous-column result(s) dropped from a page group");
         }
         $merged['results'] = array_merge($merged['results'], $results);
         $merged['prescription_items'] = array_merge($merged['prescription_items'], $p['prescription_items'] ?? []);

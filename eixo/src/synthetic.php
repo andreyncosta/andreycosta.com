@@ -108,8 +108,10 @@ function synthetic_report(int $seed): array
         $results[] = $base + ['value_printed' => $printed, 'value_number' => $v, 'column' => 'current', 'result_date' => null, 'quote' => $line];
         $truth[] = ['name' => $name, 'operator' => '', 'value' => $v, 'text' => null, 'unit' => $unit, 'date' => $date];
         if ($withPrev) {
+            // O leitor falso continua devolvendo a coluna anterior, porque o laudo a imprime e é
+            // justamente ela que o pipeline tem de descartar. Fora da verdade de propósito: a
+            // verdade é o que deve ser carregado, e resultado anterior não deve.
             $results[] = $base + ['value_printed' => br($prev, $dec), 'value_number' => $prev, 'column' => 'previous', 'result_date' => $prevDate, 'quote' => $line];
-            $truth[] = ['name' => $name, 'operator' => '', 'value' => $prev, 'text' => null, 'unit' => $unit, 'date' => $prevDate];
         }
     }
     // Operator and non-numeric results.
