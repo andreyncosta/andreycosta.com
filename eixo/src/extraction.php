@@ -365,9 +365,34 @@ function read_document(string $reader, array $doc, string $extraInstruction = ''
     $providers = (string) eixo_config()['providers'];
     $res = $providers === 'fake' ? fake_read($reader, $doc) : read_pages($reader, $doc, $extraInstruction);
     if ($res['ok'] && is_array($res['payload'] ?? null)) {
-        $res['payload'] = tidy_payload(empty_text_to_null($res['payload']));
+        $res['payload'] = drop_reprinted_history(tidy_payload(empty_text_to_null($res['payload'])));
     }
     return $res;
+}
+
+/**
+ * Valores que o laudo reimprime como contexto não são resultados dele: a tabela comparativa do
+ * fim, com o resultado de agora e os anteriores lado a lado, e os rótulos do gráfico de evolução
+ * desenhado sob um resultado. A instrução manda os dois virem em column "previous"; aqui eles
+ * saem, antes de qualquer checagem.
+ *
+ * O corte vive neste ponto, e não em merge_page_groups, porque read_document tem dois caminhos —
+ * o leitor real, que junta grupos de páginas, e o falso dos testes, que devolve o payload inteiro
+ * — e só depois de tidy_payload eles se encontram. Posto no merge, o caminho falso escapava, que
+ * foi o que o CI pegou.
+ */
+function drop_reprinted_history(array $payload): array
+{
+    $results = $payload['results'] ?? null;
+    if (!is_array($results)) {
+        return $payload;
+    }
+    $antes = count($results);
+    $payload['results'] = array_values(array_filter($results, fn ($r) => !is_array($r) || ($r['column'] ?? 'current') !== 'previous'));
+    if (($caiu = $antes - count($payload['results'])) > 0) {
+        error_log("[eixo] $caiu reprinted-history result(s) dropped (comparative table or trend chart)");
+    }
+    return $payload;
 }
 
 /** The schema uses "" for optional text (see extraction_schema); the rest of the pipeline expects null. */
@@ -690,16 +715,6 @@ function merge_page_groups(array $parts): array
         [$results, $looped] = drop_looped_results($p['results'] ?? []);
         if ($looped > 0) {
             error_log("[eixo] $looped repeated result(s) dropped from a page group");
-        }
-        // O laudo comparativo que alguns laboratórios imprimem no fim traz a mesma linha com o
-        // valor de agora e até cinco anteriores, cada um com a sua data e a sua OS. Diante de seis
-        // colunas as duas leituras divergem sobre qual é o valor, e a discordância virava
-        // quarentena — era de onde vinha a maior parte dela. O histórico entra pelo laudo em que
-        // cada valor foi o resultado do dia, com a sua faixa e o seu método impressos.
-        $antes = count($results);
-        $results = array_values(array_filter($results, fn ($r) => ($r['column'] ?? 'current') !== 'previous'));
-        if (($caiu = $antes - count($results)) > 0) {
-            error_log("[eixo] $caiu previous-column result(s) dropped from a page group");
         }
         $merged['results'] = array_merge($merged['results'], $results);
         $merged['prescription_items'] = array_merge($merged['prescription_items'], $p['prescription_items'] ?? []);

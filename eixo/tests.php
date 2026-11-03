@@ -243,6 +243,18 @@ ok(count($fica) === 1 && $fica[0]['name_printed'] === 'Ureia' && $foram === 2, '
     ['page' => 4] + $linha('Glicose', '92', 92.0, 'Glicose 92 mg/dL'),
 ]);
 ok(count($fica) === 2 && $foram === 0, 'the same value printed on two pages is two readings, not a loop');
+
+// Histórico reimpresso: a tabela comparativa do fim e os rótulos do gráfico de evolução chegam
+// em column "previous" e saem antes de qualquer checagem; o resultado do laudo fica.
+$hist = drop_reprinted_history(['results' => [
+    ['column' => 'current'] + $linha('LH', '2,5', 2.5, 'RESULTADO: 2,5 mIU/mL'),
+    ['column' => 'previous'] + $linha('LH', '1,5', 1.5, '13/01/26 1,5'),
+    ['column' => 'previous'] + $linha('LH', '3,9', 3.9, '08/10/25 3,9'),
+    $linha('Ureia', '31', 31.0, 'Ureia 31 mg/dL'),
+]]);
+ok(count($hist['results']) === 2, 'reprinted history is dropped and the report own result stays');
+ok($hist['results'][0]['value_number'] === 2.5 && $hist['results'][1]['name_printed'] === 'Ureia', 'a result with no column declared counts as current');
+ok(drop_reprinted_history(['doc_type' => 'lab_report'])['doc_type'] === 'lab_report', 'a payload with no results survives the drop untouched');
 // Uma linha do leucograma imprime a porcentagem e a contagem absoluta, e a regra manda citar
 // a MESMA linha nas duas. Sao dois resultados legitimos, nao um laco: o que os distingue e a
 // unidade. Sem ela na chave, o detector jogava os doze fora e o diferencial sumia do laudo.
