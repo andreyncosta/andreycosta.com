@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eixo — Visão geral</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --vidrado:#fbfcfd; --cobalto:#1f4da8; --tinta:#11295e; --argamassa:#e7e3da;
+  --ui:'Archivo','Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif;
+  --pincel:'Fraunces',Georgia,'Times New Roman',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--argamassa)}
+.frame{width:390px;height:844px;overflow:hidden;background:var(--argamassa);color:var(--tinta);
+  font-family:var(--ui);display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+
+/* casca: barra de cobalto cheio, navegacao em branco osso */
+.bar{background:var(--cobalto);color:var(--vidrado);padding:10px 14px 0;box-shadow:inset 0 -1px 0 var(--tinta)}
+.bar-top{display:flex;align-items:center;justify-content:space-between;height:28px}
+.brand{display:flex;align-items:center;gap:7px;font-family:var(--pincel);font-size:19px;font-weight:600;letter-spacing:-.01em}
+.brand i{font-family:var(--ui);font-style:normal;font-size:9px;font-weight:700;letter-spacing:.12em;
+  border:1px solid rgba(251,252,253,.5);padding:3px 4px;border-radius:2px}
+.sair{background:none;border:0;color:rgba(251,252,253,.82);font:inherit;font-size:11px;text-decoration:underline;cursor:pointer}
+.nav{display:flex;flex-wrap:wrap;gap:3px;padding:7px 0 8px}
+.nav a{color:rgba(251,252,253,.74);font-size:10.5px;font-weight:500;letter-spacing:.03em;
+  text-decoration:none;padding:4px 7px;border-radius:2px}
+.nav a[aria-current="page"]{background:var(--vidrado);color:var(--tinta);font-weight:600}
+
+/* controles de trabalho */
+.tools{background:var(--vidrado);border-bottom:1px solid rgba(17,41,94,.16);
+  padding:9px 14px;display:flex;flex-direction:column;gap:7px}
+.tabs{display:flex;gap:4px}
+.tabs button{font:inherit;font-size:10.5px;font-weight:600;letter-spacing:.02em;padding:6px 8px;cursor:pointer;
+  border:1px solid rgba(17,41,94,.22);border-radius:2px;background:transparent;color:rgba(17,41,94,.7)}
+.tabs button[aria-selected="true"]{background:var(--cobalto);border-color:var(--cobalto);color:var(--vidrado)}
+.tabs button.alt{border-color:var(--cobalto);color:var(--cobalto)}
+.ctl{display:flex;gap:6px}
+.ctl input{flex:1;min-width:0;font:inherit;font-size:11px;padding:7px 9px;color:var(--tinta);
+  border:1px solid rgba(17,41,94,.3);border-radius:2px;background:#fff}
+.ctl button{font:inherit;font-size:11px;font-weight:600;padding:7px 11px;white-space:nowrap;cursor:pointer;
+  border:0;border-radius:2px;background:var(--tinta);color:var(--vidrado)}
+
+/* painel: o modulo que repete, a emenda entre laboratorios a vista */
+main{flex:1;padding:10px 14px 0;overflow:hidden}
+.seam{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:0 1px 6px;
+  border-bottom:2px solid var(--cobalto);margin-bottom:7px}
+.seam b{font-size:9.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase}
+.seam span{font-size:9px;color:rgba(17,41,94,.62);letter-spacing:.02em;white-space:nowrap}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;list-style:none;margin-bottom:12px}
+.t{height:86px;padding:7px 7px 6px;display:flex;flex-direction:column;overflow:hidden;
+  background:var(--vidrado);border:1px solid rgba(17,41,94,.12);border-radius:1px;
+  box-shadow:inset 1.5px 1.5px 0 #fff,inset -1px -1px 0 rgba(17,41,94,.06)}
+.t b{font-size:9.5px;font-weight:600;line-height:1.18;letter-spacing:.01em}
+.t p{margin-top:auto;display:flex;align-items:baseline;gap:3px;font-size:8.5px;
+  letter-spacing:.02em;color:rgba(17,41,94,.74)}
+.t p span{font-family:var(--pincel);font-size:21px;font-weight:600;line-height:1;
+  color:var(--tinta);font-variant-numeric:tabular-nums}
+.t em{font-style:normal;font-size:8px;line-height:1.3;margin-top:4px;color:rgba(17,41,94,.58);letter-spacing:.01em}
+.t p span.fl{font-family:var(--ui);font-size:6.5px;font-weight:700;line-height:1;letter-spacing:.08em;
+  white-space:nowrap;padding:2px;border:1px solid currentColor;border-radius:1px;align-self:center;color:inherit}
+/* o estalo no saguao: um valor alterado e perceptivel sem ser procurado */
+.t.mudou{background:var(--cobalto);border-color:var(--tinta);color:var(--vidrado);
+  box-shadow:inset 1.5px 1.5px 0 rgba(255,255,255,.26),0 1px 0 var(--tinta)}
+.t.mudou p{color:rgba(251,252,253,.82)}
+.t.mudou p span{color:var(--vidrado)}
+.t.mudou em{color:rgba(251,252,253,.76)}
+.t.mudou em.d{align-self:flex-start;margin-top:5px;display:inline-flex;align-items:center;gap:3px;
+  background:var(--vidrado);color:var(--tinta);font-size:7.5px;font-weight:700;line-height:1.4;
+  letter-spacing:.04em;padding:1px 4px;border-radius:1px;white-space:nowrap}
+
+/* o modulo de borda que nao fecha o padrao */
+.quar{margin-right:-14px;padding:7px 20px 8px 9px;background:var(--argamassa);
+  border:1px dashed rgba(17,41,94,.45);border-left:3px solid var(--cobalto);border-right:0}
+.quar h2{font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.quar h2 span{font-weight:500;letter-spacing:.02em;text-transform:none;color:rgba(17,41,94,.66)}
+.quar p{font-size:9px;line-height:1.5;margin-top:4px;color:rgba(17,41,94,.84)}
+.quar a{color:var(--cobalto);font-weight:600}
+
+footer{background:var(--tinta);color:rgba(251,252,253,.78);padding:8px 14px 10px;
+  font-size:8.5px;line-height:1.45;display:flex;flex-direction:column;gap:2px}
+footer a{color:var(--vidrado)}
+footer b{color:var(--vidrado)}
+</style>
+</head>
+<body>
+<div class="frame">
+
+  <header class="bar">
+    <div class="bar-top">
+      <span class="brand"><i>ei</i>Eixo</span>
+      <button class="sair" type="button">Sair</button>
+    </div>
+    <nav class="nav" aria-label="Eixo">
+      <a href="#" aria-current="page">Visão geral</a><a href="#">Linha do tempo</a><a href="#">Documentos</a>
+      <a href="#">Medicações</a><a href="#">Corpo</a><a href="#">Compartilhar</a><a href="#">Conta</a>
+    </nav>
+  </header>
+
+  <div class="tools">
+    <div class="tabs" role="tablist" aria-label="Filtrar exames">
+      <button role="tab" aria-selected="true" type="button">Carregados 15</button>
+      <button role="tab" aria-selected="false" class="alt" type="button">Alterados 1</button>
+      <button role="tab" aria-selected="false" type="button">Em quarentena 2</button>
+    </div>
+    <div class="ctl">
+      <label class="sr-only" for="b">Buscar exame</label>
+      <input id="b" type="search" placeholder="Buscar exame, laboratório ou unidade">
+      <button type="button">Enviar laudo</button>
+    </div>
+  </div>
+
+  <main>
+    <div class="seam"><b>Laboratório Sabin</b><span>coleta 14/08/2026 · 4 páginas</span></div>
+    <ul class="grid">
+      <li class="t mudou"><b>Colesterol LDL</b>
+        <span class="sr-only">Subiu 11 mg/dL desde 02/03/2026. Marcação ALTO impressa pelo laboratório.</span>
+        <p><span>142</span>mg/dL<span class="fl">ALTO</span></p>
+        <em class="d">▲ 11 desde 02/03/2026</em><em>faixa &lt; 130 mg/dL</em></li>
+      <li class="t"><b>Colesterol HDL</b><p><span>48</span>mg/dL</p><em>&gt; 40 mg/dL</em></li>
+      <li class="t"><b>Colesterol total</b><p><span>212</span>mg/dL<span class="fl">ALTO</span></p><em>&lt; 190 mg/dL</em></li>
+      <li class="t"><b>Triglicerídeos</b><p><span>134</span>mg/dL</p><em>&lt; 150 mg/dL</em></li>
+      <li class="t"><b>Glicose</b><p><span>94</span>mg/dL</p><em>70 a 99 mg/dL</em></li>
+      <li class="t"><b>Hemoglobina glicada</b><p><span>5,4</span>%</p><em>4,0 a 5,7 %</em></li>
+      <li class="t"><b>Creatinina</b><p><span>0,92</span>mg/dL</p><em>0,70 a 1,20 mg/dL</em></li>
+      <li class="t"><b>TSH</b><p><span>2,10</span>mUI/L</p><em>0,45 a 4,50 mUI/L</em></li>
+      <li class="t"><b>Vitamina D</b><p><span>31</span>ng/mL</p><em>sem faixa no laudo</em></li>
+    </ul>
+
+    <div class="seam"><b>Laboratório Fleury</b><span>coleta 02/03/2026 · 2 páginas</span></div>
+    <ul class="grid">
+      <li class="t"><b>Colesterol LDL</b><p><span>131</span>mg/dL<span class="fl">ALTO</span></p><em>&lt; 130 mg/dL</em></li>
+      <li class="t"><b>Hemoglobina</b><p><span>14,8</span>g/dL</p><em>13,0 a 17,0 g/dL</em></li>
+      <li class="t"><b>Ferritina</b><p><span>88</span>ng/mL</p><em>30 a 400 ng/mL</em></li>
+      <li class="t"><b>Vitamina B12</b><p><span>402</span>pg/mL</p><em>211 a 911 pg/mL</em></li>
+      <li class="t"><b>ALT (TGP)</b><p><span>27</span>U/L</p><em>&lt; 41 U/L</em></li>
+      <li class="t"><b>GGT</b><p><span>31</span>U/L</p><em>10 a 71 U/L</em></li>
+    </ul>
+
+    <section class="quar" aria-label="Quarentena">
+      <h2>Em quarentena <span>· 2 valores, fora das séries</span></h2>
+      <p><b>Ferro sérico</b> — as leituras não concordaram (98 e 198 µg/dL) · <a href="#">página 4 ↗</a></p>
+      <p><b>Insulina</b> — valor não encontrado no texto da página · <a href="#">página 5 ↗</a></p>
+    </section>
+  </main>
+
+  <footer>
+    <p>O Eixo organiza e não interpreta. <b>ALTO</b> é a marcação impressa pelo próprio laboratório.</p>
+    <p>Cada valor foi lido por dois modelos de empresas diferentes e conferido por código, com página
+      e trecho guardados. <a href="#">Como a IA é usada ↗</a></p>
+  </footer>
+
+</div>
+</body>
+</html>

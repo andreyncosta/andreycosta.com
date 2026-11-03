@@ -1,0 +1,291 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-02",
+  "title": "Design System: Eixo",
+  "extensions": {
+    "colorMeta": {
+      "verde-profundo": {
+        "role": "primary",
+        "displayName": "Verde Profundo",
+        "canonical": "#2d5546",
+        "tonalRamp": [
+          "oklch(15% 0.02 160)",
+          "oklch(25% 0.035 160)",
+          "oklch(38% 0.045 160)",
+          "oklch(50% 0.045 160)",
+          "oklch(62% 0.04 160)",
+          "oklch(74% 0.03 160)",
+          "oklch(86% 0.02 160)",
+          "oklch(95% 0.008 160)"
+        ]
+      },
+      "verde-medio": { "role": "primary", "displayName": "Verde Médio", "canonical": "#456c57" },
+      "verde-pressionado": { "role": "primary", "displayName": "Verde Pressionado", "canonical": "#1f3d32" },
+      "ambar-de-foco": {
+        "role": "secondary",
+        "displayName": "Âmbar de Foco",
+        "canonical": "#b4773d",
+        "tonalRamp": [
+          "oklch(15% 0.03 65)",
+          "oklch(27% 0.055 65)",
+          "oklch(39% 0.075 65)",
+          "oklch(50% 0.085 65)",
+          "oklch(60% 0.09 65)",
+          "oklch(72% 0.07 65)",
+          "oklch(85% 0.045 65)",
+          "oklch(95% 0.015 65)"
+        ]
+      },
+      "ambar-de-texto": { "role": "secondary", "displayName": "Âmbar de Texto", "canonical": "#8d5c2b" },
+      "vermelho-de-alerta": {
+        "role": "tertiary",
+        "displayName": "Vermelho de Alerta",
+        "canonical": "#9b2c1d",
+        "tonalRamp": [
+          "oklch(15% 0.05 32)",
+          "oklch(25% 0.09 32)",
+          "oklch(35% 0.125 32)",
+          "oklch(45% 0.15 32)",
+          "oklch(57% 0.14 32)",
+          "oklch(70% 0.11 32)",
+          "oklch(84% 0.06 32)",
+          "oklch(95% 0.02 32)"
+        ]
+      },
+      "verde-tinta": {
+        "role": "neutral",
+        "displayName": "Verde Tinta",
+        "canonical": "#273e35",
+        "tonalRamp": [
+          "oklch(15% 0.012 165)",
+          "oklch(27% 0.02 165)",
+          "oklch(38% 0.022 165)",
+          "oklch(50% 0.02 165)",
+          "oklch(62% 0.016 165)",
+          "oklch(75% 0.012 165)",
+          "oklch(87% 0.008 165)",
+          "oklch(96% 0.004 165)"
+        ]
+      },
+      "papel-claro": {
+        "role": "neutral",
+        "displayName": "Papel Claro",
+        "canonical": "#f3f3ed",
+        "tonalRamp": [
+          "oklch(16% 0.004 100)",
+          "oklch(28% 0.005 100)",
+          "oklch(40% 0.006 100)",
+          "oklch(53% 0.006 100)",
+          "oklch(66% 0.006 100)",
+          "oklch(79% 0.006 100)",
+          "oklch(90% 0.005 100)",
+          "oklch(97% 0.003 100)"
+        ]
+      },
+      "superficie-cartao": { "role": "neutral", "displayName": "Superfície de Cartão", "canonical": "#fffefa" },
+      "texto-secundario": { "role": "neutral", "displayName": "Texto Secundário", "canonical": "#627267" },
+      "fio": { "role": "neutral", "displayName": "Fio", "canonical": "#dce2d7" },
+      "fio-forte": { "role": "neutral", "displayName": "Fio Forte", "canonical": "#cbd4c7" },
+      "realce-de-borda": { "role": "neutral", "displayName": "Realce de Borda", "canonical": "#bccdb6" },
+      "fundo-aviso": { "role": "primary", "displayName": "Fundo de Aviso", "canonical": "#e7efe8" },
+      "fundo-erro": { "role": "tertiary", "displayName": "Fundo de Erro", "canonical": "#f6e3df" },
+      "creme-quarentena": { "role": "secondary", "displayName": "Creme de Quarentena", "canonical": "#fbf6ec" },
+      "faixa-de-referencia": { "role": "primary", "displayName": "Faixa de Referência", "canonical": "#dce9de" },
+      "chip-neutro": { "role": "neutral", "displayName": "Chip Neutro", "canonical": "#e4e8e0" },
+      "chip-neutro-tinta": { "role": "neutral", "displayName": "Chip Neutro (tinta)", "canonical": "#556158" },
+      "chip-bom": { "role": "primary", "displayName": "Chip Bom", "canonical": "#d6ead9" },
+      "chip-bom-tinta": { "role": "primary", "displayName": "Chip Bom (tinta)", "canonical": "#1f5137" },
+      "chip-ruim": { "role": "tertiary", "displayName": "Chip Ruim", "canonical": "#f7ded8" },
+      "chip-ruim-tinta": { "role": "tertiary", "displayName": "Chip Ruim (tinta)", "canonical": "#8a2416" },
+      "ponto-bom": { "role": "primary", "displayName": "Ponto Bom", "canonical": "#2f6b4f" },
+      "rosa-destrutiva": { "role": "tertiary", "displayName": "Rosa Destrutiva", "canonical": "#d9a79e" },
+      "marcador-de-grafico": { "role": "neutral", "displayName": "Marcador de Gráfico", "canonical": "#9aa79e" },
+      "grade-de-grafico": { "role": "neutral", "displayName": "Grade de Gráfico", "canonical": "#e5e9e1" },
+      "fundo-de-citacao": { "role": "neutral", "displayName": "Fundo de Citação", "canonical": "#f7f7f1" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "O h1 de cada página, em Georgia regular. Nunca negrito." },
+      "headline": { "displayName": "Headline", "purpose": "O h2 que abre uma seção." },
+      "title": { "displayName": "Title", "purpose": "O cabeçalho de medicação, um grau abaixo do h2 de seção." },
+      "value": { "displayName": "Value", "purpose": "O número do exame no cartão — o papel tipográfico mais característico do sistema." },
+      "body": { "displayName": "Body", "purpose": "Texto corrente; prosa limitada a 760px." },
+      "lead": { "displayName": "Lead", "purpose": "O parágrafo de entrada, em Texto Secundário, até 720px." },
+      "detail": { "displayName": "Detail", "purpose": "Nome do exame, unidade, resumo de proveniência, rótulo de grupo." },
+      "caption": { "displayName": "Caption", "purpose": "Cabeçalho de tabela, faixa de referência, legenda do gráfico." },
+      "label": { "displayName": "Label", "purpose": "Eyebrow em caixa alta e cabeçalho de tabela (12px, 0.04em)." },
+      "mono": { "displayName": "Mono", "purpose": "Credencial e evidência: código de acesso, chave, trecho citado do laudo." }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "marcador-grupo",
+        "value": "transform 150ms",
+        "purpose": "A única transição do sistema: o triângulo do grupo de exames ao abrir/fechar. Desligada sob prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      { "name": "mobile", "value": "640px" }
+    ],
+    "containers": [
+      { "name": "app", "value": "1100px", "purpose": "Conteúdo em grade." },
+      { "name": "prose", "value": "760px", "purpose": "Prosa (.prose-app): privacidade, ficha da IA." },
+      { "name": "lead", "value": "720px", "purpose": "Parágrafo de entrada." },
+      { "name": "narrow", "value": "520px", "purpose": "Formulário curto." },
+      { "name": "gutter", "value": "clamp(16px, 4vw, 48px)", "purpose": "Goteira lateral de toda página." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "A ação principal de qualquer página. Troca de cor imediata no hover, sem transição.",
+      "html": "<button class=\"ds-btn\">Salvar</button>",
+      "css": ".ds-btn { background: #2d5546; color: #fff; border: 1px solid #2d5546; border-radius: 8px; padding: 10px 18px; font: 600 14px 'Segoe UI', system-ui, sans-serif; min-height: 44px; cursor: pointer; } .ds-btn:hover { background: #1f3d32; } .ds-btn:focus-visible { outline: 3px solid #b4773d; outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Ação secundária, sempre em par com a primária.",
+      "html": "<button class=\"ds-btn-ghost\">Como a IA é usada</button>",
+      "css": ".ds-btn-ghost { background: transparent; color: #2d5546; border: 1px solid #2d5546; border-radius: 8px; padding: 10px 18px; font: 600 14px 'Segoe UI', system-ui, sans-serif; min-height: 44px; cursor: pointer; } .ds-btn-ghost:hover { background: #e7efe8; } .ds-btn-ghost:focus-visible { outline: 3px solid #b4773d; outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Campo com rótulo empilhado. 16px de fonte é invariante: abaixo disso o Safari no iPhone dá zoom e desloca a página.",
+      "html": "<label class=\"ds-label\">E-mail<input class=\"ds-input\" type=\"email\" value=\"paciente@exemplo.com\"></label>",
+      "css": ".ds-label { display: flex; flex-direction: column; gap: 6px; font: 600 14px 'Segoe UI', system-ui, sans-serif; color: #273e35; } .ds-input { font: 16px 'Segoe UI', system-ui, sans-serif; padding: 10px 12px; border: 1px solid #cbd4c7; border-radius: 8px; background: #fffefa; color: #273e35; min-height: 44px; } .ds-input:focus-visible { outline: 3px solid #b4773d; outline-offset: 2px; }"
+    },
+    {
+      "name": "Consent Check",
+      "kind": "custom",
+      "refersTo": "consent-check",
+      "description": "Uma finalidade de consentimento por bloco clicável inteiro, com título em negrito e a consequência em texto secundário.",
+      "html": "<label class=\"ds-check\"><input type=\"checkbox\" checked><span><strong>Processar meus documentos com IA</strong><br><span class=\"ds-check-desc\">Envia a camada de texto de cada documento à Replicate (fora do Brasil) só para transcrição. Sem isso, os documentos ficam guardados, mas nada é extraído.</span></span></label>",
+      "css": ".ds-check { display: flex; flex-direction: row; align-items: flex-start; gap: 12px; padding: 14px; border: 1px solid #dce2d7; border-radius: 10px; background: #fffefa; font: 14px/1.6 'Segoe UI', system-ui, sans-serif; color: #273e35; cursor: pointer; } .ds-check input { width: 20px; height: 20px; margin-top: 4px; flex: 0 0 auto; } .ds-check-desc { color: #627267; } .ds-check input:focus-visible { outline: 3px solid #b4773d; outline-offset: 2px; }"
+    },
+    {
+      "name": "Exam Card",
+      "kind": "card",
+      "refersTo": "card-exam",
+      "description": "O componente assinatura. Quatro camadas fixas: nome cortado em duas linhas, valor em Georgia, chip de direção com triângulo cheio, faixa impressa pelo laboratório.",
+      "html": "<a class=\"ds-exam is-ruim\" href=\"#\"><span class=\"ds-exam-name\">Colesterol LDL</span><span class=\"ds-exam-value\">142 <span class=\"ds-exam-unit\">mg/dL</span><span class=\"ds-arrow\">▲</span></span><span class=\"ds-exam-range\">faixa &lt; 130 mg/dL</span></a>",
+      "css": ".ds-exam { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; background: #fffefa; border: 1px solid #dce2d7; border-radius: 12px; text-decoration: none; color: #273e35; max-width: 240px; } .ds-exam:hover { border-color: #bccdb6; } .ds-exam:focus-visible { outline: 3px solid #b4773d; outline-offset: 2px; } .ds-exam-name { font: 600 13px/1.3 'Segoe UI', system-ui, sans-serif; color: #273e35; min-height: 2.6em; } .ds-exam-value { font: 400 28px/1.1 Georgia, 'Times New Roman', serif; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; } .ds-exam-unit { font: 400 13px 'Segoe UI', system-ui, sans-serif; color: #627267; } .ds-arrow { font: 700 12px/1 'Segoe UI', system-ui, sans-serif; padding: 4px 8px; border-radius: 999px; display: inline-flex; align-items: center; align-self: center; background: #e4e8e0; color: #556158; } .ds-exam.is-bom .ds-arrow { background: #d6ead9; color: #1f5137; } .ds-exam.is-ruim .ds-arrow { background: #f7ded8; color: #8a2416; } .ds-exam-range { font-size: 12px; color: #627267; margin-top: 2px; }"
+    },
+    {
+      "name": "App Bar",
+      "kind": "nav",
+      "refersTo": null,
+      "description": "Barra fixa com a marca 'ei' em Georgia e navegação em sans. O item ativo recebe borda inferior de 2px, nunca fundo.",
+      "html": "<header class=\"ds-bar\"><a class=\"ds-brand\" href=\"#\"><span class=\"ds-mark\" aria-hidden=\"true\">ei</span>Eixo</a><nav class=\"ds-nav\" aria-label=\"Eixo\"><a href=\"#\" aria-current=\"page\">Visão geral</a><a href=\"#\">Linha do tempo</a><a href=\"#\">Documentos</a><a href=\"#\">Medicações</a></nav></header>",
+      "css": ".ds-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; padding: 16px 24px; border-bottom: 1px solid #dce2d7; background: #f3f3ed; font: 14px 'Segoe UI', system-ui, sans-serif; } .ds-brand { display: flex; align-items: center; gap: 10px; color: #273e35; font-weight: 600; font-size: 15px; text-decoration: none; } .ds-mark { display: grid; place-items: center; width: 35px; height: 35px; border-radius: 10px; background: #2d5546; color: #fff; font: 21px/1 Georgia, 'Times New Roman', serif; } .ds-nav { display: flex; flex-wrap: wrap; gap: 6px 18px; flex: 1; } .ds-nav a { color: #273e35; text-decoration: none; padding: 4px 0; border-bottom: 2px solid transparent; } .ds-nav a[aria-current] { border-bottom-color: #2d5546; font-weight: 600; } .ds-nav a:focus-visible { outline: 3px solid #b4773d; outline-offset: 2px; }"
+    },
+    {
+      "name": "Flash / Note",
+      "kind": "custom",
+      "refersTo": "flash",
+      "description": "Confirmação e nota de contexto. A barra esquerda de 4px é o único ornamento do sistema.",
+      "html": "<p class=\"ds-flash\" role=\"status\">Consentimentos atualizados.</p>",
+      "css": ".ds-flash { background: #e7efe8; border-left: 4px solid #456c57; padding: 12px 16px; border-radius: 6px; font: 16px/1.6 'Segoe UI', system-ui, sans-serif; color: #273e35; margin: 0; }"
+    },
+    {
+      "name": "Empty State",
+      "kind": "custom",
+      "refersTo": "empty",
+      "description": "Ausência dita por borda tracejada — a mesma gramática da quebra de série.",
+      "html": "<p class=\"ds-empty\">Nenhum documento enviado ainda.</p>",
+      "css": ".ds-empty { color: #627267; padding: 28px; border: 1px dashed #cbd4c7; border-radius: 12px; text-align: center; font: 16px/1.6 'Segoe UI', system-ui, sans-serif; margin: 0; }"
+    },
+    {
+      "name": "Access Code Block",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Credencial para ser lida em voz alta ou copiada: monoespaçada, selecionável de uma vez, quebrando por caractere.",
+      "html": "<p class=\"ds-key\">4821 7309</p>",
+      "css": ".ds-key { font: 600 18px/1.5 ui-monospace, Menlo, monospace; padding: 12px 16px; background: #fffefa; border: 1px solid #dce2d7; border-radius: 8px; word-break: break-all; user-select: all; color: #273e35; margin: 0; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "O Arquivo Calmo",
+    "overview": "O Eixo é lido por alguém que acabou de receber um resultado e não sabe ainda o que ele significa, muitas vezes no celular, às vezes minutos antes da consulta. A interface recua para que o resultado apareça. Nada pulsa, nada comemora, nada alarma: a tela não acrescenta estresse ao que o paciente já trouxe. O que o sistema oferece em troca da discrição é a certeza de que cada número veio de uma página que ele pode abrir.\n\nA atmosfera é silenciosa, precisa e confiável. A ausência de ruído é a promessa do produto, não economia de esforço: não há sombra, não há gradiente, não há animação além de um marcador de 150 ms que respeita prefers-reduced-motion. A hierarquia é feita de papel, fio de 1px e tipografia — o verde editorial e a Georgia vêm do site andreycosta.com e são herança deliberada, não acidente. Onde um painel de métricas usaria cor para impressionar, o Eixo usa cor para dizer uma única coisa: o que o laboratório imprimiu.\n\nA precisão é o acabamento visível. Alvos de 44px, foco âmbar inequívoco de 3px em tudo que recebe teclado, campo nunca abaixo de 16px, legenda em sr-only para quem navega por leitor de tela. Componente preciso e discreto: não chama atenção para si, mas não falha quando alguém depende dele.",
+    "keyCharacteristics": [
+      "Papel morno e cartão marfim, sem nenhuma sombra: profundidade por borda e tom.",
+      "Georgia para todo número que o paciente foi ler; sans só para rótulo, navegação e controle.",
+      "Verde é a única voz de ação; âmbar é foco e marcação no tempo; vermelho é alerta e destruição.",
+      "Cor nunca é o único portador de significado — sempre acompanhada de glifo e texto.",
+      "Densidade de leitura, não de painel: 1100px de contêiner, 760px de prosa, 520px de formulário."
+    ],
+    "rules": [
+      {
+        "name": "A Regra da Marcação do Laboratório",
+        "body": "Cor de estado só repete o que o laudo imprimiu. O sistema nunca pinta um valor como alterado por conta própria, nem calcula faixa, nem decide o que é bom. Se o laboratório não imprimiu faixa, o cartão diz \"sem faixa no laudo\" em itálico e fica neutro.",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra da Voz Única",
+        "body": "O verde é a única cor de ação. Âmbar é foco e tempo, vermelho é alerta e destruição, e nenhum dos dois convida ao clique. Introduzir um quarto matiz exige mudar esta regra primeiro.",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra do Número Serifado",
+        "body": "Todo número que o paciente foi ler está em Georgia; a sans fica com rótulo, navegação e controle. É assim que o olho encontra o resultado numa tela cheia de interface.",
+        "section": "typography"
+      },
+      {
+        "name": "A Regra dos 16px",
+        "body": "Campo de formulário nunca abaixo de 16px. Não é preferência estética: abaixo disso o Safari no iPhone dá zoom no campo e desloca a página no meio do envio de um laudo.",
+        "section": "typography"
+      },
+      {
+        "name": "A Regra da Quebra Cuidada",
+        "body": "Título leva text-wrap: balance e o corpo leva text-wrap: pretty. Um h1 em clamp() quebra em duas linhas no celular com a segunda em um terço da primeira, e uma palavra sozinha na última linha de um parágrafo abre um buraco — os dois são corrigíveis por uma declaração, sem tocar na medida.",
+        "section": "typography"
+      },
+      {
+        "name": "A Regra do Alvo de 44px",
+        "body": "Botão, campo, seletor e área de toque têm 44px de altura mínima. A caixa de consentimento é de 20px por 20px dentro de um rótulo de 14px de recheio, porque o alvo real é o rótulo inteiro.",
+        "section": "layout"
+      },
+      {
+        "name": "A Regra do Chapado",
+        "body": "Sombra nunca, em nenhum estado, em nenhum componente. Profundidade é borda de 1px e tom de superfície. Quem precisar de destaque usa borda mais forte, peso tipográfico ou espaço — não altura.",
+        "section": "elevation"
+      },
+      {
+        "name": "A Regra do Tracejado Significa Interrupção",
+        "body": "Borda tracejada aparece só onde há ausência ou descontinuidade: o estado vazio (1px tracejado em Fio Forte) e a quebra de série no gráfico e na tabela (âmbar tracejado). Nunca como decoração.",
+        "section": "shapes"
+      },
+      {
+        "name": "A Regra do Triângulo",
+        "body": "Direção se lê por glifo cheio dentro de um chip, nunca por cor sozinha e nunca pela seta tipográfica. O glifo e a legenda são obrigatórios; a cor é reforço.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do consumir as cores por var(--brand-*) de /assets/site.css. O Eixo não redeclara a paleta: herda-a, inclusive no gráfico e na linha do tempo. Dois valores próprios com uso repetido têm variável local (--eixo-fio-forte, --eixo-vermelho-de-alerta); os de uso único ficam literais, nomeados aqui — uma variável para um só ponto de uso é indireção, não sistema.",
+      "Do manter o foco âmbar de 3px com 2px de deslocamento em todo elemento focável, inclusive summary e select.",
+      "Do dar 44px de altura mínima a botão e campo, e 16px de fonte em todo campo.",
+      "Do pôr o número em Georgia e a unidade em sans secundária, nessa ordem de peso visual.",
+      "Do acompanhar toda marcação por cor de um glifo e de uma legenda em sr-only.",
+      "Do mostrar a faixa que o laboratório imprimiu e, quando não houver, dizer \"sem faixa no laudo\" em itálico em vez de omitir a linha.",
+      "Do manter a folha de impressão viva: uma página do Eixo tem de sair legível numa folha.",
+      "Do declarar o estado de quarentena com cor quente e link para o laudo, nunca com cor de erro.",
+      "Do medir a cor como ela é composta, não como foi escrita: conferir o contraste no resultado renderizado, porque opacidade e fundo tingido alteram o valor que chega ao olho."
+    ],
+    "donts": [
+      "Don't usar box-shadow, gradiente ou backdrop-filter. Nenhum estado, nenhum componente.",
+      "Don't pintar um valor como alterado, bom ou ruim sem marcação impressa pelo laboratório — nem calcular faixa, nem inferir normalidade.",
+      "Don't usar cor como único portador de significado.",
+      "Don't des-enfatizar texto com opacity. Ela compõe todas as cores do elemento contra o fundo de uma vez e derruba o contraste sem aviso — foi assim que a linha corrigida chegou a 2,4:1. Para baixar o tom, troque a cor por uma do sistema.",
+      "Don't trazer vocabulário de app de bem-estar gamificado: anel de progresso, medalha, sequência de dias, pontuação, verde neón, emoji de parabéns. Transformar exame em placar sugere um julgamento que o Eixo não faz e não tem autoridade para fazer.",
+      "Don't trocar o Verde Tinta (#273e35) por preto, nem o Papel Claro por branco puro: a herança do site é o que une o app à sua página pública.",
+      "Don't acrescentar animação além do marcador de 150 ms existente sem um @media (prefers-reduced-motion: reduce) que a desligue.",
+      "Don't introduzir um quarto matiz de ação. Verde age, âmbar foca e marca o tempo, vermelho alerta.",
+      "Don't remover a frase de limite do rodapé nem a nota de divulgação de IA por motivo de composição."
+    ]
+  }
+}

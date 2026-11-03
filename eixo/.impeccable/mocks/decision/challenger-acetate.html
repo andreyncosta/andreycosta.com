@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=390,initial-scale=1">
+<title>Eixo — Visão geral</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --cobalto:#1b3fb0; --osso:#f7f4ee; --errata:#e03a1f; --errata-cheia:#c62f16; --petroleo:#0f6e6b;
+  --tinta:#152246; --furo:#0b1f5e;
+  --osso-78:rgba(247,244,238,.78); --fio-osso:rgba(247,244,238,.24);
+  --sans:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,"Courier New",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0c1838;color:var(--osso);font:400 15px/1.45 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.tela{width:390px;height:844px;overflow:hidden;background:var(--cobalto);display:flex}
+
+/* trilho de abas: uma aba por seção, altura proporcional ao que a seção guarda */
+.trilho{width:40px;flex:none;display:flex;flex-direction:column;gap:2px;padding:2px 0}
+.aba{flex:0 1 auto;min-height:86px;display:flex;align-items:center;justify-content:space-between;
+  padding:7px 0;background:var(--osso);color:var(--cobalto);border-radius:3px 0 0 3px;overflow:hidden;
+  writing-mode:vertical-rl;text-transform:uppercase;letter-spacing:.05em;
+  font:600 9.5px/1 var(--sans)}
+.aba .qtd{writing-mode:horizontal-tb;font:500 10px/1 var(--mono);opacity:.85}
+.aba.atual{background:var(--cobalto);color:var(--osso);border-radius:0;letter-spacing:.09em}
+.furo{width:11px;height:11px;flex:none;border-radius:50%;background:var(--furo);writing-mode:horizontal-tb;
+  box-shadow:inset 0 1.5px 2px rgba(0,0,0,.6), 0 1px 0 rgba(247,244,238,.45)}
+
+.coluna{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px;padding:16px 14px 12px;overflow:hidden}
+.selo{font:600 10px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--osso-78)}
+h1{margin-top:6px;font-size:25px;font-weight:600;letter-spacing:-.02em;line-height:1.05}
+.meta{margin-top:4px;font-size:12px;color:var(--osso-78)}
+
+/* seletor de período: selecionado é furo */
+.periodo{display:flex;border:1px solid rgba(247,244,238,.46);border-radius:3px;overflow:hidden}
+.opt{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 0;
+  font-size:12.5px;color:var(--osso-78)}
+.opt.sel{background:var(--osso);color:var(--tinta);font-weight:600}
+
+/* cartão de seção + lâmina de acetato articulada sobre ele */
+.ficha{position:relative;margin-bottom:14px;padding:13px 15px 68px;border-radius:3px;
+  background:var(--osso);color:var(--tinta);box-shadow:0 2px 0 rgba(11,31,94,.45)}
+.ficha .cab{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.ficha h2{font-size:17px;font-weight:600;letter-spacing:-.01em}
+.impresso{flex:none;max-width:104px;padding:3px 7px;border:1.5px solid var(--errata);border-radius:2px;
+  color:#9f2410;font:600 9.5px/1.25 var(--sans);text-transform:uppercase;letter-spacing:.04em}
+.valor{margin-top:6px;font-size:44px;font-weight:600;letter-spacing:-.035em;line-height:1;
+  font-variant-numeric:tabular-nums}
+.valor span{font-size:15px;font-weight:500;letter-spacing:0;color:#4d5878}
+.faixa{margin-top:5px;font-size:12.5px;color:#4d5878}
+
+.lamina{position:absolute;left:11px;right:11px;bottom:-20px;padding:11px 12px 9px;border-radius:2px;
+  background:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.9);
+  box-shadow:0 7px 16px -7px rgba(11,31,94,.6);backdrop-filter:saturate(.7) blur(.5px)}
+.dobradica{position:absolute;top:-2px;left:18px;right:18px;height:3px;border-radius:2px;
+  background:repeating-linear-gradient(90deg,rgba(21,34,70,.55) 0 9px,transparent 9px 19px)}
+.trecho{font:400 11px/1.45 var(--mono);color:var(--tinta);white-space:pre-wrap}
+.pe{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;
+  font-size:11px;color:var(--tinta)}
+.par{display:inline-flex;align-items:center;gap:5px;color:#0b5250;font-weight:600}
+.par i{width:7px;height:7px;border-radius:50%;background:var(--petroleo)}
+.pe a{color:var(--cobalto);font-weight:600;text-decoration:underline}
+
+/* série: fica sobre a cor da seção, sem virar cartão */
+.rotulo{font:600 10px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--osso-78)}
+.linha{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:7px 0;
+  border-bottom:1px solid var(--fio-osso)}
+.linha .nm{font-size:14px;font-weight:500}
+.linha em{display:block;margin-top:1px;font-style:normal;font-size:10.5px;color:var(--osso-78)}
+.linha .vl{flex:none;text-align:right;font:500 15px/1.1 var(--mono);font-variant-numeric:tabular-nums}
+
+/* pendente: meia-dobradiça */
+.pendente{position:relative;padding:9px 12px 0;border-radius:3px 3px 0 0;background:var(--osso);
+  color:var(--tinta);font-size:12.5px}
+.pendente b{font-weight:600}
+.meia{display:block;height:12px;margin:9px -12px 0;background:rgba(247,244,238,.3);
+  border-top:2px dashed rgba(21,34,70,.4);border-radius:0 0 3px 3px}
+
+/* erro: tira de errata */
+.errata{border-top:3px solid var(--errata);border-radius:2px;padding:10px 13px 11px;
+  background:var(--errata-cheia);color:#fff}
+.errata .et{font:600 9.5px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;opacity:.92}
+.errata .eh{margin-top:5px;font-size:14.5px;font-weight:600}
+.errata .eb{margin-top:3px;font-size:11px;line-height:1.3;color:rgba(255,255,255,.94)}
+.eacoes{display:flex;align-items:stretch;gap:9px;margin-top:9px}
+.elink{flex:1;display:flex;align-items:center;padding:7px 10px;border:1px solid rgba(255,255,255,.65);
+  border-radius:2px;font-size:12px;font-weight:600}
+/* desabilitado: virado de costas */
+.verso{flex:none;max-width:132px;padding:6px 10px;border-radius:2px;color:#5c4b46;cursor:not-allowed;
+  background:repeating-linear-gradient(135deg,#efe7e2 0 5px,#e6ddd7 5px 10px);
+  box-shadow:inset 0 0 0 1px rgba(92,75,70,.25);font-size:11.5px;font-weight:600}
+.verso em{display:block;font-style:normal;font-size:10px;font-weight:400;opacity:.85}
+
+.rodape{margin-top:auto;font-size:10.5px;line-height:1.4;color:var(--osso-78)}
+.rodape a{text-decoration:underline;color:var(--osso)}
+</style>
+</head>
+<body>
+<div class="tela">
+
+  <div class="coluna">
+    <header>
+      <p class="selo">Eixo · exames num só eixo</p>
+      <h1>Visão geral</h1>
+      <p class="meta">03/11/2026 · 5 séries · 14 laudos · 1 em leitura</p>
+    </header>
+
+    <div class="periodo" role="group" aria-label="Período da série">
+      <span class="opt sel"><span class="furo"></span>12 meses</span>
+      <span class="opt">24 meses</span>
+      <span class="opt">Tudo</span>
+    </div>
+
+    <section class="ficha">
+      <div class="cab">
+        <h2>Colesterol LDL</h2>
+        <span class="impresso">* marcação do laudo</span>
+      </div>
+      <p class="valor">142 <span>mg/dL</span></p>
+      <p class="faixa">Faixa do laudo: &lt; 130 mg/dL · coleta 18/09/2026</p>
+
+      <div class="lamina">
+        <span class="dobradica" aria-hidden="true"></span>
+        <p class="trecho">COLESTEROL LDL ....... 142 mg/dL  *
+Valor de referência: &lt; 130 mg/dL</p>
+        <p class="pe">
+          <span class="par"><i></i>duas leituras concordam</span>
+          <span>página 2 · <a href="#">abrir laudo</a></span>
+        </p>
+      </div>
+    </section>
+
+    <div>
+      <p class="rotulo">Série dos últimos 12 meses</p>
+      <a class="linha" href="#">
+        <span class="nm">Hemoglobina glicada<em>faixa do laudo 4,0 a 5,7 %</em></span>
+        <span class="vl">5,4 %<em>pág. 1</em></span>
+      </a>
+      <a class="linha" href="#">
+        <span class="nm">Creatinina<em>faixa do laudo 0,70 a 1,20 mg/dL</em></span>
+        <span class="vl">0,92 mg/dL<em>pág. 3</em></span>
+      </a>
+      <a class="linha" href="#">
+        <span class="nm">TSH<em>faixa do laudo 0,45 a 4,50 mUI/L</em></span>
+        <span class="vl">2,10 mUI/L<em>pág. 3</em></span>
+      </a>
+      <a class="linha" href="#">
+        <span class="nm">Vitamina D<em>sem faixa no laudo</em></span>
+        <span class="vl">31 ng/mL<em>pág. 4</em></span>
+      </a>
+    </div>
+
+    <div class="pendente">
+      <p><b>Em leitura</b> — laudo de 12/10/2026, páginas 6 a 10 de 25</p>
+      <span class="meia" aria-hidden="true"></span>
+    </div>
+
+    <section class="errata">
+      <p class="et">Errata · quarentena</p>
+      <p class="eh">2 valores fora da série</p>
+      <p class="eb">A mesma linha repetida devolveu valores diferentes nas duas leituras.
+        Nenhum foi carregado.</p>
+      <div class="eacoes">
+        <a class="elink" href="#">Abrir laudo de 02/10/2026</a>
+        <span class="verso" aria-disabled="true">Juntar à série<em>indisponível</em></span>
+      </div>
+    </section>
+
+    <p class="rodape">A IA lê duas vezes · o código confere · o médico decide.
+      <a href="#">Ficha de transparência</a></p>
+  </div>
+
+  <nav class="trilho" aria-label="Seções">
+    <a class="aba atual" href="#" aria-current="page" style="flex-grow:3"><span class="furo"></span>Visão geral</a>
+    <a class="aba" href="#" style="flex-grow:6"><span class="qtd">48</span>Linha do tempo</a>
+    <a class="aba" href="#" style="flex-grow:4"><span class="qtd">14</span>Documentos</a>
+    <a class="aba" href="#" style="flex-grow:1"><span class="qtd">3</span>Medicações</a>
+    <a class="aba" href="#" style="flex-grow:2"><span class="qtd">6</span>Corpo</a>
+    <a class="aba" href="#" style="flex-grow:1">Compartilhar</a>
+    <a class="aba" href="#" style="flex-grow:1">Conta</a>
+  </nav>
+
+</div>
+</body>
+</html>

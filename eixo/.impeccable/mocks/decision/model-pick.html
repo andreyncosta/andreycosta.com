@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eixo — Linha do tempo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;500;600;700&family=Caveat:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#f2efe4; --ciano:#0f7fa8; --amarelo:#e8b321; --caneta:#243d8f;
+  --impresso:'Archivo Narrow','Arial Narrow','Segoe UI',system-ui,Helvetica,sans-serif;
+  --campo:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  --mao:'Caveat','Segoe Script','Bradley Hand',cursive;
+  --fio:rgba(36,61,143,.16); --fio-forte:rgba(36,61,143,.3); --fraco:rgba(36,61,143,.62);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--papel)}
+.frame{width:390px;height:844px;overflow:hidden;background:var(--papel);color:#1b2340;font-family:var(--impresso);display:flex;flex-direction:column}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+
+/* casca: a faixa de processo ciano */
+.band{background:var(--ciano);color:#fff;padding:10px 13px 0}
+.band-top{display:flex;align-items:center;justify-content:space-between;height:28px}
+.brand{display:flex;align-items:center;gap:7px;font-size:20px;font-weight:700;letter-spacing:.01em}
+.brand i{font-style:normal;font-size:9px;font-weight:700;letter-spacing:.14em;border:1px solid rgba(255,255,255,.55);padding:3px 4px}
+.sair{background:none;border:0;color:rgba(255,255,255,.88);font:inherit;font-size:11.5px;text-decoration:underline;cursor:pointer}
+.nav{display:flex;flex-wrap:wrap;gap:2px;padding:7px 0 8px}
+.nav a{color:rgba(255,255,255,.78);font-size:11px;font-weight:500;letter-spacing:.02em;text-decoration:none;padding:4px 7px}
+.nav a[aria-current="page"]{background:var(--papel);color:#0b5c7a;font-weight:700}
+
+/* cabeca da pagina e controles */
+.head{padding:9px 13px 7px}
+.head h1{font-size:19px;font-weight:700;letter-spacing:-.01em;line-height:1.1}
+.head p{font-size:10px;color:var(--fraco);margin-top:2px;letter-spacing:.01em}
+.tools{padding:0 13px 9px;display:flex;flex-direction:column;gap:7px}
+.tabs{display:flex;gap:4px}
+.tabs button{font:inherit;font-size:11px;font-weight:600;padding:4px 8px;cursor:pointer;background:transparent;color:var(--fraco);border:1px solid var(--fio-forte)}
+.tabs button[aria-selected="true"]{background:var(--ciano);border-color:var(--ciano);color:#fff}
+.tabs .q{display:inline-block;width:7px;height:7px;background:var(--amarelo);margin-right:4px}
+.ctl{display:flex;gap:6px}
+.ctl input{flex:1;min-width:0;font:inherit;font-size:11.5px;padding:6px 9px;color:#1b2340;background:#fffdf7;border:1px solid var(--fio-forte)}
+.ctl button{font:inherit;font-size:11.5px;font-weight:700;padding:6px 11px;white-space:nowrap;cursor:pointer;border:0;background:var(--caneta);color:#fff}
+
+/* a grade impressa */
+.sheet{flex:1;padding:0 13px;overflow:hidden}
+table{width:364px;border-collapse:collapse;table-layout:fixed;background:#fffdf7;border:1px solid var(--fio-forte)}
+thead th{background:var(--ciano);color:#fff;font-size:8.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;text-align:left;padding:6px;border-right:1px solid rgba(255,255,255,.28)}
+thead th:last-child{border-right:0}
+tbody th.g{background:rgba(15,127,168,.1);color:#0b5c7a;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;text-align:left;padding:5px 6px;border-top:1px solid var(--fio-forte);border-bottom:1px solid var(--fio)}
+tbody th.g span{font-weight:500;letter-spacing:.02em;text-transform:none;color:var(--fraco)}
+td{padding:5px 6px;vertical-align:top;border-top:1px solid var(--fio);border-right:1px solid var(--fio)}
+td:last-child{border-right:0}
+.dt{font-family:var(--campo);font-size:9.5px;color:var(--fraco);letter-spacing:-.02em}
+.ex{font-size:11.5px;font-weight:600;line-height:1.15}
+.fx{display:block;font-size:9px;font-weight:400;color:var(--fraco);margin-top:2px;letter-spacing:.01em}
+.vl{text-align:right}
+.vl b{font-family:var(--campo);font-size:13.5px;font-weight:500;letter-spacing:-.03em}
+.un{font-family:var(--campo);font-size:10px;color:var(--fraco);letter-spacing:-.03em}
+.flag{display:block;font-size:7px;font-weight:700;letter-spacing:.07em;margin-top:2px;color:#8a3b10}
+.at{font-size:9px;line-height:1.3;color:var(--fraco)}
+.at b{display:block;font-size:8.5px;font-weight:700;letter-spacing:.04em;color:#0b5c7a;text-transform:uppercase;margin-bottom:1px}
+.at a{color:var(--ciano)}
+tr.sel td{background:rgba(15,127,168,.08)}
+tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--ciano)}
+td.prov{background:rgba(15,127,168,.08);font-size:9px;line-height:1.45;color:#1b2340;border-right:0}
+td.prov q{font-family:var(--campo);font-size:9px;letter-spacing:-.02em}
+td.prov a{color:var(--ciano);font-weight:700}
+
+/* a caneta do paciente atravessa a regua onde ele corrigiu */
+tr.fix td{background:rgba(36,61,143,.05)}
+td.pen{position:relative}
+td.pen::after{content:"";position:absolute;left:4px;right:-92px;bottom:-3px;height:2px;border-radius:2px;background:var(--caneta);transform:rotate(-3.5deg);opacity:.92}
+td.pen s{font-family:var(--campo);font-size:11px;color:var(--fraco);text-decoration:none;
+  background:linear-gradient(transparent 44%,var(--caneta) 44%,var(--caneta) 62%,transparent 62%)}
+.mao{font-family:var(--mao);font-size:19px;font-weight:600;color:var(--caneta);line-height:.9;margin-left:4px}
+.assin{font-family:var(--mao);font-size:16px;font-weight:600;color:var(--caneta);display:block;line-height:1}
+
+/* quarentena: o estado que espera */
+tr.qr td{background:rgba(232,179,33,.14)}
+tr.qr td:first-child{box-shadow:inset 3px 0 0 var(--amarelo)}
+.chip{display:inline-block;background:var(--amarelo);color:#3a2b05;font-size:7.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:2px 4px;margin-bottom:2px}
+
+footer{padding:8px 13px 10px;border-top:2px solid var(--ciano);font-size:8.5px;line-height:1.45;color:var(--fraco);display:flex;flex-direction:column;gap:2px}
+footer a{color:var(--ciano);font-weight:700}
+footer b{color:#1b2340}
+</style>
+</head>
+<body>
+<div class="frame">
+
+  <header class="band">
+    <div class="band-top">
+      <span class="brand"><i>ei</i>Eixo</span>
+      <button class="sair" type="button">Sair</button>
+    </div>
+    <nav class="nav" aria-label="Eixo">
+      <a href="#">Visão geral</a><a href="#" aria-current="page">Linha do tempo</a><a href="#">Documentos</a>
+      <a href="#">Medicações</a><a href="#">Corpo</a><a href="#">Compartilhar</a><a href="#">Conta</a>
+    </nav>
+  </header>
+
+  <div class="head">
+    <h1>Linha do tempo</h1>
+    <p>22 valores carregados · 2 em quarentena · ordenados por data de coleta</p>
+  </div>
+
+  <div class="tools">
+    <div class="tabs" role="tablist" aria-label="Filtrar valores">
+      <button role="tab" aria-selected="true" type="button">Todos 24</button>
+      <button role="tab" aria-selected="false" type="button">Alterados 2</button>
+      <button role="tab" aria-selected="false" type="button"><span class="q"></span>Em quarentena 2</button>
+    </div>
+    <div class="ctl">
+      <label class="sr-only" for="b">Buscar exame</label>
+      <input id="b" type="search" placeholder="Buscar exame ou laboratório">
+      <button type="button">Enviar laudo</button>
+    </div>
+  </div>
+
+  <div class="sheet">
+    <table>
+      <colgroup><col style="width:54px"><col style="width:132px"><col style="width:62px">
+        <col style="width:44px"><col style="width:72px"></colgroup>
+      <thead><tr><th scope="col">Data</th><th scope="col">Exame como impresso</th>
+        <th scope="col">Valor</th><th scope="col">Unid.</th><th scope="col">Atestado por</th></tr></thead>
+      <tbody>
+        <tr><th class="g" colspan="5" scope="colgroup">Laboratório Sabin
+          <span>· coleta 14/08/2026 · laudo de 4 páginas</span></th></tr>
+
+        <tr class="sel"><td class="dt">14/08/2026</td>
+          <td><span class="ex">Colesterol LDL<span class="fx">faixa do laboratório &lt; 130 mg/dL</span></span></td>
+          <td class="vl"><b>142</b><span class="flag">ALTO</span></td><td class="un">mg/dL</td>
+          <td class="at"><b>2 leituras ✓</b><a href="#">pág. 2 ↗</a></td></tr>
+        <tr><td class="prov" colspan="5">Origem: página 2 —
+          <q>COLESTEROL LDL (calculado) .......... 142 mg/dL &nbsp;VR: inferior a 130 mg/dL</q>
+          · <a href="#">Abrir o laudo nesta página ↗</a></td></tr>
+
+        <tr><td class="dt">14/08/2026</td>
+          <td><span class="ex">Colesterol total<span class="fx">&lt; 190 mg/dL</span></span></td>
+          <td class="vl"><b>212</b><span class="flag">ALTO</span></td><td class="un">mg/dL</td>
+          <td class="at"><b>2 leituras ✓</b><a href="#">pág. 2 ↗</a></td></tr>
+        <tr class="fix"><td class="dt">14/08/2026</td>
+          <td><span class="ex">Hemoglobina glicada<span class="fx">4,0 a 5,7 %</span></span></td>
+          <td class="vl pen"><s>54</s><span class="mao">5,4</span></td><td class="un">%</td>
+          <td class="at"><span class="assin">A. Costa</span>corrigido em 21/08/2026
+            <span class="sr-only">Valor corrigido pelo paciente: o laudo imprime 5,4 por cento.</span></td></tr>
+        <tr><td class="dt">14/08/2026</td>
+          <td><span class="ex">Glicose<span class="fx">70 a 99 mg/dL</span></span></td>
+          <td class="vl"><b>94</b></td><td class="un">mg/dL</td>
+          <td class="at"><b>2 leituras ✓</b><a href="#">pág. 3 ↗</a></td></tr>
+        <tr><td class="dt">14/08/2026</td>
+          <td><span class="ex">Creatinina<span class="fx">0,70 a 1,20 mg/dL</span></span></td>
+          <td class="vl"><b>0,92</b></td><td class="un">mg/dL</td>
+          <td class="at"><b>2 leituras ✓</b><a href="#">pág. 3 ↗</a></td></tr>
+        <tr><td class="dt">14/08/2026</td>
+          <td><span class="ex">TSH<span class="fx">0,45 a 4,50 mUI/L</span></span></td>
+          <td class="vl"><b>2,10</b></td><td class="un">mUI/L</td>
+          <td class="at"><b>2 leituras ✓</b><a href="#">pág. 3 ↗</a></td></tr>
+        <tr><td class="dt">14/08/2026</td>
+          <td><span class="ex">Vitamina D<span class="fx">sem faixa impressa no laudo</span></span></td>
+          <td class="vl"><b>31</b></td><td class="un">ng/mL</td>
+          <td class="at"><b>2 leituras ✓</b><a href="#">pág. 3 ↗</a></td></tr>
+        <tr class="qr"><td class="dt">14/08/2026</td>
+          <td><span class="ex">Ferro sérico<span class="fx">as leituras não concordaram: 98 e 198 µg/dL</span></span></td>
+          <td class="vl"><b>—</b></td><td class="un">µg/dL</td>
+          <td class="at"><span class="chip">quarentena</span><a href="#">pág. 4 ↗</a></td></tr>
+
+        <tr><th class="g" colspan="5" scope="colgroup">Laboratório Fleury
+          <span>· coleta 02/03/2026 · laudo de 2 páginas</span></th></tr>
+        <tr><td class="dt">02/03/2026</td>
+          <td><span class="ex">Colesterol LDL<span class="fx">&lt; 130 mg/dL</span></span></td>
+          <td class="vl"><b>131</b><span class="flag">ALTO</span></td><td class="un">mg/dL</td>
+          <td class="at"><b>2 leituras ✓</b><a href="#">pág. 1 ↗</a></td></tr>
+        <tr><td class="dt">02/03/2026</td>
+          <td><span class="ex">Hemoglobina glicada<span class="fx">4,0 a 5,7 %</span></span></td>
+          <td class="vl"><b>5,2</b></td><td class="un">%</td>
+          <td class="at"><b>2 leituras ✓</b><a href="#">pág. 1 ↗</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    <p><b>O Eixo organiza e não interpreta.</b> ALTO é a marcação impressa pelo próprio laboratório;
+      o Eixo não marca valor como alterado por conta própria.</p>
+    <p>Atestado por = as duas leituras que concordaram e a conferência por código, ou a sua própria
+      correção. <a href="#">Como a IA é usada ↗</a></p>
+  </footer>
+
+</div>
+</body>
+</html>

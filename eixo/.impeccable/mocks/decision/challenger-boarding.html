@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=390,initial-scale=1">
+<title>Eixo — Visão geral</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sans:"Archivo","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+  --ink:#0f1317; --bone:#f4f5f2; --alert:#ff5a1f; --sage:#8e978f;
+  --line:rgba(244,245,242,.15); --lift:rgba(244,245,242,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#23272a;font-family:var(--sans);font-size:13px;color:var(--bone);-webkit-font-smoothing:antialiased}
+.frame{width:390px;height:844px;overflow:hidden;background:var(--ink);display:flex;flex-direction:column}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.up{text-transform:uppercase;letter-spacing:.1em}
+
+/* ---- barra do produto ---- */
+.bar{flex:0 0 50px;display:flex;align-items:center;gap:9px;padding:0 14px;border-bottom:1px solid var(--line)}
+.mark{font-weight:700;font-size:17px;letter-spacing:.16em;text-transform:uppercase}
+.tagline{font-family:var(--mono);font-size:8.5px;color:var(--sage);letter-spacing:.1em;text-transform:uppercase;margin-right:auto}
+.btn{font:600 10px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--bone);background:none;border:1px solid var(--line);padding:7px 9px;cursor:pointer;text-decoration:none}
+.btn.solid{background:var(--bone);color:var(--ink);border-color:var(--bone)}
+
+/* ---- área de trabalho ---- */
+.page{flex:1 1 auto;min-height:0;padding:13px 14px 0}
+.ttl{display:flex;align-items:baseline;gap:8px}
+h1{font-size:19px;font-weight:700;letter-spacing:-.01em}
+.ttl span{font-family:var(--mono);font-size:9.5px;color:var(--sage);letter-spacing:.08em;text-transform:uppercase;margin-left:auto}
+.tools{display:flex;align-items:center;gap:8px;height:38px;margin-top:2px}
+.tools label{font-size:9.5px;color:var(--sage);letter-spacing:.09em;text-transform:uppercase}
+select{appearance:none;-webkit-appearance:none;font:500 11px/1 var(--mono);color:var(--bone);background:var(--lift);border:1px solid var(--line);padding:6px 20px 6px 8px;border-radius:0}
+.caret{margin-left:-18px;font-size:9px;color:var(--sage);pointer-events:none}
+.qtab{margin-left:auto;font:600 10px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--bone);text-decoration:none;border-bottom:2px solid var(--line);padding-bottom:4px}
+
+/* ---- aviso de alteração não reconhecida (movimento-assinatura) ---- */
+.ack{display:flex;align-items:center;gap:9px;background:var(--lift);border-left:3px solid var(--alert);padding:11px 10px;margin:2px 0 12px}
+.ack p{font-size:11.5px;line-height:1.25;color:var(--bone)}
+.ack strong{color:var(--alert);font-weight:600}
+.ack .btn{margin-left:auto;flex:0 0 auto;border-color:var(--alert);color:var(--alert)}
+
+/* ---- tabela de valores ---- */
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+thead th{font-size:8.5px;color:var(--sage);letter-spacing:.11em;text-transform:uppercase;text-align:left;font-weight:600;padding:0 0 6px;border-bottom:1px solid var(--line)}
+thead th.r{text-align:right}
+tbody th{text-align:left;font-weight:500;padding:11px 0;vertical-align:top;border-bottom:1px solid rgba(244,245,242,.08)}
+tbody td{padding:11px 0;vertical-align:top;border-bottom:1px solid rgba(244,245,242,.08)}
+.name{display:block;font-size:13px;letter-spacing:-.005em}
+.meta{display:block;font-family:var(--mono);font-size:9px;color:var(--sage);margin-top:3px}
+.val{text-align:right;font-family:var(--mono);font-weight:500;font-size:17px;font-variant-numeric:tabular-nums}
+.val i{display:block;font-style:normal;font-size:9px;color:var(--sage);margin-top:2px}
+.fx{text-align:right;font-family:var(--mono);font-size:10px;color:var(--sage);padding-left:6px}
+.chip{display:inline-block;margin-top:4px;font-family:var(--sans);font-size:8px;letter-spacing:.06em;text-transform:uppercase;color:var(--bone);border:1px solid var(--line);padding:2px 4px;line-height:1.25}
+tr.moved th,tr.moved td{border-bottom:none;padding-bottom:4px}
+tr.moved th{border-left:3px solid var(--alert);padding-left:8px}
+tr.prov td{border-left:3px solid var(--alert);padding:0 0 10px 8px;border-bottom:1px solid rgba(244,245,242,.08)}
+.rank{display:inline-block;font:600 9px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--ink);background:var(--alert);padding:4px 6px;vertical-align:middle}
+.since{font-family:var(--mono);font-size:9px;color:var(--sage);margin-left:6px}
+.prov td .btn{float:right;border-color:var(--alert);color:var(--alert);padding:5px 8px}
+.cite{display:block;font-family:var(--mono);font-size:9.5px;line-height:1.4;color:var(--bone);margin-top:7px;clear:both}
+.cite a{color:var(--sage)}
+
+/* ---- quarentena ---- */
+.quar{display:flex;align-items:center;gap:9px;border:1px dashed var(--line);padding:9px 10px;margin-top:11px}
+.quar b{font:600 9px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--sage)}
+.quar p{font-family:var(--mono);font-size:9.5px;line-height:1.35;color:var(--bone);margin-top:4px}
+.quar a{margin-left:auto;flex:0 0 auto}
+
+/* ---- passagem de compartilhamento ---- */
+.pass{display:flex;background:var(--bone);color:var(--ink);margin-top:11px}
+.pass .body{flex:1 1 auto;padding:9px 10px}
+.pass .k{font:600 8.5px/1 var(--sans);letter-spacing:.11em;text-transform:uppercase;color:#4a524c}
+.code{display:flex;gap:3px;margin:7px 0 6px}
+.code span{font-family:var(--mono);font-weight:600;font-size:19px;line-height:1;font-variant-numeric:tabular-nums;border:1px solid rgba(15,19,23,.25);padding:5px 0;width:28px;text-align:center}
+.pass .fine{font-family:var(--mono);font-size:9px;color:#3c433e}
+.stub{flex:0 0 76px;border-left:2px dashed rgba(15,19,23,.35);padding:9px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.stub .n{font-family:var(--mono);font-weight:600;font-size:22px;line-height:1;font-variant-numeric:tabular-nums}
+.stub .l{font:600 7.5px/1.3 var(--sans);letter-spacing:.11em;text-transform:uppercase;color:#4a524c;margin-top:4px}
+.note{font-size:9.5px;line-height:1.35;color:var(--sage);margin-top:12px}
+.note a{color:var(--bone)}
+
+/* ---- navegação ---- */
+.nav{flex:0 0 66px;display:flex;border-top:1px solid var(--line)}
+.nav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font:600 8.5px/1.15 var(--sans);letter-spacing:.05em;text-transform:uppercase;color:var(--sage);text-decoration:none;text-align:center;padding:0 2px;border-top:2px solid transparent}
+.nav a.on{color:var(--bone);border-top-color:var(--bone)}
+</style>
+</head>
+<body>
+<div class="frame">
+
+  <header class="bar">
+    <span class="mark">Eixo</span>
+    <span class="tagline">exames num só eixo</span>
+    <a class="btn solid" href="#">Compartilhar</a>
+    <a class="btn" href="#">Conta</a>
+  </header>
+
+  <main class="page">
+    <div class="ttl"><h1>Visão geral</h1><span>5 valores · 02/11/2026</span></div>
+
+    <div class="tools">
+      <label for="ord">Ordem</label>
+      <select id="ord" name="ord"><option>Data, mais recente</option><option>Nome do exame</option><option>Laboratório</option></select><span class="caret">▼</span>
+      <a class="qtab" href="#">Quarentena 1</a>
+    </div>
+
+    <div class="ack">
+      <p><strong>1 linha mudou de lugar</strong> desde a sua última visita, em 14/10/2026. Fica acesa até você reconhecer.</p>
+      <button class="btn" type="button">Reconhecer</button>
+    </div>
+
+    <table>
+      <thead><tr><th>Exame</th><th class="r" style="width:84px">Valor</th><th class="r" style="width:118px">Faixa do laudo</th></tr></thead>
+      <tbody>
+        <tr class="moved">
+          <th scope="row"><span class="name">Colesterol LDL</span><span class="meta">28/10/2026 · Lab. São Lucas</span></th>
+          <td class="val">142<i>mg/dL</i></td>
+          <td class="fx">&lt; 130 mg/dL<span class="chip">acima — marcado no laudo</span></td>
+        </tr>
+        <tr class="prov"><td colspan="3">
+          <span class="rank">▲ subiu 4 posições</span><span class="since">reordenado em 28/10</span>
+          <button class="btn" type="button">Reconhecer</button>
+          <span class="cite">pág. 3 — «Colesterol LDL (Friedewald) 142 mg/dL — ref.: &lt; 130 mg/dL» <a href="#">Ver no laudo</a></span>
+          <span class="sr">Linha reordenada: subiu quatro posições e segue destacada até ser reconhecida. A marcação de fora da faixa é a impressa pelo laboratório.</span>
+        </td></tr>
+        <tr>
+          <th scope="row"><span class="name">Hemoglobina glicada</span><span class="meta">28/10/2026 · Lab. São Lucas</span></th>
+          <td class="val">5,4<i>%</i></td>
+          <td class="fx">4,0 a 5,7 %</td>
+        </tr>
+        <tr>
+          <th scope="row"><span class="name">Creatinina</span><span class="meta">28/10/2026 · Lab. São Lucas</span></th>
+          <td class="val">0,92<i>mg/dL</i></td>
+          <td class="fx">0,70 a 1,30 mg/dL</td>
+        </tr>
+        <tr>
+          <th scope="row"><span class="name">Vitamina D</span><span class="meta">19/09/2026 · Lab. Vita</span></th>
+          <td class="val">31<i>ng/mL</i></td>
+          <td class="fx">sem faixa no laudo</td>
+        </tr>
+        <tr>
+          <th scope="row"><span class="name">TSH</span><span class="meta">19/09/2026 · Lab. Vita</span></th>
+          <td class="val">2,10<i>mUI/L</i></td>
+          <td class="fx">0,45 a 4,50 mUI/L</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <section class="quar">
+      <div><b>Quarentena · fora da série</b><p>Ferritina, 19/09/2026 — as duas leituras discordaram.</p></div>
+      <a class="btn" href="#">Ver laudo</a>
+    </section>
+
+    <section class="pass">
+      <div class="body">
+        <span class="k">Código para o médico · uso único</span>
+        <div class="code"><span>4</span><span>7</span><span>2</span><span>0</span><span>6</span><span>1</span><span>9</span><span>3</span></div>
+        <span class="fine">válido 30 min · expira 16:42 · escopo: todo o histórico</span>
+      </div>
+      <div class="stub"><span class="n">014</span><span class="l">Sequência</span></div>
+    </section>
+
+    <p class="note">A IA lê duas vezes, o código confere, o médico decide. O Eixo organiza e não interpreta. <a href="#">Ficha de transparência</a></p>
+  </main>
+
+  <nav class="nav">
+    <a class="on" href="#">Visão<br>geral</a>
+    <a href="#">Linha do<br>tempo</a>
+    <a href="#">Documen&shy;tos</a>
+    <a href="#">Medica&shy;ções</a>
+    <a href="#">Corpo</a>
+  </nav>
+
+</div>
+</body>
+</html>

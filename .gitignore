@@ -27,3 +27,14 @@ artifacts/
 
 # Eixo: dependencies are installed on the server with composer
 eixo/vendor/
+
+# Impeccable: o skill e seu binario por plataforma sao instalados por maquina, nao versionados.
+# A fonte fica em .github/skills/impeccable; .claude/skills/impeccable e uma juncao para ela.
+.github/skills/impeccable/
+.claude/skills/impeccable/
+.claude/settings.local.json
+
+# Impeccable: estado efêmero de rodada (servidor de decisão, build-phase, capturas).
+eixo/.impeccable/questions/
+eixo/.impeccable/build/
+eixo/.impeccable/review/

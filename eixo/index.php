@@ -289,11 +289,16 @@ function page_dashboard(int $uid): void
     $q = trim((string) ($_GET['q'] ?? ''));
     $ctx = patient_context($uid);
 
-    // Três grupos: o que o paciente escolheu seguir, o que saiu da faixa, e o resto
-    // guardado por seção. A página abre com o que pede atenção, não com tudo.
+    // O painel agrupa pelo laboratório da leitura mais recente, e a régua de emenda entre
+    // grupos é a junta à vista: séries só se juntam dentro do mesmo laboratório (RF-18), então
+    // a emenda não é ornamento, é a verdade da estrutura. O que pede atenção continua à frente,
+    // e o que mudou anuncia-se pelo próprio módulo, invertido, onde quer que ele esteja.
+    $f = (string) ($_GET['f'] ?? '');
     $fixados = [];
     $atencao = [];
-    $secoes = [];
+    $porLab = [];
+    $labData = [];
+    $alterados = 0;
     foreach ($series as $s) {
         $exame = exam_of($s['payload']);
         $busca = $exame['nome'] . ' ' . ($s['payload']['label'] ?? '') . ' ' . ($s['payload']['section'] ?? '');
@@ -301,15 +306,28 @@ function page_dashboard(int $uid): void
             continue;
         }
         $ind = exam_indicator($s, $ctx);
+        $mudou = in_array($ind['seta'] ?? '', ['↑', '↓'], true);
+        if ($mudou) {
+            $alterados++;
+        }
+        if ($f === 'alterados' && !$mudou) {
+            continue;
+        }
         if ($s['pinned']) {
             $fixados[] = $s;
         } elseif (in_array($ind['posicao'], ['acima', 'abaixo'], true) || ($ind['tipo'] === 'qualitativo' && $ind['cor'] === 'ruim')) {
             $atencao[] = $s;
         } else {
-            $secoes[($s['payload']['section'] ?? '') ?: 'Outros exames'][] = $s;
+            $lab = trim((string) ($s['last']['lab'] ?? '')) ?: 'Laboratório não identificado no laudo';
+            $porLab[$lab][] = $s;
+            $data = (string) ($s['last']['date'] ?? '');
+            if ($data > ($labData[$lab] ?? '')) {
+                $labData[$lab] = $data;
+            }
         }
     }
-    ksort($secoes);
+    // Laboratório mais recente primeiro: a emenda de cima é a coleta de agora.
+    uksort($porLab, fn ($a, $b) => ($labData[$b] ?? '') <=> ($labData[$a] ?? ''));
 
     $cartoes = function (array $lista) use ($ctx): string {
         $out = '<div class="cards exams">';
@@ -326,27 +344,62 @@ function page_dashboard(int $uid): void
     if (!consents($uid)['ai']) {
         $html .= '<p class="note">O processamento por IA está desligado: documentos ficam guardados, sem extração. <a href="' . h(url('consents')) . '">Consentimentos</a>.</p>';
     }
-    if ($quar) {
-        $html .= '<p class="note">' . count($quar) . ' valor(es) em quarentena: as leituras não confirmaram. <a href="' . h(url('docs')) . '">Ver nos documentos</a>.</p>';
+    // Abas de filtro com a contagem à vista. A quarentena deixa de ser um aviso permanente que
+    // nunca fecha e passa a ser um lugar onde se entra.
+    if ($series || $quar) {
+        $aba = function (string $chave, string $rotulo, int $n) use ($f, $q): string {
+            $args = $chave === '' ? [] : ['f' => $chave];
+            if ($q !== '') {
+                $args['q'] = $q;
+            }
+            return '<a href="' . h(url('', $args)) . '"' . ($f === $chave ? ' aria-current="page"' : '') . '>'
+                . h($rotulo) . ' ' . $n . '</a>';
+        };
+        $html .= '<div class="tabs">' . $aba('', 'Carregados', count($series))
+            . $aba('alterados', 'Alterados', $alterados)
+            . $aba('quarentena', 'Em quarentena', count($quar)) . '</div>';
     }
     $html .= '<form class="search" method="get"><input type="hidden" name="r" value=""><label class="sr-only" for="q">Buscar exame</label><input id="q" name="q" value="' . h($q) . '" placeholder="Buscar exame (TSH, glicada, ferritina…)"><button class="btn ghost">Buscar</button></form>';
     if (!$series) {
-        $html .= '<p class="empty">Nenhum exame ainda. Envie seus laudos em PDF ou foto; cada valor confirmado aparece aqui, agrupado pelas seções do próprio laudo.</p>';
-    } elseif (!$fixados && !$atencao && !$secoes) {
+        $html .= '<p class="empty">Nenhum exame ainda. Envie seus laudos em PDF; cada valor confirmado aparece aqui, agrupado pelo laboratório que o emitiu, com a faixa que ele imprimiu ao lado.</p>';
+    } elseif (!$fixados && !$atencao && !$porLab && $f === '') {
         $html .= '<p class="empty">Nenhum exame corresponde a “' . h($q) . '”.</p>';
     }
-    if ($fixados) {
+    if ($fixados && $f !== 'quarentena') {
         $html .= '<h2>Acompanhando</h2>' . $cartoes($fixados);
     }
-    if ($atencao) {
+    if ($atencao && $f !== 'quarentena') {
         $html .= '<h2>Fora da faixa</h2><p class="muted">Comparado com a faixa que o próprio laboratório imprimiu para o seu sexo e idade.</p>' . $cartoes($atencao);
     }
-    // As seções abrem fechadas, a não ser que não haja nada antes delas para ler.
-    $abrirPrimeira = !$fixados && !$atencao;
-    foreach ($secoes as $nome => $lista) {
-        $html .= '<details class="exam-group"' . ($abrirPrimeira ? ' open' : '') . '><summary>' . h($nome)
-            . ' <span class="count">(' . count($lista) . ')</span></summary>' . $cartoes($lista) . '</details>';
-        $abrirPrimeira = false;
+    // A régua de emenda: nome do laboratório, data da coleta mais recente e quantos exames
+    // vieram dele. É a junta que o produto não esconde.
+    if ($f !== 'quarentena') {
+        foreach ($porLab as $nome => $lista) {
+            $data = $labData[$nome] ?? '';
+            $html .= '<div class="seam"><b>' . h($nome) . '</b><span>'
+                . ($data !== '' ? 'coleta ' . h(br_date($data)) . ' · ' : '')
+                . count($lista) . ' exame(s)</span></div>' . $cartoes($lista);
+        }
+    }
+    if ($f === 'alterados' && !$fixados && !$atencao && !$porLab) {
+        $html .= '<p class="empty">Nenhum valor mudou desde a medição anterior.</p>';
+    }
+    // O módulo de borda que não fecha o padrão: cada valor retido com o motivo e o laudo.
+    if ($quar) {
+        $html .= '<section class="quar" aria-label="Quarentena"><h2>Em quarentena <span>· '
+            . count($quar) . ' valor(es), fora das séries e dos gráficos</span></h2>';
+        foreach ($quar as $r) {
+            $p = $r['p'];
+            $motivo = ($r['resolution'] ?? '') !== '' ? resolution_label((string) $r['resolution']) : 'não passou na checagem contra o laudo';
+            $html .= '<p><b>' . h((string) ($p['name_printed'] ?? '')) . '</b> '
+                . h(printed_with_unit((string) ($p['value_printed'] ?? ''), (string) ($p['unit_printed'] ?? '')))
+                . ' — ' . h($motivo)
+                . ($r['document_id'] ? ' · <a href="' . h(url('doc', ['id' => (int) $r['document_id']])) . '">laudo, página '
+                    . (int) ($p['page'] ?? 0) . '</a>' : '') . '</p>';
+        }
+        $html .= '<p class="muted">Confira no laudo original. Você pode corrigir um valor na página do documento.</p></section>';
+    } elseif ($f === 'quarentena') {
+        $html .= '<p class="empty">Nenhum valor em quarentena.</p>';
     }
     layout('Visão geral', $html, ['nav' => 'patient', 'active' => '']);
 }

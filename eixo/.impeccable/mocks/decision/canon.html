@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=390,initial-scale=1">
+<title>Eixo — Visão geral</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --papel:#ffffff; --tinta:#111827; --azul:#2563eb; --verde:#16a34a;
+  --ambar:#b45309; --vermelho:#dc2626; --campo:#f4f6fa; --sec:#5b6575; --fio:#e8ebf1;
+  --sombra:0 1px 2px rgba(17,24,39,.05), 0 10px 24px -14px rgba(17,24,39,.28);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#dde2ea;color:var(--tinta);-webkit-font-smoothing:antialiased;
+  font:400 15px/1.45 Inter,-apple-system,"Segoe UI",Roboto,system-ui,sans-serif}
+a{color:inherit;text-decoration:none}
+.tela{width:390px;height:844px;overflow:hidden;background:var(--campo);display:flex;flex-direction:column}
+
+.topo{background:var(--papel);padding:14px 20px 12px;border-bottom:1px solid var(--fio)}
+.marca{display:flex;align-items:center;justify-content:space-between}
+.marca b{font-size:16px;font-weight:600;letter-spacing:-.01em}
+.av{width:30px;height:30px;border-radius:50%;background:#e8eefc;color:var(--azul);text-align:center;
+  font:600 12px/30px Inter,sans-serif}
+h1{margin-top:7px;font-size:22px;font-weight:600;letter-spacing:-.02em}
+.sub{margin-top:3px;font-size:12.5px;color:var(--sec)}
+
+main{flex:1;min-height:0;display:flex;flex-direction:column;gap:7px;padding:10px 16px 4px}
+.cartao{background:var(--papel);border:1px solid var(--fio);border-radius:16px;box-shadow:var(--sombra)}
+.rot{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--sec)}
+
+.heroi{padding:10px 16px 8px}
+.heroi .cab{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.num{display:flex;align-items:baseline;gap:6px;margin-top:5px;font-variant-numeric:tabular-nums}
+.num strong{font-size:36px;font-weight:600;letter-spacing:-.03em;line-height:1.05}
+.num span{font-size:15px;font-weight:500;color:var(--sec)}
+.faixa{font-size:12.5px;color:var(--sec)}
+.graf{margin:5px 0 3px}
+.eixo{display:flex;justify-content:space-between;font-size:10.5px;color:#8b94a3}
+.proc{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:7px;padding-top:8px;
+  border-top:1px solid var(--fio);font-size:12px;color:var(--sec)}
+.proc a{color:var(--azul);font-weight:600}
+
+.chip{display:inline-flex;align-items:center;gap:5px;flex:none;border-radius:999px;padding:4px 9px;
+  font-size:11px;font-weight:600;line-height:1.3}
+.chip i{width:7px;height:7px;border-radius:50%;background:currentColor}
+.ok{color:#15803d;background:#e6f6ec}
+.na{color:var(--ambar);background:#fdf2de}
+.lab{color:#b91c1c;background:#fdeaea}
+
+.acoes{display:flex;gap:10px}
+.bt{flex:1;border-radius:12px;padding:9px 0;text-align:center;font-size:14px;font-weight:600}
+.bt.pri{background:var(--azul);color:#fff;box-shadow:0 6px 16px -8px rgba(37,99,235,.9)}
+.bt.sec{background:var(--papel);border:1px solid #d7dce6;color:var(--tinta)}
+
+.lista{padding:2px 0 0;overflow:hidden}
+.exame{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 16px;
+  border-bottom:1px solid var(--fio)}
+.nome{font-size:14.5px;font-weight:500}
+.meta{font-size:11.5px;color:var(--sec);margin-top:2px}
+.dir{text-align:right;flex:none}
+.val{font-size:15.5px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.val span{font-size:11.5px;font-weight:500;color:var(--sec)}
+.dir .chip{margin-top:4px}
+
+.corpo{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;font-size:13px;
+  border-top:1px solid var(--fio);background:#fafbfe;border-radius:0 0 15px 15px}
+.corpo strong{font-weight:600}
+.corpo em{font-style:normal;color:var(--sec)}
+.seta{color:#9aa3b2;font-size:17px;line-height:1}
+
+.quar{display:flex;align-items:center;gap:12px;padding:10px 16px;border-color:#dbe3f7;background:#f7f9ff}
+.qn{width:34px;height:34px;flex:none;border-radius:10px;background:#e3ebfd;color:var(--azul);
+  text-align:center;font:700 15px/34px Inter,sans-serif}
+.quar p{font-size:13.5px;font-weight:600}
+.quar .meta{font-weight:400}
+
+.aviso{margin-top:auto;padding:2px 4px 5px;font-size:10.5px;line-height:1.35;color:#737d8c;text-align:center}
+.aviso a{color:var(--azul);font-weight:600}
+
+nav{display:flex;background:var(--papel);border-top:1px solid var(--fio);padding:6px 4px 10px}
+nav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;font-weight:500;
+  letter-spacing:-.01em;white-space:nowrap;color:#8b94a3}
+nav a.on{color:var(--azul);font-weight:600}
+nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</head>
+<body>
+<div class="tela">
+
+  <header class="topo">
+    <div class="marca"><b>Eixo</b><span class="av">AC</span></div>
+    <h1>Visão geral</h1>
+    <p class="sub">5 séries · 14 laudos · atualizado em 03/11/2026</p>
+  </header>
+
+  <main>
+    <section class="cartao heroi">
+      <div class="cab">
+        <span class="rot">Colesterol LDL</span>
+        <span class="chip lab"><i></i>Marcado no laudo</span>
+      </div>
+      <p class="num"><strong>142</strong><span>mg/dL</span></p>
+      <p class="faixa">Faixa do laudo: &lt; 130 mg/dL · coleta 18/09/2026</p>
+      <div class="graf">
+        <svg viewBox="0 0 318 32" width="100%" height="32" role="img"
+             aria-label="Quatro coletas de colesterol LDL: 158, 151, 146 e 142 mg/dL">
+          <line x1="0" y1="29" x2="318" y2="29" stroke="#c6cdd9" stroke-width="1" stroke-dasharray="3 4"/>
+          <polyline points="6,6 110,12 214,16 312,19" fill="none" stroke="#2563eb" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="6" cy="6" r="2.8" fill="#fff" stroke="#2563eb" stroke-width="2"/>
+          <circle cx="110" cy="12" r="2.8" fill="#fff" stroke="#2563eb" stroke-width="2"/>
+          <circle cx="214" cy="16" r="2.8" fill="#fff" stroke="#2563eb" stroke-width="2"/>
+          <circle cx="312" cy="19" r="4" fill="#2563eb"/>
+        </svg>
+        <div class="eixo"><span>mar/2025 · 158</span><span>faixa do laudo: 130</span><span>set/2026 · 142</span></div>
+      </div>
+      <p class="proc">Página 2 · duas leituras concordaram <a href="#">Ver trecho</a></p>
+    </section>
+
+    <div class="acoes">
+      <a class="bt pri" href="#">Enviar laudo</a>
+      <a class="bt sec" href="#">Compartilhar</a>
+    </div>
+
+    <section class="cartao lista">
+      <div class="exame">
+        <div><p class="nome">Hemoglobina glicada</p><p class="meta">18/09/2026 · faixa 4,0 a 5,7 %</p></div>
+        <div class="dir"><p class="val">5,4 <span>%</span></p><span class="chip ok"><i></i>Na faixa</span></div>
+      </div>
+      <div class="exame">
+        <div><p class="nome">Creatinina</p><p class="meta">18/09/2026 · faixa 0,70 a 1,20 mg/dL</p></div>
+        <div class="dir"><p class="val">0,92 <span>mg/dL</span></p><span class="chip ok"><i></i>Na faixa</span></div>
+      </div>
+      <div class="exame">
+        <div><p class="nome">TSH</p><p class="meta">18/09/2026 · faixa 0,45 a 4,50 mUI/L</p></div>
+        <div class="dir"><p class="val">2,10 <span>mUI/L</span></p><span class="chip ok"><i></i>Na faixa</span></div>
+      </div>
+      <div class="exame">
+        <div><p class="nome">Vitamina D</p><p class="meta">02/10/2026 · sem faixa no laudo</p></div>
+        <div class="dir"><p class="val">31 <span>ng/mL</span></p><span class="chip na"><i></i>Sem faixa</span></div>
+      </div>
+      <a class="corpo" href="#">
+        <span><strong>Corpo</strong> · 72,4 kg · 24,1 % de gordura <em>— 02/10/2026</em></span>
+        <span class="seta">›</span>
+      </a>
+    </section>
+
+    <a class="cartao quar" href="#">
+      <span class="qn">2</span>
+      <div>
+        <p>2 valores em quarentena</p>
+        <p class="meta">As leituras não coincidiram.</p>
+      </div>
+      <span class="seta">›</span>
+    </a>
+
+    <p class="aviso">A IA lê duas vezes, o código confere, o médico decide.
+      <a href="#">Ficha de transparência</a></p>
+  </main>
+
+  <nav>
+    <a class="on" href="#"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/></svg>Visão geral</a>
+    <a href="#"><svg viewBox="0 0 24 24"><path d="M3 13h4l2.5-7 4 13 2.5-6h5"/></svg>Linha do tempo</a>
+    <a href="#"><svg viewBox="0 0 24 24"><path d="M6 3h7.5L19 8.5V21H6z"/><path d="M13 3v6h6"/></svg>Documentos</a>
+    <a href="#"><svg viewBox="0 0 24 24"><rect x="2.5" y="8.5" width="19" height="7" rx="3.5"/><path d="M12 8.5v7"/></svg>Medicações</a>
+    <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.4"/><path d="M5 20c1.6-4.2 11.8-4.2 14 0"/></svg>Conta</a>
+  </nav>
+
+</div>
+</body>
+</html>

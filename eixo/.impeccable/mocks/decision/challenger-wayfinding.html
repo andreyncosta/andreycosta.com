@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=390,initial-scale=1">
+<title>Eixo — Visão geral</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sans:"Source Sans 3","Segoe UI",Frutiger,"Helvetica Neue",Helvetica,Arial,sans-serif;
+  --yellow:#ffcc00; --black:#111111; --white:#ffffff; --grey:#2b2b2b;
+  --hair:#d7d7d7;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#8d8d8d;font-family:var(--sans);font-size:14px;color:var(--black);-webkit-font-smoothing:antialiased}
+.frame{width:390px;height:844px;overflow:hidden;background:var(--white);display:flex;flex-direction:column}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+
+/* ---- barra do produto ---- */
+.bar{flex:0 0 52px;display:flex;align-items:center;gap:10px;padding:0 16px;background:var(--black);color:var(--white)}
+.mark{font-weight:900;font-size:18px;letter-spacing:.14em;text-transform:uppercase;margin-right:auto}
+.bar a{font-weight:700;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--white);text-decoration:none;border:1.5px solid rgba(255,255,255,.55);padding:6px 9px}
+.bar a.pri{background:var(--white);color:var(--black);border-color:var(--white)}
+
+/* ---- faixa de sinalização: o amarelo existe só aqui ---- */
+.sign{flex:0 0 112px;display:flex;align-items:center;gap:14px;background:var(--yellow);padding:0 16px}
+.pic{flex:0 0 52px;height:52px;background:var(--black);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+.pic i{display:block;height:4px;background:var(--white)}
+.pic i:nth-child(1){width:26px}.pic i:nth-child(2){width:26px}.pic i:nth-child(3){width:15px}
+.sign .txt{flex:1 1 auto}
+.sign .lbl{display:block;font-weight:700;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--black);opacity:.72}
+.sign h1{font-weight:900;font-size:23px;line-height:1.07;letter-spacing:-.015em;margin-top:5px}
+.go{flex:0 0 52px;height:52px;background:var(--black);display:flex;align-items:center;justify-content:center;text-decoration:none}
+.go i{display:block;width:0;height:0;border-left:16px solid var(--white);border-top:11px solid transparent;border-bottom:11px solid transparent}
+
+/* ---- a decisão, em corpo monumental ---- */
+.page{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;padding:18px 16px 0}
+.exam{display:flex;align-items:baseline;gap:8px;border-bottom:2px solid var(--black);padding-bottom:7px}
+.exam h2{font-weight:700;font-size:17px;letter-spacing:-.01em}
+.exam time{margin-left:auto;font-weight:600;font-size:12px;letter-spacing:.04em;color:var(--grey)}
+.hero{display:flex;align-items:flex-end;gap:9px;margin:12px 0 0}
+.hero b{font-weight:900;font-size:136px;line-height:.78;letter-spacing:-.055em}
+.hero em{font-style:normal;font-weight:700;font-size:25px;line-height:1.6;letter-spacing:-.01em}
+.facts{display:flex;align-items:center;gap:12px;margin-top:14px}
+.range span{display:block;font-weight:700;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--grey)}
+.range strong{display:block;font-weight:700;font-size:17px;margin-top:3px}
+.flag{margin-left:auto;text-align:right;background:var(--black);color:var(--white);font-weight:700;font-size:10px;line-height:1.4;letter-spacing:.07em;text-transform:uppercase;padding:7px 9px}
+.cite{display:flex;align-items:center;gap:10px;border-top:1px solid var(--hair);margin-top:14px;padding-top:11px}
+.cite p{flex:1 1 auto;font-size:11.5px;line-height:1.4;color:var(--grey)}
+.cite a{flex:0 0 auto;font-weight:700;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--black);text-decoration:none;border:1.5px solid var(--black);padding:7px 9px}
+
+/* ---- o resto da coleta, em voz baixa ---- */
+.more{margin-top:20px}
+.more h3{font-weight:700;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--grey)}
+table{width:100%;border-collapse:collapse;table-layout:fixed;margin-top:7px}
+th,td{text-align:left;padding:10px 0;border-bottom:1px solid var(--hair)}
+thead th{font-weight:700;font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--grey);padding-top:0;border-bottom:1px solid var(--black)}
+thead th.r,td.r{text-align:right}
+tbody th{font-weight:600;font-size:13.5px}
+tbody td{font-size:13.5px;color:var(--grey)}
+tbody td.v{font-weight:700;font-size:14px;color:var(--black)}
+tbody td.fx{font-size:11px}
+.note{margin-top:auto;padding:12px 0 13px;border-top:1px solid var(--hair);font-size:10.5px;line-height:1.4;color:var(--grey)}
+.note a{color:var(--black);font-weight:700}
+
+/* ---- navegação ---- */
+.nav{flex:0 0 68px;display:flex;gap:1px;border-top:2px solid var(--black);padding:6px 10px 10px}
+.nav a{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:700;font-size:9.5px;line-height:1.2;letter-spacing:.04em;text-transform:uppercase;color:var(--grey);text-decoration:none;padding:0 2px}
+.nav a.on{background:var(--black);color:var(--white)}
+</style>
+</head>
+<body>
+<div class="frame">
+
+  <header class="bar">
+    <span class="mark">Eixo</span>
+    <a class="pri" href="#">Compartilhar</a>
+    <a href="#">Conta</a>
+  </header>
+
+  <section class="sign">
+    <span class="pic" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span class="txt">
+      <span class="lbl">Próxima decisão</span>
+      <h1>Conferir 1 valor<br>em quarentena</h1>
+    </span>
+    <a class="go" href="#"><i aria-hidden="true"></i><span class="sr">Abrir a quarentena</span></a>
+  </section>
+
+  <main class="page">
+    <div class="exam">
+      <h2>Colesterol LDL</h2>
+      <time datetime="2026-10-28">28/10/2026 · Lab. São Lucas</time>
+    </div>
+
+    <div class="hero"><b class="num">142</b><em>mg/dL</em></div>
+
+    <div class="facts">
+      <span class="range"><span>Faixa do laudo</span><strong class="num">&lt; 130 mg/dL</strong></span>
+      <span class="flag">Acima da faixa<br>marcação impressa no laudo</span>
+      <span class="sr">O Eixo não avalia o resultado: a única marcação exibida é a que o laboratório imprimiu.</span>
+    </div>
+
+    <div class="cite">
+      <p>pág. 3 — «Colesterol LDL 142 mg/dL (ref.: &lt; 130 mg/dL)»</p>
+      <a href="#">Ver no laudo</a>
+    </div>
+
+    <section class="more">
+      <h3>Mesma coleta · 28/10/2026</h3>
+      <table>
+        <thead><tr><th>Exame</th><th class="r" style="width:96px">Valor</th><th class="r" style="width:106px">Faixa do laudo</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Hemoglobina glicada</th><td class="r v num">5,4 %</td><td class="r fx num">4,0 a 5,7 %</td></tr>
+          <tr><th scope="row">Creatinina</th><td class="r v num">0,92 mg/dL</td><td class="r fx num">0,70 a 1,30 mg/dL</td></tr>
+          <tr><th scope="row">Vitamina D</th><td class="r v num">31 ng/mL</td><td class="r fx">sem faixa no laudo</td></tr>
+          <tr><th scope="row">TSH</th><td class="r v num">2,10 mUI/L</td><td class="r fx num">0,45 a 4,50 mUI/L</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <p class="note">A IA lê duas vezes, o código confere, o médico decide. O Eixo organiza e não interpreta. <a href="#">Ficha de transparência</a></p>
+  </main>
+
+  <nav class="nav">
+    <a class="on" href="#">Visão<br>geral</a>
+    <a href="#">Linha do<br>tempo</a>
+    <a href="#">Documen&shy;tos</a>
+    <a href="#">Medica&shy;ções</a>
+    <a href="#">Corpo</a>
+  </nav>
+
+</div>
+</body>
+</html>
