@@ -17,26 +17,25 @@ function layout(string $title, string $body, array $opts = []): void
 {
     security_headers();
     $nav = '';
-    $sair = '';
     if (($opts['nav'] ?? null) === 'patient') {
         $items = ['' => 'Visão geral', 'timeline' => 'Linha do tempo', 'docs' => 'Documentos', 'meds' => 'Medicações', 'body' => 'Corpo', 'shares' => 'Compartilhar', 'account' => 'Conta'];
         $cur = $opts['active'] ?? '';
         foreach ($items as $r => $label) {
             $nav .= '<a href="' . h(url($r)) . '"' . ($cur === $r ? ' aria-current="page"' : '') . '>' . h($label) . '</a>';
         }
-        $nav = '<nav class="app-nav" aria-label="Eixo">' . $nav . '</nav>';
-        $sair = '<form method="post" action="' . h(url('logout')) . '" class="inline">' . csrf_field() . '<button class="link">Sair</button></form>';
+        $nav = '<nav class="app-nav" aria-label="Eixo">' . $nav . '</nav>'
+            . '<form method="post" action="' . h(url('logout')) . '" class="inline">' . csrf_field() . '<button class="link">Sair</button></form>';
     } elseif (($opts['nav'] ?? null) === 'doctor') {
-        $nav = '<nav class="app-nav" aria-label="Eixo"><a href="' . h(url('doctor')) . '">Pacientes</a><a href="' . h(url('ai')) . '">Ficha da IA</a></nav>';
-        $sair = '<form method="post" action="' . h(url('dlogout')) . '" class="inline">' . csrf_field() . '<button class="link">Sair</button></form>';
+        $nav = '<nav class="app-nav" aria-label="Eixo"><a href="' . h(url('doctor')) . '">Pacientes</a><a href="' . h(url('ai')) . '">Ficha da IA</a></nav>'
+            . '<form method="post" action="' . h(url('dlogout')) . '" class="inline">' . csrf_field() . '<button class="link">Sair</button></form>';
     }
     $flash = session_status() === PHP_SESSION_ACTIVE ? flash() : null;
     echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
         . '<meta name="robots" content="noindex"><title>' . h($title) . ' · Eixo</title>'
         . '<link rel="icon" href="/assets/favicon.svg"><link rel="manifest" href="' . h(url() . 'assets/manifest.webmanifest') . '">'
-        . '<link rel="stylesheet" href="' . h(url() . 'assets/eixo.css?v=' . asset_version('eixo.css')) . '">'
+        . '<link rel="stylesheet" href="/assets/site.css"><link rel="stylesheet" href="' . h(url() . 'assets/eixo.css?v=' . asset_version('eixo.css')) . '">'
         . '<script src="' . h(url() . 'assets/eixo.js?v=' . asset_version('eixo.js')) . '" defer></script></head><body>'
-        . '<header class="app-bar"><div class="bar-top"><a class="site-brand" href="' . h(url()) . '"><span class="site-mark" aria-hidden="true">ei</span>Eixo</a>' . $sair . '</div>' . $nav . '</header>'
+        . '<header class="app-bar"><a class="site-brand" href="' . h(url()) . '"><span class="site-mark" aria-hidden="true">ei</span>Eixo</a>' . $nav . '</header>'
         . '<main class="app" id="main">' . ($flash ? '<p class="flash" role="status">' . h($flash) . '</p>' : '') . $body . '</main>'
         . '<footer class="app-foot"><p>O Eixo organiza e mostra seus documentos. Não interpreta exames, não diagnostica e não sugere doses: leve seus dados ao seu médico.</p>'
         . '<p><a href="' . h(url('privacy')) . '">Privacidade</a> · <a href="' . h(url('ai')) . '">Como a IA é usada</a> · <a href="/">andreycosta.com</a></p></footer>'
@@ -236,11 +235,7 @@ function exam_card_html(array $series, array $ctx): string
     $exame = exam_of($series['payload'] ?? []);
     $ind = exam_indicator($series, $ctx);
     $titulo = $exame['nome'];
-    // is-mudou é o movimento-assinatura do Painel de Azulejo: o módulo que mudou desde a
-    // medição anterior inverte para cobalto cheio, perceptível sem ser procurado. Keia em
-    // mudança medida, não em valência — essa continua decisão de produto aberta.
-    $mudou = in_array($ind['seta'] ?? '', ['↑', '↓'], true);
-    $classe = 'card exam' . ($ind['cor'] !== 'neutro' ? ' is-' . $ind['cor'] : '') . ($mudou ? ' is-mudou' : '');
+    $classe = 'card exam' . ($ind['cor'] !== 'neutro' ? ' is-' . $ind['cor'] : '');
 
     if ($ind['tipo'] === 'qualitativo') {
         $marca = '<span class="dot dot-' . h($ind['cor']) . '" aria-hidden="true"></span>';
