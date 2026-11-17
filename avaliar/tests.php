@@ -38,6 +38,23 @@ function passed(array $score, string $id): bool
     return isset($map[$id]) && $map[$id]['passed'] === true;
 }
 
+function command_on_path(string $name): bool
+{
+    $path = getenv('PATH');
+    if (!is_string($path) || $path === '') {
+        return false;
+    }
+    foreach (explode(PATH_SEPARATOR, $path) as $dir) {
+        if ($dir === '') {
+            continue;
+        }
+        if (is_executable(rtrim($dir, '/\\') . DIRECTORY_SEPARATOR . $name)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function fixture_docx(?string $documentXml): string
 {
     $path = sys_get_temp_dir() . '/avaliar-docx-' . bin2hex(random_bytes(4)) . '.docx';
@@ -334,6 +351,176 @@ foreach ([$linearPath, $linesPath, $prettyPath, $spacedPath, $boxPath, $emptyPat
         unlink($path);
     }
 }
+
+$columnLine = 'Esquerda' . str_repeat(' ', 8) . 'Direita';
+$dateLine = 'Janeiro 2020' . str_repeat(' ', 4) . 'São Paulo';
+$pdfPath = sys_get_temp_dir() . '/avaliar-pdf-' . bin2hex(random_bytes(4)) . '.pdf';
+file_put_contents($pdfPath, "%PDF-fake\n");
+$pdfCalls = [];
+$pdfRunner = function (array $argv) use (&$pdfCalls): array {
+    $pdfCalls[] = $argv;
+    if (($argv[0] ?? '') === 'pdfinfo') {
+        return ['code' => 0, 'stdout' => "Title: x\nPages:           2\nPage size: 595 x 842 pts\n", 'stderr' => ''];
+    }
+    return ['code' => 0, 'stdout' => 'Olá', 'stderr' => ''];
+};
+$pdfFile = extract_file($pdfPath, 'pdf', $pdfRunner);
+ok($pdfFile['pages'] === 2, 'pdfinfo Pages 2 is the page count');
+ok($pdfFile['text'] === 'Olá', 'pdf text is the pdftotext stdout');
+ok($pdfFile['readable'] === true, 'pdf with text is readable');
+ok($pdfFile['linear'] === true, 'pdf without a column is linear');
+ok($pdfFile['valid_docx'] === false, 'pdf is not a valid docx');
+ok($pdfCalls === [
+    ['pdfinfo', $pdfPath],
+    ['pdftotext', '-layout', $pdfPath, '-'],
+], 'pdf runner is pdfinfo then pdftotext -layout');
+ok(is_file($pdfPath), 'extract_file does not delete the pdf');
+
+$missingCalls = 0;
+$missingPdf = extract_file($pdfPath, 'pdf', function (array $argv) use (&$missingCalls): array {
+    $missingCalls++;
+    return ['code' => 127, 'stdout' => 'Olá', 'stderr' => 'missing'];
+});
+ok($missingPdf['readable'] === false, 'pdf runner code 127 is not readable');
+ok($missingPdf['text'] === '', 'pdf runner code 127 has empty text');
+ok($missingPdf['linear'] === false, 'pdf runner code 127 is not linear');
+ok($missingPdf['valid_docx'] === false, 'pdf runner code 127 is not a valid docx');
+ok($missingCalls === 2, 'a missing pdf command still runs both calls');
+
+$emptyPdf = extract_file($pdfPath, 'pdf', function (array $argv): array {
+    return ['code' => 0, 'stdout' => '', 'stderr' => ''];
+});
+ok($emptyPdf['readable'] === false, 'pdf with empty stdout is not readable');
+ok($emptyPdf['text'] === '', 'pdf with empty stdout has empty text');
+ok($emptyPdf['linear'] === false, 'pdf with empty stdout is not linear');
+
+$blankPdf = extract_file($pdfPath, 'pdf', function (array $argv): array {
+    return ['code' => 0, 'stdout' => " \n\t", 'stderr' => ''];
+});
+ok($blankPdf['readable'] === false, 'pdf with blank stdout is not readable');
+ok($blankPdf['text'] === " \n\t", 'blank pdf text stays the stdout');
+
+$formPdf = extract_file($pdfPath, 'pdf', function (array $argv): array {
+    if (($argv[0] ?? '') === 'pdfinfo') {
+        return ['code' => 0, 'stdout' => "Pages: 1\n", 'stderr' => ''];
+    }
+    return ['code' => 0, 'stdout' => "\f", 'stderr' => ''];
+});
+ok($formPdf['readable'] === false, 'a form feed is not extractable text');
+ok($formPdf['text'] === "\f", 'a form feed stays in the stdout');
+ok($formPdf['linear'] === false, 'a form feed is not linear');
+ok($formPdf['pages'] === 1, 'a blank page still reports pages');
+
+$feedPdf = extract_file($pdfPath, 'pdf', function (array $argv): array {
+    if (($argv[0] ?? '') === 'pdfinfo') {
+        return ['code' => 0, 'stdout' => "Pages: 1\n", 'stderr' => ''];
+    }
+    return ['code' => 0, 'stdout' => "Olá\n\f", 'stderr' => ''];
+});
+ok($feedPdf['readable'] === true, 'text before a form feed stays readable');
+ok($feedPdf['text'] === "Olá\n\f", 'a trailing form feed stays in the pdf text');
+ok($feedPdf['linear'] === true, 'a trailing form feed is not a column');
+
+$noPages = extract_file($pdfPath, 'pdf', function (array $argv): array {
+    if (($argv[0] ?? '') === 'pdfinfo') {
+        return ['code' => 0, 'stdout' => "Title: sem paginas\n", 'stderr' => ''];
+    }
+    return ['code' => 0, 'stdout' => 'Olá', 'stderr' => ''];
+});
+ok($noPages['pages'] === 0, 'pdf without Pages is 0 pages');
+ok($noPages['readable'] === true, 'pdf without Pages can still be readable');
+
+$columnPdf = extract_file($pdfPath, 'pdf', function (array $argv) use ($columnLine): array {
+    if (($argv[0] ?? '') === 'pdfinfo') {
+        return ['code' => 0, 'stdout' => "Pages: 1\n", 'stderr' => ''];
+    }
+    return ['code' => 0, 'stdout' => implode("\n", array_fill(0, 4, $columnLine)), 'stderr' => ''];
+});
+ok($columnPdf['readable'] === true, 'column pdf stays readable');
+ok($columnPdf['linear'] === false, 'column pdf is not linear');
+ok($columnPdf['pages'] === 1, 'column pdf keeps its page count');
+ok($columnPdf['valid_docx'] === false, 'column pdf is not a valid docx');
+
+$rtfCalls = 0;
+$rtf = extract_file($pdfPath, 'rtf', function (array $argv) use (&$rtfCalls): array {
+    $rtfCalls++;
+    return ['code' => 0, 'stdout' => 'Olá', 'stderr' => ''];
+});
+ok($rtf['readable'] === false, 'rtf stays unreadable');
+ok($rtf['text'] === '', 'rtf has empty text');
+ok($rtfCalls === 0, 'rtf does not call the runner');
+
+ok(layout_has_column(implode("\n", array_fill(0, 4, $columnLine))) === true, 'four lines with an eight-space gap are a column');
+ok(layout_has_column($dateLine . "\n" . $dateLine) === false, 'two date lines are not a column');
+ok(layout_has_column(implode("\n", array_fill(0, 3, $columnLine))) === false, 'three column lines are not a column');
+ok(layout_has_column(implode("\n", [
+    $columnLine,
+    '',
+    'sem vao',
+    $columnLine,
+    $columnLine,
+    $columnLine,
+])) === true, 'column lines do not have to be consecutive');
+ok(layout_has_column(implode("\r\n", array_fill(0, 4, $columnLine))) === true, 'column lines may use CRLF');
+ok(layout_has_column(implode("\f", array_fill(0, 4, $columnLine))) === true, 'a form feed does not glue column lines');
+ok(layout_has_column(implode("\n", [
+    $columnLine,
+    'X' . $columnLine,
+    'XX' . $columnLine,
+    $columnLine,
+])) === true, 'gap starts two columns apart still count');
+ok(layout_has_column(implode("\n", [
+    $columnLine,
+    'X' . $columnLine,
+    'XX' . $columnLine,
+    'XXX' . $columnLine,
+])) === false, 'gap starts three columns apart do not count');
+$scattered = [];
+for ($i = 0; $i < 4; $i++) {
+    $scattered[] = str_repeat('A', 1 + ($i * 4)) . str_repeat(' ', 8) . 'B';
+}
+ok(layout_has_column(implode("\n", $scattered)) === false, 'four scattered gaps are not a column');
+ok(layout_has_column(implode("\n", array_fill(0, 4, 'Esquerda' . str_repeat(' ', 7) . 'Direita'))) === false, 'seven spaces are not a column gap');
+ok(layout_has_column(implode("\n", array_fill(0, 4, 'Esquerda' . str_repeat(' ', 9) . 'Direita'))) === true, 'nine spaces still count as a gap');
+ok(layout_has_column(implode("\n", array_fill(0, 4, 'A' . str_repeat(' ', 3) . 'B' . str_repeat(' ', 8) . 'C'))) === true, 'a short gap does not hide the eight-space gap');
+ok(layout_has_column(implode("\n", array_fill(0, 4, str_repeat(' ', 8) . 'Direita'))) === false, 'leading spaces are not a column gap');
+ok(layout_has_column(implode("\n", array_fill(0, 4, 'Esquerda' . str_repeat(' ', 8)))) === false, 'trailing spaces are not a column gap');
+$laterGap = [];
+for ($i = 0; $i < 4; $i++) {
+    $left = str_repeat('L', 1 + ($i * 3));
+    $mid = str_repeat('M', 1 + ((3 - $i) * 3));
+    $laterGap[] = $left . str_repeat(' ', 8) . $mid . str_repeat(' ', 8) . 'C';
+}
+ok(layout_has_column(implode("\n", $laterGap)) === false, 'a later aligned gap does not count');
+$withDate = ['Jan' . str_repeat(' ', 30) . '2020'];
+for ($i = 0; $i < 4; $i++) {
+    $withDate[] = $columnLine;
+}
+ok(layout_has_column(implode("\n", $withDate)) === true, 'one distant gap does not hide four aligned lines');
+$wide = 'ããã' . str_repeat(' ', 8) . 'X';
+$narrow = 'aaa' . str_repeat(' ', 8) . 'X';
+ok(layout_has_column(implode("\n", [$wide, $wide, $narrow, $narrow])) === true, 'gap columns count characters, not bytes');
+
+if (!command_on_path('pdftotext')) {
+    echo "AVISO pdf ignorado\n";
+} else {
+    $real = extract_file($pdfPath, 'pdf');
+    ok($real['readable'] === false, 'pdftotext on a non-pdf is not readable');
+    ok($real['text'] === '', 'pdftotext on a non-pdf has empty text');
+    ok($real['linear'] === false, 'pdftotext on a non-pdf is not linear');
+    ok($real['valid_docx'] === false, 'pdftotext on a non-pdf is not a valid docx');
+    ok(is_file($pdfPath), 'extract_file does not delete a non-pdf');
+    ok(!is_file(substr($pdfPath, 0, -4) . '.txt'), 'the default runner does not write a sibling txt');
+    $infoRun = extract_command(['pdfinfo', $pdfPath]);
+    ok($infoRun['code'] > 0 && $infoRun['code'] < 127, 'pdfinfo runs and rejects a non-pdf');
+    ok($infoRun['stdout'] === '', 'pdfinfo keeps errors off stdout');
+    ok($infoRun['stderr'] !== '', 'pdfinfo stderr is captured');
+    $textRun = extract_command(['pdftotext', '-layout', $pdfPath, '-']);
+    ok($textRun['code'] > 0 && $textRun['code'] < 127, 'pdftotext runs and rejects a non-pdf');
+    ok($textRun['stdout'] === '', 'pdftotext keeps errors off stdout');
+    ok($textRun['stderr'] !== '', 'pdftotext stderr is captured');
+}
+unlink($pdfPath);
 
 if ($failures > 0) {
     exit(1);
