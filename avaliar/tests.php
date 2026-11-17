@@ -8,6 +8,7 @@ if (PHP_SAPI !== 'cli') {
 
 require __DIR__ . '/score.php';
 require __DIR__ . '/extract.php';
+require __DIR__ . '/lead.php';
 
 $failures = 0;
 $count = 0;
@@ -521,6 +522,72 @@ if (!command_on_path('pdftotext')) {
     ok($textRun['stderr'] !== '', 'pdftotext stderr is captured');
 }
 unlink($pdfPath);
+
+$consent = 'Aceito que Andrey Costa guarde este e-mail para contato.';
+$when = '2026-11-17 09:00:00';
+$body = lead_body(
+    'ana.souza@email.com',
+    7.5,
+    ['one_page', 'docx'],
+    'Analista de Dados Sênior',
+    $consent,
+    $when
+);
+ok(str_contains($body, 'ana.souza@email.com'), 'lead body contains the email');
+ok(str_contains($body, '7,5'), 'lead body formats 7.5 with a comma');
+ok(!str_contains($body, '7.5'), 'lead body does not use a dot for the score');
+ok(str_contains($body, 'one_page'), 'lead body contains the failed id one_page');
+ok(str_contains($body, 'docx'), 'lead body contains the failed id docx');
+ok(str_contains($body, 'Analista de Dados Sênior'), 'lead body contains the job title');
+ok(str_contains($body, $consent), 'lead body contains the consent sentence');
+ok(str_contains($body, $when), 'lead body contains the timestamp');
+ok(!str_contains($body, 'CURRICULO-SECRETO'), 'lead body does not contain the resume text');
+
+$store = sys_get_temp_dir() . '/avaliar-rate-' . bin2hex(random_bytes(4));
+mkdir($store, 0700);
+$ip = '203.0.113.10';
+$start = 1700000000;
+$ten = true;
+for ($i = 0; $i < 10; $i++) {
+    if (rate_limit_allow($store, $ip, $start) !== true) {
+        $ten = false;
+    }
+}
+ok($ten, 'ten calls for one ip inside the hour return true');
+ok(rate_limit_allow($store, $ip, $start) === false, 'the 11th call inside the hour returns false');
+ok(rate_limit_allow($store, $ip, $start + 3600) === false, 'a call 3600 seconds after the oldest stays blocked');
+ok(rate_limit_allow($store, $ip, $start + 3601) === true, 'a call 3601 seconds after the oldest returns true');
+ok(rate_limit_allow($store, '203.0.113.11', $start) === true, 'another ip in the same hour is not blocked');
+
+$marker = 'avaliar-outside-' . bin2hex(random_bytes(4));
+$outside = dirname($store) . '/' . $marker;
+$absolute = sys_get_temp_dir() . '/' . $marker;
+foreach (['../' . $marker, 'nested/../../' . $marker, $absolute, '.', '..'] as $evil) {
+    ok(rate_limit_allow($store, $evil, $start) === true, 'a path-like ip is allowed once');
+}
+ok(!file_exists($outside), 'a path-like ip does not write outside the store');
+ok(!file_exists($absolute), 'an absolute ip is not used as a path');
+ok(!is_dir($store . '/nested'), 'a path-like ip does not create a directory in the store');
+$root = realpath($store);
+$entries = 0;
+foreach (scandir($store) ?: [] as $entry) {
+    if ($entry === '.' || $entry === '..') {
+        continue;
+    }
+    $entries++;
+    $full = $store . '/' . $entry;
+    $real = realpath($full);
+    ok(is_file($full), 'a rate limit entry is a file');
+    ok(is_string($real) && str_starts_with($real, $root . DIRECTORY_SEPARATOR), 'a rate limit file stays inside the store');
+}
+ok($entries === 7, 'one file per ip inside the store');
+foreach (scandir($store) ?: [] as $entry) {
+    if ($entry === '.' || $entry === '..') {
+        continue;
+    }
+    unlink($store . '/' . $entry);
+}
+rmdir($store);
 
 if ($failures > 0) {
     exit(1);
