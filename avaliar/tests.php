@@ -1155,7 +1155,18 @@ $indexSrc = file_get_contents(__DIR__ . '/index.php');
 ok(is_string($indexSrc) && str_contains($indexSrc, '$_FILES[\'resume\']'), 'index passes $_FILES resume');
 ok(is_string($indexSrc) && str_contains($indexSrc, 'handle_submission'), 'index calls handle_submission');
 ok(is_string($indexSrc) && str_contains($indexSrc, 'extract_file(...)'), 'index uses the real extract_file');
-ok(is_string($indexSrc) && str_contains($indexSrc, 'mail(...)'), 'index uses the real mail');
+require_once __DIR__ . '/index.php';
+$plainSubject = 'Avaliação de currículo ana.souza@email.com';
+ok(page_mail_subject($plainSubject) === '=?UTF-8?B?' . base64_encode($plainSubject) . '?=', 'mail subject is an RFC 2047 UTF-8 encoded-word');
+ok(page_mail_subject($plainSubject) !== $plainSubject, 'mail subject is not the plain subject');
+$mailHeaders = page_mail_headers();
+ok(str_contains($mailHeaders, 'MIME-Version: 1.0'), 'mail headers include MIME-Version');
+ok(str_contains($mailHeaders, 'Content-Type: text/plain; charset=UTF-8'), 'mail headers set a UTF-8 content type');
+ok(is_string($indexSrc) && preg_match(
+    '/function page_mail\(string \$to, string \$subject, string \$body\): bool\s*\{\s*return mail\(\$to, page_mail_subject\(\$subject\), \$body, page_mail_headers\(\)\);\s*\}/',
+    $indexSrc
+) === 1, 'page_mail returns the real mail call');
+ok(is_string($indexSrc) && str_contains($indexSrc, "'mailer' => page_mail(...)"), 'index passes page_mail to handle_submission');
 ok(is_string($indexSrc) && str_contains($indexSrc, '/storage'), 'index stores rate limits under storage');
 
 $css = file_get_contents(__DIR__ . '/style.css');
@@ -1174,6 +1185,17 @@ ok(str_contains($emptyPage, '/assets/i18n.js'), 'the language control uses the s
 
 $deny = file_get_contents(__DIR__ . '/storage/.htaccess');
 ok(is_string($deny) && str_contains($deny, 'Require all denied'), 'storage denies all access');
+
+$gate = file_get_contents(__DIR__ . '/.htaccess');
+ok(is_string($gate) && str_contains($gate, 'DirectoryIndex index.php'), 'the directory index is index.php');
+ok(is_string($gate) && str_contains($gate, 'Options -Indexes'), 'directory listing is off');
+ok(is_string($gate) && preg_match('/<FilesMatch\b[^>]*>\s*Require all denied\s*<\/FilesMatch>/s', $gate) === 1, 'internal php uses Require all denied');
+foreach (['tests', 'score', 'extract', 'lead', 'submit', 'copy', 'page'] as $hidden) {
+    ok(is_string($gate) && str_contains($gate, $hidden), "$hidden is listed in the deny rule");
+}
+ok(is_string($gate) && !preg_match('/<FilesMatch\b[^>]*index\.php/', $gate), 'index.php is not denied');
+ok(is_string($gate) && !str_contains($gate, 'style.css'), 'style.css is not denied');
+ok(is_string($gate) && !str_contains($gate, 'storage'), 'storage is not denied from the parent htaccess');
 
 $pageSrc = file_get_contents(__DIR__ . '/page.php');
 ok(is_string($pageSrc) && !str_contains($pageSrc, 'score_resume'), 'the page does not rescore');
