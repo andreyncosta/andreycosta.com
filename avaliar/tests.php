@@ -9,6 +9,7 @@ if (PHP_SAPI !== 'cli') {
 require __DIR__ . '/score.php';
 require __DIR__ . '/extract.php';
 require __DIR__ . '/lead.php';
+require __DIR__ . '/submit.php';
 
 $failures = 0;
 $count = 0;
@@ -588,6 +589,413 @@ foreach (scandir($store) ?: [] as $entry) {
     unlink($store . '/' . $entry);
 }
 rmdir($store);
+
+function submit_store(): string
+{
+    $path = sys_get_temp_dir() . '/avaliar-submit-' . bin2hex(random_bytes(4));
+    if (!mkdir($path, 0700) && !is_dir($path)) {
+        throw new RuntimeException('submit store was not created');
+    }
+    return $path;
+}
+
+function submit_count(string $path): int
+{
+    $count = 0;
+    foreach (scandir($path) ?: [] as $entry) {
+        if ($entry === '.' || $entry === '..') {
+            continue;
+        }
+        $count++;
+    }
+    return $count;
+}
+
+function submit_remove(string $path): void
+{
+    if (!is_dir($path)) {
+        return;
+    }
+    foreach (scandir($path) ?: [] as $entry) {
+        if ($entry === '.' || $entry === '..') {
+            continue;
+        }
+        unlink($path . '/' . $entry);
+    }
+    rmdir($path);
+}
+
+function submit_upload(string $bytes): string
+{
+    $path = sys_get_temp_dir() . '/avaliar-upload-' . bin2hex(random_bytes(4));
+    file_put_contents($path, $bytes);
+    return $path;
+}
+
+function submit_file(string $name, int $size, string $tmpName): array
+{
+    return ['name' => $name, 'size' => $size, 'tmp_name' => $tmpName];
+}
+
+function submit_post(array $overrides = []): array
+{
+    global $posting;
+    $post = [
+        'consent' => '1',
+        'email' => 'ana.souza@email.com',
+        'posting' => $posting,
+    ];
+    foreach ($overrides as $key => $value) {
+        if ($value === null) {
+            unset($post[$key]);
+            continue;
+        }
+        $post[$key] = $value;
+    }
+    return $post;
+}
+
+/** @return array{0:list<string>, 1:mixed} */
+function submit_capture(callable $run): array
+{
+    $warnings = [];
+    set_error_handler(function (int $severity, string $message) use (&$warnings): bool {
+        $warnings[] = $message;
+        return true;
+    });
+    try {
+        $result = $run();
+    } finally {
+        restore_error_handler();
+    }
+    return [$warnings, $result];
+}
+
+$validFile = submit_file('curriculo.pdf', 12, '/tmp/avaliar-does-not-exist');
+$absentConsent = validate_submission(submit_post(['consent' => null]), $validFile);
+ok($absentConsent['ok'] === false, 'absent consent is not ok');
+ok($absentConsent['error'] === 'unchecked', 'absent consent returns unchecked');
+
+$badEmail = validate_submission(submit_post(['email' => 'não-é-email']), $validFile);
+ok($badEmail['ok'] === false, 'não-é-email is not ok');
+ok($badEmail['error'] === 'bad_email', 'não-é-email returns bad_email');
+
+$emptyPosting = validate_submission(submit_post(['posting' => '']), $validFile);
+ok($emptyPosting['ok'] === false, 'empty posting is not ok');
+ok($emptyPosting['error'] === 'empty_posting', 'empty posting returns empty_posting');
+$blankPosting = validate_submission(submit_post(['posting' => " \n\t "]), $validFile);
+ok($blankPosting['error'] === 'empty_posting', 'a trimmed empty posting returns empty_posting');
+
+$missingName = validate_submission(submit_post(), submit_file('', 12, '/tmp/avaliar-does-not-exist'));
+ok($missingName['ok'] === false, 'empty file name is not ok');
+ok($missingName['error'] === 'missing_file', 'empty file name returns missing_file');
+
+$tooLarge = validate_submission(submit_post(), submit_file('curriculo.pdf', 5242881, '/tmp/avaliar-does-not-exist'));
+ok($tooLarge['ok'] === false, 'size 5242881 is not ok');
+ok($tooLarge['error'] === 'too_large', 'size 5242881 returns too_large');
+
+$exactPdf = validate_submission(submit_post(), submit_file('curriculo.pdf', 5242880, '/tmp/avaliar-does-not-exist'));
+ok($exactPdf['ok'] === true, 'size 5242880 with a .pdf name passes validation');
+ok($exactPdf['error'] === '', 'a valid pdf has an empty error');
+$upperPdf = validate_submission(submit_post(), submit_file('Relatorio.PDF', 5242880, '/tmp/avaliar-does-not-exist'));
+ok($upperPdf['ok'] === true && $upperPdf['error'] === '', '.PDF is a pdf');
+$dotPdf = validate_submission(submit_post(), submit_file('.PDF', 100, '/tmp/avaliar-does-not-exist'));
+ok($dotPdf['ok'] === true && $dotPdf['error'] === '', 'a name .PDF passes validation');
+$upperDocx = validate_submission(submit_post(), submit_file('curriculo.DOCX', 100, '/tmp/avaliar-does-not-exist'));
+ok($upperDocx['ok'] === true && $upperDocx['error'] === '', '.DOCX is a docx');
+
+$badType = validate_submission(submit_post(), submit_file('curriculo.txt', 100, '/tmp/avaliar-does-not-exist'));
+ok($badType['ok'] === false, 'curriculo.txt is not ok');
+ok($badType['error'] === 'bad_type', 'curriculo.txt returns bad_type');
+
+$firstError = validate_submission(
+    ['email' => 'não-é-email', 'posting' => ''],
+    submit_file('curriculo.txt', 5242881, '/tmp/avaliar-does-not-exist')
+);
+ok($firstError['error'] === 'unchecked', 'consent is checked before the other fields');
+$emailFirst = validate_submission(
+    submit_post(['email' => 'não-é-email', 'posting' => '']),
+    submit_file('', 5242881, '/tmp/avaliar-does-not-exist')
+);
+ok($emailFirst['error'] === 'bad_email', 'email is checked before the posting and the file');
+$postingFirst = validate_submission(submit_post(['posting' => '']), submit_file('', 5242881, '/tmp/avaliar-does-not-exist'));
+ok($postingFirst['error'] === 'empty_posting', 'posting is checked before the file');
+$sizeFirst = validate_submission(submit_post(), submit_file('curriculo.txt', 5242881, '/tmp/avaliar-does-not-exist'));
+ok($sizeFirst['error'] === 'too_large', 'size is checked before the extension');
+
+$submitConsent = 'Andrey Costa guarda o e-mail para responder esta avaliação e apaga a mensagem quando a pessoa responde para andreynacosta46@gmail.com pedindo o apagamento.';
+$postingLine = 'Power métricas produto experimentos pipelines';
+$guardStore = submit_store();
+$guardCalls = 0;
+$guardMail = 0;
+$guardExtractor = function (string $path, string $extension) use (&$guardCalls): array {
+    $guardCalls++;
+    return ['text' => '', 'pages' => 0, 'linear' => false, 'readable' => false, 'valid_docx' => false];
+};
+$guardMailer = function (string $to, string $subject, string $body) use (&$guardMail): bool {
+    $guardMail++;
+    return true;
+};
+$missingUpload = sys_get_temp_dir() . '/avaliar-missing-' . bin2hex(random_bytes(4));
+[$guardWarnings, $uncheckedHandle] = submit_capture(function () use ($posting, $missingUpload, $guardStore, $guardMailer, $guardExtractor): array {
+    return handle_submission(
+        ['email' => 'ana.souza@email.com', 'posting' => $posting],
+        submit_file('curriculo.pdf', 12, $missingUpload),
+        [
+            'ip' => '198.51.100.10',
+            'now' => 1700003000,
+            'store' => $guardStore,
+            'mailer' => $guardMailer,
+            'extractor' => $guardExtractor,
+        ]
+    );
+});
+ok($uncheckedHandle['ok'] === false, 'absent consent handle is not ok');
+ok($uncheckedHandle['error'] === 'unchecked', 'absent consent handle returns unchecked');
+ok($uncheckedHandle['score'] === null, 'absent consent handle has no score');
+ok($uncheckedHandle['mail_failed'] === false, 'absent consent handle does not fail mail');
+ok($guardCalls === 0, 'absent consent leaves the extractor counter at 0');
+ok($guardMail === 0, 'absent consent does not mail');
+ok($guardWarnings === [], 'absent consent does not require the temp file to have existed');
+ok(!is_file($missingUpload), 'absent consent does not create the missing upload');
+ok(submit_count($guardStore) === 0, 'absent consent does not record a rate limit');
+submit_remove($guardStore);
+
+$limitStore = submit_store();
+$limitUpload = submit_upload("BYTES-DO-ARQUIVO\n");
+$limitCalls = 0;
+$limitMail = 0;
+$limitCopies = [];
+$limitExtractor = function (string $path, string $extension) use (&$limitCalls, &$limitCopies, $limitUpload): array {
+    $limitCalls++;
+    $limitCopies[] = $path;
+    ok(is_file($path), 'unreadable handle copies the upload before reading');
+    ok($path !== $limitUpload, 'unreadable handle does not read tmp_name in place');
+    return ['text' => '', 'pages' => 0, 'linear' => false, 'readable' => false, 'valid_docx' => false];
+};
+$limitMailer = function (string $to, string $subject, string $body) use (&$limitMail): bool {
+    $limitMail++;
+    return true;
+};
+$limitDeps = [
+    'ip' => '198.51.100.20',
+    'now' => 1700004000,
+    'store' => $limitStore,
+    'mailer' => $limitMailer,
+    'extractor' => $limitExtractor,
+];
+$limitFirst = null;
+for ($i = 0; $i < 10; $i++) {
+    $limitResult = handle_submission(submit_post(), submit_file('curriculo.pdf', 18, $limitUpload), $limitDeps);
+    if ($i === 0) {
+        $limitFirst = $limitResult;
+    }
+}
+$limitMissing = $limitUpload . '.absent';
+[$limitWarnings, $limitBlocked] = submit_capture(function () use ($limitMissing, $limitDeps): array {
+    return handle_submission(submit_post(), submit_file('curriculo.pdf', 18, $limitMissing), $limitDeps);
+});
+ok(is_array($limitFirst) && $limitFirst['ok'] === false, 'an unreadable extraction is not ok');
+ok(is_array($limitFirst) && $limitFirst['error'] === 'unreadable', 'readable false returns unreadable');
+ok(is_array($limitFirst) && $limitFirst['score'] === null, 'readable false does not score');
+ok(is_array($limitFirst) && $limitFirst['mail_failed'] === false, 'readable false does not fail mail');
+ok($limitCalls === 10, 'eleven handles call the extractor ten times');
+ok($limitMail === 0, 'unreadable and rate limited handles do not mail');
+ok(is_array($limitBlocked) && $limitBlocked['ok'] === false, 'the 11th handle is not ok');
+ok(is_array($limitBlocked) && $limitBlocked['error'] === 'rate_limited', 'the 11th handle returns rate_limited');
+ok(is_array($limitBlocked) && $limitBlocked['score'] === null, 'the 11th handle has no score');
+ok(is_array($limitBlocked) && $limitBlocked['mail_failed'] === false, 'the 11th handle does not fail mail');
+ok($limitWarnings === [], 'the 11th handle does not copy a missing upload');
+$limitLeft = false;
+foreach ($limitCopies as $limitCopy) {
+    clearstatcache(true, $limitCopy);
+    if (is_file($limitCopy)) {
+        $limitLeft = true;
+    }
+}
+ok($limitLeft === false, 'unreadable handles delete the temp copy');
+ok(count($limitCopies) === 10, 'the 11th handle does not create a temp copy the extractor can see');
+ok(is_file($limitUpload), 'rate limited handles do not delete tmp_name');
+ok(file_get_contents($limitUpload) === "BYTES-DO-ARQUIVO\n", 'rate limited handles do not change tmp_name');
+unlink($limitUpload);
+submit_remove($limitStore);
+
+// The rate-limit loop above stores a filesystem path in $full.
+$resume = "Ana Souza\nana@email.com\nObjetivo\nAnalista de Dados Sênior\nEspecialista com anos de experiência.\n• Liderei o painel e reduzi o tempo em 30%.\nTrabalhei com power, métricas, produto e experimentos no corpo.\n";
+$secret = "CURRICULO-SECRETO\n" . $resume;
+$uploadBytes = "BYTES-DO-ARQUIVO\n";
+$sentUpload = submit_upload($uploadBytes);
+$sentStore = submit_store();
+$sentCopy = '';
+$sentExtension = '';
+$sentMail = null;
+$sentNow = 1700005000;
+$sentExtractor = function (string $path, string $extension) use (&$sentCopy, &$sentExtension, $secret, $uploadBytes): array {
+    $sentCopy = $path;
+    $sentExtension = $extension;
+    $root = realpath(sys_get_temp_dir());
+    $real = realpath($path);
+    ok(is_string($root) && is_string($real) && str_starts_with($real, $root . DIRECTORY_SEPARATOR), 'temp copy is inside the system temp dir');
+    ok(is_file($path), 'temp copy exists while extracting');
+    ok(file_get_contents($path) === $uploadBytes, 'temp copy has the upload bytes');
+    return [
+        'text' => $secret,
+        'pages' => 1,
+        'linear' => true,
+        'readable' => true,
+        'valid_docx' => true,
+    ];
+};
+$sentMailer = function (string $to, string $subject, string $body) use (&$sentMail): bool {
+    $sentMail = [$to, $subject, $body];
+    return true;
+};
+$sent = handle_submission(
+    submit_post(),
+    submit_file('curriculo.docx', strlen($uploadBytes), $sentUpload),
+    [
+        'ip' => '198.51.100.30',
+        'now' => $sentNow,
+        'store' => $sentStore,
+        'mailer' => $sentMailer,
+        'extractor' => $sentExtractor,
+    ]
+);
+ok($sent['ok'] === true, 'a sent lead is ok');
+ok($sent['error'] === '', 'a sent lead has no error');
+ok($sent['mail_failed'] === false, 'mail_failed is false when the mailer returns true');
+ok(is_array($sent['score']) && array_key_exists('points', $sent['score']), 'score points is set');
+ok(is_array($sent['score']) && $sent['score']['points'] === 10.0, 'full resume fields score 10.0');
+ok(is_array($sent['score']) && $sent['score']['title'] === 'Analista de Dados Sênior', 'score title is the posting title');
+ok(is_array($sent['score']) && !array_key_exists('text', $sent['score']), 'the score does not include the resume text');
+ok($sentExtension === 'docx', 'extractor receives the docx extension');
+ok(is_array($sentMail), 'the mailer is called on success');
+$sentBody = is_array($sentMail) ? $sentMail[2] : '';
+$sentSubject = is_array($sentMail) ? $sentMail[1] : '';
+ok(is_array($sentMail) && $sentMail[0] === 'andreynacosta46@gmail.com', 'mail goes to andreynacosta46@gmail.com');
+ok($sentSubject === 'Avaliação de currículo ana.souza@email.com', 'subject is Avaliação de currículo plus the visitor email');
+ok(!str_contains($sentSubject, 'CURRICULO-SECRETO'), 'subject does not contain the resume');
+ok(!str_contains($sentSubject, $postingLine), 'subject does not contain the posting');
+ok(!str_contains($sentBody, 'CURRICULO-SECRETO'), 'mail body does not contain CURRICULO-SECRETO');
+ok(!str_contains($sentBody, $postingLine), 'mail body does not contain the posting');
+ok(!str_contains($sentBody, 'BYTES-DO-ARQUIVO'), 'mail body does not contain the upload bytes');
+ok(!str_contains($sentSubject, $sentCopy) && !str_contains($sentBody, $sentCopy), 'mail does not contain the temp path');
+$sentExpected = lead_body(
+    'ana.souza@email.com',
+    10.0,
+    [],
+    'Analista de Dados Sênior',
+    $submitConsent,
+    date('Y-m-d H:i:s', $sentNow)
+);
+ok($sentBody === $sentExpected, 'mail body is the lead for the full resume');
+clearstatcache(true, $sentCopy);
+ok($sentCopy !== '' && !is_file($sentCopy), 'the temp copy is gone after success');
+ok(is_file($sentUpload), 'success does not delete tmp_name');
+ok(file_get_contents($sentUpload) === $uploadBytes, 'success does not change tmp_name');
+ok(!str_contains(basename($sentCopy), 'curriculo'), 'the temp copy does not use the upload name');
+unlink($sentUpload);
+submit_remove($sentStore);
+
+$failUpload = submit_upload($uploadBytes);
+$failStore = submit_store();
+$failCopy = '';
+$failExtension = '';
+$failMail = null;
+$failNow = 1700006000;
+$failExtractor = function (string $path, string $extension) use (&$failCopy, &$failExtension, $secret): array {
+    $failCopy = $path;
+    $failExtension = $extension;
+    return [
+        'text' => $secret,
+        'pages' => 1,
+        'linear' => false,
+        'readable' => true,
+        'valid_docx' => false,
+    ];
+};
+$failMailer = function (string $to, string $subject, string $body) use (&$failMail): bool {
+    $failMail = [$to, $subject, $body];
+    return false;
+};
+$failedMail = handle_submission(
+    submit_post(),
+    submit_file('Relatorio.PDF', strlen($uploadBytes), $failUpload),
+    [
+        'ip' => '198.51.100.31',
+        'now' => $failNow,
+        'store' => $failStore,
+        'mailer' => $failMailer,
+        'extractor' => $failExtractor,
+    ]
+);
+ok($failedMail['ok'] === true, 'a failed mailer still returns ok');
+ok($failedMail['error'] === '', 'a failed mailer has no error id');
+ok($failedMail['mail_failed'] === true, 'mail_failed is true when the mailer returns false');
+ok(is_array($failedMail['score']) && array_key_exists('points', $failedMail['score']), 'a failed mailer still returns the score');
+ok(is_array($failedMail['score']) && $failedMail['score']['points'] === 7.5, 'pdf without linear text scores 7.5');
+ok($failExtension === 'pdf', 'extractor receives pdf for a .PDF name');
+ok(is_array($failMail), 'the mailer is still called when it will fail');
+$failBody = is_array($failMail) ? $failMail[2] : '';
+$failSubject = is_array($failMail) ? $failMail[1] : '';
+ok(is_array($failMail) && $failMail[0] === 'andreynacosta46@gmail.com', 'a failed mail was addressed to andreynacosta46@gmail.com');
+ok($failSubject === 'Avaliação de currículo ana.souza@email.com', 'a failed mail keeps the subject');
+ok(!str_contains($failBody, 'CURRICULO-SECRETO'), 'a failed mail body does not contain CURRICULO-SECRETO');
+ok(!str_contains($failSubject, 'CURRICULO-SECRETO') && !str_contains($failSubject, $postingLine), 'a failed mail subject has no resume or posting');
+ok(!str_contains($failBody, $postingLine), 'a failed mail body does not contain the posting');
+$failExpected = lead_body(
+    'ana.souza@email.com',
+    7.5,
+    ['linear', 'docx'],
+    'Analista de Dados Sênior',
+    $submitConsent,
+    date('Y-m-d H:i:s', $failNow)
+);
+ok($failBody === $failExpected, 'failed mail body lists linear then docx');
+clearstatcache(true, $failCopy);
+ok($failCopy !== '' && !is_file($failCopy), 'the temp copy is gone when mail fails');
+ok(is_file($failUpload), 'a failed mailer does not delete tmp_name');
+ok(file_get_contents($failUpload) === $uploadBytes, 'a failed mailer does not change tmp_name');
+unlink($failUpload);
+submit_remove($failStore);
+
+$throwUpload = submit_upload($uploadBytes);
+$throwStore = submit_store();
+$throwCopy = '';
+$throwMail = 0;
+$throwExtractor = function (string $path, string $extension) use (&$throwCopy, $throwUpload): array {
+    $throwCopy = $path;
+    ok(is_file($path), 'temp copy exists before the extractor throws');
+    ok($path !== $throwUpload, 'a thrown extractor was given a copy');
+    throw new RuntimeException('CURRICULO-SECRETO');
+};
+$throwMailer = function (string $to, string $subject, string $body) use (&$throwMail): bool {
+    $throwMail++;
+    return true;
+};
+$thrown = handle_submission(
+    submit_post(),
+    submit_file('curriculo.pdf', strlen($uploadBytes), $throwUpload),
+    [
+        'ip' => '198.51.100.32',
+        'now' => 1700007000,
+        'store' => $throwStore,
+        'mailer' => $throwMailer,
+        'extractor' => $throwExtractor,
+    ]
+);
+ok($thrown['ok'] === false, 'a thrown extractor is not ok');
+ok($thrown['error'] === 'unreadable', 'a thrown extractor returns unreadable');
+ok($thrown['score'] === null, 'a thrown extractor does not score');
+ok($thrown['mail_failed'] === false, 'a thrown extractor does not fail mail');
+ok($throwMail === 0, 'a thrown extractor does not mail');
+ok(!str_contains((string) json_encode($thrown), 'CURRICULO-SECRETO'), 'a thrown extractor does not leak the resume');
+clearstatcache(true, $throwCopy);
+ok($throwCopy !== '' && !is_file($throwCopy), 'the temp copy is gone after the extractor throws');
+ok(is_file($throwUpload), 'a thrown extractor does not delete tmp_name');
+ok(file_get_contents($throwUpload) === $uploadBytes, 'a thrown extractor does not change tmp_name');
+unlink($throwUpload);
+submit_remove($throwStore);
 
 if ($failures > 0) {
     exit(1);
