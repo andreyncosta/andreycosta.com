@@ -7,6 +7,7 @@ if (PHP_SAPI !== 'cli') {
 }
 
 require __DIR__ . '/score.php';
+require __DIR__ . '/extract.php';
 
 $failures = 0;
 $count = 0;
@@ -35,6 +36,30 @@ function passed(array $score, string $id): bool
 {
     $map = check_map($score);
     return isset($map[$id]) && $map[$id]['passed'] === true;
+}
+
+function fixture_docx(?string $documentXml): string
+{
+    $path = sys_get_temp_dir() . '/avaliar-docx-' . bin2hex(random_bytes(4)) . '.docx';
+    $zip = new ZipArchive();
+    $opened = $zip->open($path, ZipArchive::CREATE);
+    if ($opened !== true) {
+        throw new RuntimeException('fixture zip did not open');
+    }
+    if ($documentXml === null) {
+        $zip->addFromString('word/other.xml', '<empty/>');
+    } else {
+        $zip->addFromString('word/document.xml', $documentXml);
+    }
+    $zip->close();
+    return $path;
+}
+
+function docx_body(string $inner): string
+{
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        . '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+        . '<w:body>' . $inner . '</w:body></w:document>';
 }
 
 $posting = "Analista de Dados Sênior\nPower métricas produto experimentos pipelines\n";
@@ -210,6 +235,105 @@ ok($titleOnlyScore['points'] === 10.0, 'a title-only posting still scores 10.0')
 
 $again = score_resume($base);
 ok($again['points'] === $perfect['points'], 'same input returns the same points');
+
+$paragraph = 'Analista de dados sem tabela';
+$linearXml = docx_body('<w:p><w:r><w:t>' . $paragraph . '</w:t></w:r></w:p>');
+ok(docx_is_linear($linearXml) === true, 'paragraph xml without a table is linear');
+$runnerCalls = 0;
+$runner = function (array $argv) use (&$runnerCalls): array {
+    $runnerCalls++;
+    return ['code' => 0, 'stdout' => '', 'stderr' => ''];
+};
+$linearPath = fixture_docx($linearXml);
+$linearFile = extract_file($linearPath, 'docx', $runner);
+ok($linearFile['readable'] === true, 'paragraph docx is readable');
+ok($linearFile['valid_docx'] === true, 'paragraph docx is a valid docx');
+ok($linearFile['linear'] === true, 'paragraph docx is linear');
+ok($linearFile['pages'] === 0, 'docx pages stay 0');
+ok(str_contains($linearFile['text'], $paragraph), 'docx text contains the paragraph');
+ok(is_file($linearPath), 'extract_file does not delete the docx');
+ok($runnerCalls === 0, 'docx does not call the runner');
+
+$linesXml = docx_body('<w:p><w:r><w:t>Objetivo</w:t></w:r></w:p><w:p><w:r><w:t>Ana &amp; Souza</w:t></w:r></w:p>');
+$linesPath = fixture_docx($linesXml);
+$linesText = extract_file($linesPath, 'docx', $runner)['text'];
+ok(str_contains($linesText, "Objetivo\n"), 'a paragraph end becomes a new line');
+ok(str_contains($linesText, 'Ana & Souza'), 'docx text decodes xml entities');
+
+$prettyXml = docx_body("\n  <w:p>\n    <w:r>\n      <w:t>Objetivo</w:t>\n    </w:r>\n  </w:p>\n");
+$prettyPath = fixture_docx($prettyXml);
+ok(extract_file($prettyPath, 'docx', $runner)['text'] === 'Objetivo', 'indentation between tags is not resume text');
+$spacedXml = docx_body('<w:p><w:r><w:t>Ana</w:t><w:t xml:space="preserve"> </w:t><w:t>Souza</w:t></w:r></w:p>');
+$spacedPath = fixture_docx($spacedXml);
+ok(extract_file($spacedPath, 'docx', $runner)['text'] === 'Ana Souza', 'a preserved space between runs stays');
+$boxXml = docx_body('<w:p><w:r><w:t>Antes</w:t><w:drawing><w:txbxContent><w:p><w:r><w:t>Caixa</w:t></w:r></w:p></w:txbxContent></w:drawing></w:r></w:p>');
+$boxPath = fixture_docx($boxXml);
+ok(extract_file($boxPath, 'docx', $runner)['text'] === "Antes\nCaixa", 'a text box paragraph is not repeated');
+$emptyPath = fixture_docx('');
+$emptyFile = extract_file($emptyPath, 'docx', $runner);
+ok($emptyFile['readable'] === true, 'empty document.xml stays readable');
+ok($emptyFile['valid_docx'] === true, 'empty document.xml stays a valid docx');
+ok($emptyFile['linear'] === true, 'empty document.xml is linear');
+ok($emptyFile['text'] === '', 'empty document.xml has empty text');
+$brokenPath = fixture_docx('<w:t>Quebrado</w:t><not-closed');
+$brokenFile = extract_file($brokenPath, 'docx', $runner);
+ok($brokenFile['readable'] === true, 'broken document.xml stays readable');
+ok($brokenFile['valid_docx'] === true, 'broken document.xml stays a valid docx');
+ok(str_contains($brokenFile['text'], 'Quebrado'), 'broken document.xml still strips to text');
+
+$tblXml = docx_body('<w:tbl><w:tr><w:tc><w:p><w:r><w:t>Celula</w:t></w:r></w:p></w:tc></w:tr></w:tbl>');
+ok(docx_is_linear($tblXml) === false, 'xml with w:tbl is not linear');
+$tblPath = fixture_docx($tblXml);
+$tblFile = extract_file($tblPath, 'docx', $runner);
+ok($tblFile['linear'] === false, 'docx with w:tbl is not linear');
+ok($tblFile['readable'] === true, 'docx with w:tbl stays readable');
+ok($tblFile['valid_docx'] === true, 'docx with w:tbl stays valid');
+
+$drawingXml = docx_body('<w:p><w:r><w:drawing><wp:inline/></w:drawing></w:r></w:p>');
+ok(docx_is_linear($drawingXml) === false, 'xml with w:drawing is not linear');
+$drawingPath = fixture_docx($drawingXml);
+$drawingFile = extract_file($drawingPath, 'docx', $runner);
+ok($drawingFile['linear'] === false, 'docx with w:drawing is not linear');
+
+$colsXml = docx_body('<w:sectPr><w:cols w:num="2"/></w:sectPr>');
+ok(docx_is_linear($colsXml) === false, 'w:cols with w:num 2 is not linear');
+ok(str_contains($colsXml, '<w:cols w:num="2"/>'), 'cols fixture contains the pinned tag');
+$colsPath = fixture_docx($colsXml);
+$colsFile = extract_file($colsPath, 'docx', $runner);
+ok($colsFile['linear'] === false, 'docx with two columns is not linear');
+ok(docx_is_linear('<w:cols w:num="1"/>') === true, 'w:cols with w:num 1 stays linear');
+ok(docx_is_linear('<w:cols w:space="708" w:num="2"/>') === false, 'w:num after another attribute is not linear');
+ok(docx_is_linear('<w:cols w:num="1"/><w:cols w:num="3"/>') === false, 'a later w:cols above 1 is not linear');
+
+$fake = sys_get_temp_dir() . '/avaliar-fake-' . bin2hex(random_bytes(4)) . '.docx';
+file_put_contents($fake, "isto nao e um zip\n");
+$fakeFile = extract_file($fake, 'docx', $runner);
+ok($fakeFile['readable'] === false, 'plain text renamed docx is not readable');
+ok($fakeFile['valid_docx'] === false, 'plain text renamed docx is not a valid docx');
+ok($fakeFile['linear'] === false, 'plain text renamed docx is not linear');
+ok($fakeFile['text'] === '', 'plain text renamed docx has empty text');
+ok($fakeFile['pages'] === 0, 'plain text renamed docx has 0 pages');
+ok(is_file($fake), 'extract_file does not delete a fake docx');
+
+$missingEntry = fixture_docx(null);
+$missingFile = extract_file($missingEntry, 'docx', $runner);
+ok($missingFile['readable'] === false, 'zip without document.xml is not readable');
+ok($missingFile['valid_docx'] === false, 'zip without document.xml is not a valid docx');
+ok($missingFile['linear'] === false, 'zip without document.xml is not linear');
+ok($missingFile['text'] === '', 'zip without document.xml has empty text');
+
+$absent = extract_file($fake . '.absent', 'docx', $runner);
+ok($absent['readable'] === false, 'missing zip is not readable');
+ok($absent['valid_docx'] === false, 'missing zip is not a valid docx');
+ok($absent['text'] === '', 'missing zip has empty text');
+ok($absent['linear'] === false, 'missing zip is not linear');
+ok($runnerCalls === 0, 'failed docx reads do not call the runner');
+
+foreach ([$linearPath, $linesPath, $prettyPath, $spacedPath, $boxPath, $emptyPath, $brokenPath, $tblPath, $drawingPath, $colsPath, $fake, $missingEntry] as $path) {
+    if (is_file($path)) {
+        unlink($path);
+    }
+}
 
 if ($failures > 0) {
     exit(1);
