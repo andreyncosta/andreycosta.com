@@ -10,6 +10,7 @@ require __DIR__ . '/score.php';
 require __DIR__ . '/extract.php';
 require __DIR__ . '/lead.php';
 require __DIR__ . '/submit.php';
+require __DIR__ . '/page.php';
 
 $failures = 0;
 $count = 0;
@@ -996,6 +997,187 @@ ok(is_file($throwUpload), 'a thrown extractor does not delete tmp_name');
 ok(file_get_contents($throwUpload) === $uploadBytes, 'a thrown extractor does not change tmp_name');
 unlink($throwUpload);
 submit_remove($throwStore);
+
+function page_bubble_on(string $html, string $place, string $label): bool
+{
+    $pattern = '/data-place="' . preg_quote($place, '/') . '"(.*?)<\/div>/s';
+    if (preg_match($pattern, $html, $block) !== 1) {
+        return false;
+    }
+    $cell = '/<i class="on">' . preg_quote($label, '/') . '<\/i>/';
+    return preg_match($cell, $block[1]) === 1;
+}
+
+function page_check_row(string $html, string $id): string
+{
+    $pattern = '/<p class="[^"]*" data-check="' . preg_quote($id, '/') . '">.*?<\/p>/s';
+    if (preg_match($pattern, $html, $row) !== 1) {
+        return '';
+    }
+    return $row[0];
+}
+
+$emptyState = [
+    'error' => '',
+    'score' => null,
+    'mail_failed' => false,
+    'values' => ['email' => '', 'posting' => ''],
+];
+$emptyPage = render_page($emptyState);
+ok(str_contains($emptyPage, 'Copie o anúncio e cole aqui.'), 'empty page has the Portuguese posting hint');
+ok(str_contains($emptyPage, 'Copy the posting and paste it here.'), 'empty page has the English posting hint');
+ok(str_contains($emptyPage, 'A nota aparece depois do envio.'), 'empty page says the score appears after submit');
+ok(preg_match('/<button[^>]*>.*?Avaliar.*?<\/button>/s', $emptyPage) === 1, 'the button says Avaliar');
+ok(!str_contains($emptyPage, 'seed:'), 'empty page does not contain seed:');
+ok(!str_contains($emptyPage, 'Direction contract'), 'empty page does not contain Direction contract');
+$checkboxFound = preg_match('/<input\b[^>]*type="checkbox"[^>]*>/', $emptyPage, $checkbox);
+ok($checkboxFound === 1, 'empty page has a checkbox');
+ok($checkboxFound === 1 && !str_contains($checkbox[0], 'checked'), 'checkbox markup does not contain checked');
+ok(!str_contains($emptyPage, 'class="on"'), 'empty page has no filled optical cell');
+ok(str_contains($emptyPage, 'não simula'), 'empty page says the score não simula');
+ok(str_contains($emptyPage, 'Andrey Costa'), 'empty page names Andrey Costa');
+ok(str_contains($emptyPage, 'andreynacosta46@gmail.com'), 'empty page names andreynacosta46@gmail.com');
+ok(str_contains($emptyPage, 'lang="pt"') && str_contains($emptyPage, 'lang="en"'), 'empty page contains both languages');
+ok(str_contains($emptyPage, 'data-set-lang="pt"') && str_contains($emptyPage, 'data-set-lang="en"'), 'empty page has a language control');
+ok(str_contains($emptyPage, 'name="resume"'), 'the file input is named resume');
+$consentSentence = 'Andrey Costa guarda o e-mail para responder esta avaliação e apaga a mensagem quando a pessoa responde para andreynacosta46@gmail.com pedindo o apagamento.';
+ok(str_contains($emptyPage, $consentSentence), 'the checkbox shows the consent sentence');
+
+$twoPage = $base;
+$twoPage['extension'] = 'pdf';
+$twoPage['valid_docx'] = false;
+$twoPage['pages'] = 2;
+$score75 = score_resume($twoPage);
+$page75 = render_page([
+    'error' => '',
+    'score' => $score75,
+    'mail_failed' => false,
+    'values' => ['email' => '', 'posting' => ''],
+]);
+ok(str_contains($page75, '7,5'), 'a 7.5 result shows 7,5');
+ok(str_contains($page75, '<div class="num">7,5</div>'), 'the large number is 7,5');
+ok(page_bubble_on($page75, 'integer', '7'), '7.5 fills the integer bubble 7');
+ok(page_bubble_on($page75, 'tenth', '5'), '7.5 fills the tenth bubble 5');
+ok(!page_bubble_on($page75, 'integer', '10'), '7.5 does not fill the extra 10 bubble');
+$onePageRow = page_check_row($page75, 'one_page');
+ok($onePageRow !== '' && preg_match('/class="[^"]*\bfill\b/', $onePageRow) === 1, 'failed one_page row includes fill');
+$linearRow = page_check_row($page75, 'linear');
+ok($linearRow !== '' && !str_contains($linearRow, 'fill'), 'passed linear row does not include fill');
+ok(str_contains($page75, 'não simula'), 'result page says the score não simula');
+ok(str_contains($page75, 'Andrey Costa'), 'result page names Andrey Costa');
+ok(str_contains($page75, 'andreynacosta46@gmail.com'), 'result page names andreynacosta46@gmail.com');
+
+$page10 = render_page([
+    'error' => '',
+    'score' => $perfect,
+    'mail_failed' => false,
+    'values' => ['email' => '', 'posting' => ''],
+]);
+ok(str_contains($page10, '10,0'), 'a 10.0 result shows 10,0');
+ok(str_contains($page10, '<div class="num">10,0</div>'), 'the large number is 10,0');
+ok(page_bubble_on($page10, 'integer', '10'), '10.0 fills the bubble 10');
+for ($digit = 0; $digit <= 9; $digit++) {
+    ok(!page_bubble_on($page10, 'integer', (string) $digit), "10.0 leaves integer bubble $digit empty");
+}
+ok(page_bubble_on($page10, 'tenth', '0'), '10.0 fills the tenth bubble 0');
+foreach (array_column($perfect['checks'], 'id') as $passedId) {
+    $passedRow = page_check_row($page10, $passedId);
+    ok($passedRow !== '' && !str_contains($passedRow, 'fill'), "passed $passedId row does not include fill");
+}
+
+$mailPage = render_page([
+    'error' => '',
+    'score' => $perfect,
+    'mail_failed' => true,
+    'values' => ['email' => '', 'posting' => ''],
+]);
+ok(str_contains($mailPage, 'O contato não foi enviado.'), 'mail failure says the contact was not sent');
+ok(str_contains($mailPage, 'The contact was not sent.'), 'mail failure has the English sentence');
+ok(!str_contains($emptyPage, 'O contato não foi enviado.'), 'empty page does not say the contact failed');
+
+$kept = render_page([
+    'error' => 'bad_email',
+    'score' => null,
+    'mail_failed' => false,
+    'values' => ['email' => 'ana@email.com', 'posting' => "Analista\nPower"],
+]);
+ok(str_contains($kept, 'value="ana@email.com"'), 'a failed post keeps the email');
+ok(str_contains($kept, "Analista\nPower"), 'a failed post keeps the posting');
+$escaped = render_page([
+    'error' => 'bad_email',
+    'score' => null,
+    'mail_failed' => false,
+    'values' => ['email' => 'a"<b>@x.com', 'posting' => '</textarea><script>alert(1)</script>'],
+]);
+ok(str_contains($escaped, 'value="a&quot;&lt;b&gt;@x.com"'), 'the email value is escaped');
+ok(!str_contains($escaped, '</textarea><script>'), 'the posting cannot break out of the textarea');
+ok(str_contains($escaped, '&lt;/textarea&gt;&lt;script&gt;'), 'the posting text stays visible as text');
+
+require_once __DIR__ . '/copy.php';
+$copyIds = ['unchecked', 'bad_email', 'empty_posting', 'missing_file', 'too_large', 'bad_type', 'rate_limited', 'unreadable'];
+$copy = page_copy();
+$copySrc = file_get_contents(__DIR__ . '/copy.php');
+ok(is_string($copySrc), 'copy.php can be read');
+foreach ($copyIds as $copyId) {
+    $pt = $copy[$copyId]['pt'] ?? '';
+    $en = $copy[$copyId]['en'] ?? '';
+    ok(is_string($copySrc) && str_contains($copySrc, $copyId), "$copyId is named in copy.php");
+    ok(is_string($pt) && trim($pt) !== '' && str_ends_with($pt, '.'), "$copyId has a Portuguese sentence");
+    ok(is_string($en) && trim($en) !== '' && str_ends_with($en, '.'), "$copyId has an English sentence");
+    $errorPage = render_page([
+        'error' => $copyId,
+        'score' => null,
+        'mail_failed' => false,
+        'values' => ['email' => '', 'posting' => ''],
+    ]);
+    ok(str_contains($errorPage, $pt), "page shows the Portuguese sentence for $copyId");
+    ok(str_contains($errorPage, $en), "page shows the English sentence for $copyId");
+}
+
+$keptState = page_result_state(
+    ['email' => 'ana@email.com', 'posting' => 'Analista'],
+    ['ok' => false, 'error' => 'missing_file', 'score' => null, 'mail_failed' => false]
+);
+ok($keptState['values']['email'] === 'ana@email.com', 'validation failure keeps the posted email');
+ok($keptState['values']['posting'] === 'Analista', 'validation failure keeps the posted posting');
+ok($keptState['error'] === 'missing_file', 'validation failure keeps the error id');
+ok($keptState['score'] === null, 'validation failure has no score');
+$sentState = page_result_state(
+    ['email' => 'ana@email.com', 'posting' => 'Analista'],
+    ['ok' => true, 'error' => '', 'score' => $perfect, 'mail_failed' => true]
+);
+ok($sentState['mail_failed'] === true, 'a failed mail stays on the page state');
+ok(is_array($sentState['score']) && $sentState['score']['points'] === 10.0, 'a failed mail still carries the score');
+ok($sentState['values']['email'] === '' && $sentState['values']['posting'] === '', 'a successful score does not refill the form');
+ok(page_empty_state()['score'] === null && page_empty_state()['error'] === '', 'GET uses the empty state');
+
+$indexSrc = file_get_contents(__DIR__ . '/index.php');
+ok(is_string($indexSrc) && str_contains($indexSrc, '$_FILES[\'resume\']'), 'index passes $_FILES resume');
+ok(is_string($indexSrc) && str_contains($indexSrc, 'handle_submission'), 'index calls handle_submission');
+ok(is_string($indexSrc) && str_contains($indexSrc, 'extract_file(...)'), 'index uses the real extract_file');
+ok(is_string($indexSrc) && str_contains($indexSrc, 'mail(...)'), 'index uses the real mail');
+ok(is_string($indexSrc) && str_contains($indexSrc, '/storage'), 'index stores rate limits under storage');
+
+$css = file_get_contents(__DIR__ . '/style.css');
+ok(is_string($css) && str_contains($css, '#F7F7F5'), 'the sheet color is in the stylesheet');
+ok(is_string($css) && str_contains($css, '#141414'), 'the ink color is in the stylesheet');
+ok(is_string($css) && str_contains($css, '#C81E1E'), 'the band color is in the stylesheet');
+ok(is_string($css) && str_contains($css, '2px solid #141414'), 'panels use a 2px black border');
+ok(is_string($css) && str_contains($css, 'Barlow Condensed'), 'the score number uses Barlow Condensed');
+ok(is_string($css) && str_contains($css, '800px'), 'the columns change at 800px');
+ok(is_string($css) && !str_contains($css, 'width: 1440px') && !str_contains($css, 'width:1440px'), 'the page is not locked to the mock width');
+ok(is_string($css) && str_contains($css, '[lang="pt"]') && str_contains($css, '[lang="en"]'), 'the stylesheet switches the two languages');
+ok(str_contains($emptyPage, 'fonts.googleapis.com'), 'the page loads Google Fonts');
+ok(str_contains($emptyPage, 'Barlow+Condensed') && str_contains($emptyPage, 'family=Barlow'), 'the page loads Barlow and Barlow Condensed');
+ok(str_contains($emptyPage, '/avaliar/style.css'), 'the page loads its own stylesheet');
+ok(str_contains($emptyPage, '/assets/i18n.js'), 'the language control uses the site script');
+
+$deny = file_get_contents(__DIR__ . '/storage/.htaccess');
+ok(is_string($deny) && str_contains($deny, 'Require all denied'), 'storage denies all access');
+
+$pageSrc = file_get_contents(__DIR__ . '/page.php');
+ok(is_string($pageSrc) && !str_contains($pageSrc, 'score_resume'), 'the page does not rescore');
+ok(is_string($indexSrc) && !str_contains($indexSrc, 'score_resume'), 'index does not rescore');
 
 if ($failures > 0) {
     exit(1);
