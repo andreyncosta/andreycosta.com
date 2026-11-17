@@ -161,10 +161,11 @@ form button {
 }
 
 .score {
+  container-type: inline-size;
   padding: 16px 18px 14px;
   display: flex;
   flex-direction: column;
-  overflow-x: auto;
+  min-width: 0;
 }
 
 .who {
@@ -201,27 +202,32 @@ form button {
 
 .digits {
   display: grid;
-  grid-template-columns: 92px repeat(10, 1fr);
+  grid-template-columns: minmax(0, 92px) repeat(10, minmax(0, 1fr));
   gap: 4px;
   align-items: center;
   margin-bottom: 6px;
+  min-width: 0;
 }
 
 .digits[data-place="integer"] {
-  grid-template-columns: 92px repeat(11, 1fr);
+  grid-template-columns: minmax(0, 92px) repeat(11, minmax(0, 1fr));
 }
 
 .digits b {
   font-size: 13px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  min-width: 0;
 }
 
 .digits i {
   height: 36px;
+  min-width: 0;
   border: 2px solid #141414;
   display: block;
+  overflow: hidden;
   text-align: center;
+  white-space: nowrap;
   font: 700 18px/32px Barlow, sans-serif;
   font-style: normal;
   background: #fff;
@@ -320,12 +326,32 @@ textarea:focus-visible {
   .num {
     font-size: 96px;
   }
+}
+
+/* The score column is narrow from 800px until the row is about 37px per cell, and again on a phone. */
+@container (max-width: 480px) {
+  .num {
+    font-size: 96px;
+  }
+
+  .digits,
+  .digits[data-place="integer"] {
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: 2px;
+  }
+
+  .digits[data-place="integer"] {
+    grid-template-columns: repeat(11, minmax(0, 1fr));
+  }
 
   .digits b {
+    grid-column: 1 / -1;
     font-size: 11px;
+    letter-spacing: 0.04em;
   }
 
   .digits i {
-    font-size: 14px;
+    font-size: clamp(11px, 3.8cqi, 18px);
+    line-height: 32px;
   }
 }

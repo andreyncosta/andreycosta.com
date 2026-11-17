@@ -1176,6 +1176,10 @@ ok(is_string($css) && str_contains($css, '#C81E1E'), 'the band color is in the s
 ok(is_string($css) && str_contains($css, '2px solid #141414'), 'panels use a 2px black border');
 ok(is_string($css) && str_contains($css, 'Barlow Condensed'), 'the score number uses Barlow Condensed');
 ok(is_string($css) && str_contains($css, '800px'), 'the columns change at 800px');
+ok(is_string($css) && str_contains($css, 'minmax(0, 1fr)'), 'digit tracks can shrink inside the score column');
+ok(is_string($css) && str_contains($css, 'container-type: inline-size'), 'digit size follows the score column');
+ok(is_string($css) && str_contains($css, 'grid-column: 1 / -1'), 'a narrow score column puts the digit label above the bubbles');
+ok(is_string($css) && !str_contains($css, 'overflow-x: auto'), 'the score card does not scroll the number with the bubbles');
 ok(is_string($css) && !str_contains($css, 'width: 1440px') && !str_contains($css, 'width:1440px'), 'the page is not locked to the mock width');
 ok(is_string($css) && str_contains($css, '[lang="pt"]') && str_contains($css, '[lang="en"]'), 'the stylesheet switches the two languages');
 ok(str_contains($emptyPage, 'fonts.googleapis.com'), 'the page loads Google Fonts');
