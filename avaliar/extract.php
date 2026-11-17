@@ -57,18 +57,23 @@ function extract_docx(string $path): array
         return extract_unreadable();
     }
     $stat = $zip->statName('word/document.xml');
-    // 8 MiB uncompressed. A larger document.xml is not loaded into memory.
-    if (!is_array($stat) || !is_int($stat['size'] ?? null) || $stat['size'] > 8388608) {
+    $size = is_array($stat) ? ($stat['size'] ?? null) : null;
+    // Zip64 sizes above the signed range come back negative and would skip a "> cap" check.
+    if (docx_stat_refused($size)) {
         $zip->close();
         return extract_unreadable();
     }
-    $xml = $zip->getFromName('word/document.xml');
+    $xml = $zip->getFromName('word/document.xml', docx_xml_limit());
     $zip->close();
-    if (!is_string($xml)) {
+    if (!is_string($xml) || docx_declares_entity($xml)) {
+        return extract_unreadable();
+    }
+    $text = docx_plain_text($xml);
+    if (!is_string($text) || strlen($text) > docx_xml_limit()) {
         return extract_unreadable();
     }
     return [
-        'text' => docx_plain_text($xml),
+        'text' => $text,
         'pages' => 0,
         'linear' => docx_is_linear($xml),
         'readable' => true,
@@ -76,10 +81,33 @@ function extract_docx(string $path): array
     ];
 }
 
-function docx_plain_text(string $documentXml): string
+function docx_xml_limit(): int
+{
+    return 8388608;
+}
+
+function docx_stat_refused(mixed $size): bool
+{
+    return !is_int($size) || $size < 0 || $size > docx_xml_limit();
+}
+
+function docx_declares_entity(string $xml): bool
+{
+    if (strlen($xml) > docx_xml_limit()) {
+        return true;
+    }
+    // UTF-16 stores ASCII as interleaved NUL bytes. Stripping them reveals the declaration.
+    $scan = str_contains($xml, "\0") ? str_replace("\0", '', $xml) : $xml;
+    return stripos($scan, '<!DOCTYPE') !== false || stripos($scan, '<!ENTITY') !== false;
+}
+
+function docx_plain_text(string $documentXml): ?string
 {
     if (trim($documentXml) === '') {
         return '';
+    }
+    if (docx_declares_entity($documentXml)) {
+        return null;
     }
     $previous = libxml_use_internal_errors(true);
     $dom = new DOMDocument();
@@ -87,15 +115,26 @@ function docx_plain_text(string $documentXml): string
     libxml_clear_errors();
     libxml_use_internal_errors($previous);
     if ($loaded !== true) {
-        return docx_strip_tags($documentXml);
+        $stripped = docx_strip_tags($documentXml);
+        return strlen($stripped) > docx_xml_limit() ? null : $stripped;
+    }
+    $doctype = $dom->doctype;
+    if ($doctype instanceof DOMDocumentType && $doctype->parentNode !== null) {
+        $doctype->parentNode->removeChild($doctype);
     }
 
     $ns = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
     $lines = [];
+    $used = 0;
+    $limit = docx_xml_limit();
     foreach ($dom->getElementsByTagNameNS($ns, 'p') as $paragraph) {
         $line = docx_node_text($paragraph, $ns, true);
         if ($paragraph instanceof DOMElement && docx_paragraph_numbered($paragraph, $ns)) {
             $line = docx_list_line($line);
+        }
+        $used += strlen($line) + 1;
+        if ($used > $limit) {
+            return null;
         }
         $lines[] = $line;
     }
@@ -131,9 +170,13 @@ function docx_list_line(string $text): string
 
 function docx_node_text(DOMNode $node, string $ns, bool $root = false): string
 {
+    // An entity reference is not walked. Its replacement text is the expansion.
+    if ($node instanceof DOMEntityReference) {
+        return docx_predefined_entity($node->nodeName);
+    }
     if ($node instanceof DOMElement && $node->namespaceURI === $ns) {
         if ($node->localName === 't') {
-            return $node->textContent;
+            return docx_text_run($node);
         }
         if ($node->localName === 'tab') {
             return ' ';
@@ -150,6 +193,33 @@ function docx_node_text(DOMNode $node, string $ns, bool $root = false): string
         $text .= docx_node_text($child, $ns);
     }
     return $text;
+}
+
+function docx_text_run(DOMElement $node): string
+{
+    $text = '';
+    foreach ($node->childNodes as $child) {
+        if ($child instanceof DOMText) {
+            $text .= (string) $child->nodeValue;
+            continue;
+        }
+        if ($child instanceof DOMEntityReference) {
+            $text .= docx_predefined_entity($child->nodeName);
+        }
+    }
+    return $text;
+}
+
+function docx_predefined_entity(string $name): string
+{
+    return match ($name) {
+        'amp' => '&',
+        'lt' => '<',
+        'gt' => '>',
+        'quot' => '"',
+        'apos' => "'",
+        default => '',
+    };
 }
 
 function docx_strip_tags(string $documentXml): string

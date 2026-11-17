@@ -293,6 +293,14 @@ $linesPath = fixture_docx($linesXml);
 $linesText = extract_file($linesPath, 'docx', $runner)['text'];
 ok(str_contains($linesText, "Objetivo\n"), 'a paragraph end becomes a new line');
 ok(str_contains($linesText, 'Ana & Souza'), 'docx text decodes xml entities');
+$marksXml = docx_body('<w:p><w:r><w:t>A &lt; B &gt; C &quot;D&quot; E &apos;F&apos;</w:t></w:r></w:p>');
+$marksPath = fixture_docx($marksXml);
+ok(extract_file($marksPath, 'docx', $runner)['text'] === "A < B > C \"D\" E 'F'", 'docx text decodes the five predefined entities');
+$shownXml = docx_body('<w:p><w:r><w:t>&lt;!ENTITY</w:t></w:r></w:p>');
+$shownPath = fixture_docx($shownXml);
+$shownFile = extract_file($shownPath, 'docx', $runner);
+ok($shownFile['readable'] === true, 'a written entity declaration stays readable');
+ok($shownFile['text'] === '<!ENTITY', 'a written entity declaration stays text');
 
 $prettyXml = docx_body("\n  <w:p>\n    <w:r>\n      <w:t>Objetivo</w:t>\n    </w:r>\n  </w:p>\n");
 $prettyPath = fixture_docx($prettyXml);
@@ -379,6 +387,55 @@ ok($hugeFile['valid_docx'] === false, 'document.xml above 8388608 bytes is not a
 ok($hugeFile['text'] === '', 'document.xml above 8388608 bytes is not loaded');
 ok($hugeFile['linear'] === false, 'document.xml above 8388608 bytes is not linear');
 ok($runnerCalls === 0, 'an oversized docx does not call the runner');
+ok(docx_stat_refused(-1) === true, 'a negative document.xml size is refused');
+ok(docx_stat_refused(0) === false, 'a zero document.xml size is accepted');
+ok(docx_stat_refused(8388608) === false, 'document.xml of 8388608 bytes is accepted');
+ok(docx_stat_refused(8388609) === true, 'document.xml of 8388609 bytes is refused');
+ok(docx_stat_refused('8388608') === true, 'a document.xml size that is not an int is refused');
+$extractSrc = file_get_contents(__DIR__ . '/extract.php');
+ok(is_string($extractSrc) && str_contains($extractSrc, "getFromName('word/document.xml', docx_xml_limit())"), 'document.xml is read with a byte cap');
+ok(is_string($extractSrc) && !str_contains($extractSrc, 'LIBXML_NOENT'), 'docx parsing does not set LIBXML_NOENT');
+ok(is_string($extractSrc) && !str_contains($extractSrc, 'textContent'), 'docx text does not use textContent');
+
+$entityXml = '<?xml version="1.0" encoding="UTF-8"?>'
+    . '<!DOCTYPE w:document [<!ENTITY x "NAO-EXPANDIR">]>'
+    . '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+    . '<w:body><w:p><w:r><w:t>&x;&x;&x;</w:t></w:r></w:p></w:body></w:document>';
+$entityPath = fixture_docx($entityXml);
+$entityFile = extract_file($entityPath, 'docx', $runner);
+ok($entityFile['readable'] === false, 'a document.xml with an internal entity is not readable');
+ok($entityFile['valid_docx'] === false, 'a document.xml with an internal entity is not a valid docx');
+ok($entityFile['text'] === '', 'a document.xml with an internal entity is not expanded');
+ok($entityFile['linear'] === false, 'a document.xml with an internal entity is not linear');
+
+$lowerXml = '<?xml version="1.0"?><!doctype doc [<!entity x "NAO-EXPANDIR">]>'
+    . '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+    . '<w:body><w:p><w:r><w:t>&x;</w:t></w:r></w:p></w:body></w:document>';
+$lowerPath = fixture_docx($lowerXml);
+$lowerFile = extract_file($lowerPath, 'docx', $runner);
+ok($lowerFile['readable'] === false, 'a lowercase internal entity is not readable');
+ok($lowerFile['text'] === '', 'a lowercase internal entity is not expanded');
+
+$doctypeXml = '<?xml version="1.0"?><!DOCTYPE w:document SYSTEM "file:///etc/passwd">'
+    . '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+    . '<w:body><w:p><w:r><w:t>Ana</w:t></w:r></w:p></w:body></w:document>';
+$doctypePath = fixture_docx($doctypeXml);
+$doctypeFile = extract_file($doctypePath, 'docx', $runner);
+ok($doctypeFile['readable'] === false, 'a document.xml with a doctype is not readable');
+ok($doctypeFile['text'] === '', 'a document.xml with a doctype is not read');
+
+$utf16Body = '<?xml version="1.0" encoding="UTF-16"?><!DOCTYPE doc [<!ENTITY x "NAO">]>'
+    . '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+    . '<w:body><w:p><w:r><w:t>&x;&x;</w:t></w:r></w:p></w:body></w:document>';
+$utf16Xml = "\xFF\xFE";
+$utf16Len = strlen($utf16Body);
+for ($utf16Index = 0; $utf16Index < $utf16Len; $utf16Index++) {
+    $utf16Xml .= $utf16Body[$utf16Index] . "\0";
+}
+$utf16Path = fixture_docx($utf16Xml);
+$utf16File = extract_file($utf16Path, 'docx', $runner);
+ok($utf16File['readable'] === false, 'a utf-16 document.xml with an internal entity is not readable');
+ok($utf16File['text'] === '', 'a utf-16 internal entity is not expanded');
 
 $fake = sys_get_temp_dir() . '/avaliar-fake-' . bin2hex(random_bytes(4)) . '.docx';
 file_put_contents($fake, "isto nao e um zip\n");
@@ -404,7 +461,7 @@ ok($absent['text'] === '', 'missing zip has empty text');
 ok($absent['linear'] === false, 'missing zip is not linear');
 ok($runnerCalls === 0, 'failed docx reads do not call the runner');
 
-foreach ([$linearPath, $linesPath, $prettyPath, $spacedPath, $boxPath, $emptyPath, $brokenPath, $tblPath, $drawingPath, $colsPath, $listPath, $hugePath, $fake, $missingEntry] as $path) {
+foreach ([$linearPath, $linesPath, $marksPath, $shownPath, $prettyPath, $spacedPath, $boxPath, $emptyPath, $brokenPath, $tblPath, $drawingPath, $colsPath, $listPath, $hugePath, $entityPath, $lowerPath, $doctypePath, $utf16Path, $fake, $missingEntry] as $path) {
     if (is_file($path)) {
         unlink($path);
     }
