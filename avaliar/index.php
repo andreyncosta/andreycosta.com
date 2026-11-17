@@ -30,12 +30,14 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         $file = [];
     }
     $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    $length = $_SERVER['CONTENT_LENGTH'] ?? null;
     $result = handle_submission($post, $file, [
         'ip' => is_string($ip) ? $ip : '',
         'now' => time(),
         'store' => __DIR__ . '/storage',
         'mailer' => page_mail(...),
         'extractor' => extract_file(...),
+        'content_length' => $length,
     ]);
     $state = page_result_state($post, $result);
 }

@@ -37,6 +37,10 @@ function page_copy(): array
             'pt' => 'Não foi possível ler o arquivo.',
             'en' => 'The file could not be read.',
         ],
+        'pdf_unavailable' => [
+            'pt' => 'Não foi possível ler o PDF neste servidor. Envie o currículo em .docx.',
+            'en' => 'This server could not read the PDF. Send the resume as a .docx file.',
+        ],
     ];
 }
 

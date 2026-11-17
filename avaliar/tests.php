@@ -256,6 +256,20 @@ ok($titleOnlyScore['points'] === 10.0, 'a title-only posting still scores 10.0')
 $again = score_resume($base);
 ok($again['points'] === $perfect['points'], 'same input returns the same points');
 
+$longTitle = str_repeat('á', 200) . 'FIM';
+$longPosting = $longTitle . "\nPower métricas produto experimentos pipelines\n";
+$prefixOnly = $base;
+$prefixOnly['posting'] = $longPosting;
+$prefixOnly['text'] = str_replace('Analista de Dados Sênior', str_repeat('á', 200), $full);
+$prefixScore = score_resume($prefixOnly);
+ok($prefixScore['title'] === $longTitle, 'score title keeps the full first line');
+ok(passed($prefixScore, 'objective') === false, 'objective uses the full title, not the 200-character lead cap');
+$fullLong = $prefixOnly;
+$fullLong['text'] = str_replace('Analista de Dados Sênior', $longTitle, $full);
+$fullLongScore = score_resume($fullLong);
+ok(passed($fullLongScore, 'objective') === true, 'objective matches the full title past 200 characters');
+ok(passed($fullLongScore, 'keywords') === true, 'keywords still use the posting after the title');
+
 $paragraph = 'Analista de dados sem tabela';
 $linearXml = docx_body('<w:p><w:r><w:t>' . $paragraph . '</w:t></w:r></w:p>');
 ok(docx_is_linear($linearXml) === true, 'paragraph xml without a table is linear');
@@ -325,6 +339,47 @@ ok(docx_is_linear('<w:cols w:num="1"/>') === true, 'w:cols with w:num 1 stays li
 ok(docx_is_linear('<w:cols w:space="708" w:num="2"/>') === false, 'w:num after another attribute is not linear');
 ok(docx_is_linear('<w:cols w:num="1"/><w:cols w:num="3"/>') === false, 'a later w:cols above 1 is not linear');
 
+$listXml = docx_body(
+    '<w:p><w:pPr><w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr></w:pPr><w:r><w:t>Liderei o painel e reduzi o tempo em 30%.</w:t></w:r></w:p>'
+    . '<w:p><w:pPr><w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr></w:pPr><w:r><w:t>• Já marcado</w:t></w:r></w:p>'
+    . '<w:p><w:pPr><w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr></w:pPr><w:r><w:t>- Já traço</w:t></w:r></w:p>'
+    . '<w:p><w:pPr><w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr></w:pPr><w:r><w:t>* Já estrela</w:t></w:r></w:p>'
+    . '<w:p><w:pPr><w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr></w:pPr><w:r><w:t>2. Já número</w:t></w:r></w:p>'
+    . '<w:p><w:pPr><w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr></w:pPr><w:r><w:t>N. Já letra</w:t></w:r></w:p>'
+    . '<w:p><w:pPr><w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr></w:pPr><w:r><w:t>  3. Com espaço</w:t></w:r></w:p>'
+    . '<w:p><w:r><w:t>Sem lista</w:t></w:r></w:p>'
+    . '<w:p><w:r><w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr><w:t>Fora do pPr</w:t></w:r></w:p>'
+);
+$listPath = fixture_docx($listXml);
+$listText = extract_file($listPath, 'docx', $runner)['text'];
+$expectedList = "• Liderei o painel e reduzi o tempo em 30%.\n"
+    . "• Já marcado\n"
+    . "- Já traço\n"
+    . "* Já estrela\n"
+    . "2. Já número\n"
+    . "N. Já letra\n"
+    . "  3. Com espaço\n"
+    . "Sem lista\n"
+    . 'Fora do pPr';
+ok($listText === $expectedList, 'a numbered paragraph is prefixed once with a bullet');
+ok(str_starts_with($listText, '• '), 'an automatic list uses a bullet, not a digit');
+ok(score_bullet($listText) === true, 'an automatic list item can pass the bullet check');
+
+$hugeXml = str_repeat('a', 8388609);
+$hugePath = fixture_docx($hugeXml);
+unset($hugeXml);
+$hugeZip = new ZipArchive();
+ok($hugeZip->open($hugePath) === true, 'oversized fixture opens');
+$hugeStat = $hugeZip->statName('word/document.xml');
+$hugeZip->close();
+ok(is_array($hugeStat) && is_int($hugeStat['size'] ?? null) && $hugeStat['size'] > 8388608, 'fixture document.xml is larger than 8388608');
+$hugeFile = extract_file($hugePath, 'docx', $runner);
+ok($hugeFile['readable'] === false, 'document.xml above 8388608 bytes is not readable');
+ok($hugeFile['valid_docx'] === false, 'document.xml above 8388608 bytes is not a valid docx');
+ok($hugeFile['text'] === '', 'document.xml above 8388608 bytes is not loaded');
+ok($hugeFile['linear'] === false, 'document.xml above 8388608 bytes is not linear');
+ok($runnerCalls === 0, 'an oversized docx does not call the runner');
+
 $fake = sys_get_temp_dir() . '/avaliar-fake-' . bin2hex(random_bytes(4)) . '.docx';
 file_put_contents($fake, "isto nao e um zip\n");
 $fakeFile = extract_file($fake, 'docx', $runner);
@@ -349,7 +404,7 @@ ok($absent['text'] === '', 'missing zip has empty text');
 ok($absent['linear'] === false, 'missing zip is not linear');
 ok($runnerCalls === 0, 'failed docx reads do not call the runner');
 
-foreach ([$linearPath, $linesPath, $prettyPath, $spacedPath, $boxPath, $emptyPath, $brokenPath, $tblPath, $drawingPath, $colsPath, $fake, $missingEntry] as $path) {
+foreach ([$linearPath, $linesPath, $prettyPath, $spacedPath, $boxPath, $emptyPath, $brokenPath, $tblPath, $drawingPath, $colsPath, $listPath, $hugePath, $fake, $missingEntry] as $path) {
     if (is_file($path)) {
         unlink($path);
     }
@@ -365,18 +420,18 @@ $pdfRunner = function (array $argv) use (&$pdfCalls): array {
     if (($argv[0] ?? '') === 'pdfinfo') {
         return ['code' => 0, 'stdout' => "Title: x\nPages:           2\nPage size: 595 x 842 pts\n", 'stderr' => ''];
     }
-    return ['code' => 0, 'stdout' => 'Olá', 'stderr' => ''];
+    return ['code' => 0, 'stdout' => "Olá\fOlá\f", 'stderr' => ''];
 };
 $pdfFile = extract_file($pdfPath, 'pdf', $pdfRunner);
 ok($pdfFile['pages'] === 2, 'pdfinfo Pages 2 is the page count');
-ok($pdfFile['text'] === 'Olá', 'pdf text is the pdftotext stdout');
+ok($pdfFile['text'] === "Olá\fOlá\f", 'pdf text is the pdftotext stdout');
 ok($pdfFile['readable'] === true, 'pdf with text is readable');
 ok($pdfFile['linear'] === true, 'pdf without a column is linear');
 ok($pdfFile['valid_docx'] === false, 'pdf is not a valid docx');
 ok($pdfCalls === [
     ['pdfinfo', $pdfPath],
-    ['pdftotext', '-layout', $pdfPath, '-'],
-], 'pdf runner is pdfinfo then pdftotext -layout');
+    ['pdftotext', '-layout', '-enc', 'UTF-8', $pdfPath, '-'],
+], 'pdf runner is pdfinfo then pdftotext -layout -enc UTF-8');
 ok(is_file($pdfPath), 'extract_file does not delete the pdf');
 
 $missingCalls = 0;
@@ -423,6 +478,53 @@ $feedPdf = extract_file($pdfPath, 'pdf', function (array $argv): array {
 ok($feedPdf['readable'] === true, 'text before a form feed stays readable');
 ok($feedPdf['text'] === "Olá\n\f", 'a trailing form feed stays in the pdf text');
 ok($feedPdf['linear'] === true, 'a trailing form feed is not a column');
+
+$shortPdf = extract_file($pdfPath, 'pdf', function (array $argv): array {
+    if (($argv[0] ?? '') === 'pdfinfo') {
+        return ['code' => 0, 'stdout' => "Pages: 2\n", 'stderr' => ''];
+    }
+    return ['code' => 0, 'stdout' => 'Olá', 'stderr' => ''];
+});
+ok($shortPdf['readable'] === true, 'one text segment on two pages stays readable');
+ok($shortPdf['linear'] === false, 'fewer text segments than pages is not linear');
+ok($shortPdf['text'] === 'Olá', 'a short pdf keeps its stdout');
+
+$gapPdf = extract_file($pdfPath, 'pdf', function (array $argv): array {
+    if (($argv[0] ?? '') === 'pdfinfo') {
+        return ['code' => 0, 'stdout' => "Pages: 2\n", 'stderr' => ''];
+    }
+    return ['code' => 0, 'stdout' => "Olá\f\f", 'stderr' => ''];
+});
+ok($gapPdf['readable'] === true, 'a blank page after text stays readable');
+ok($gapPdf['linear'] === false, 'a blank pdf page is not linear');
+ok($gapPdf['text'] === "Olá\f\f", 'blank page markers stay in the pdf text');
+
+$spacePdf = extract_file($pdfPath, 'pdf', function (array $argv): array {
+    if (($argv[0] ?? '') === 'pdfinfo') {
+        return ['code' => 0, 'stdout' => "Pages: 2\n", 'stderr' => ''];
+    }
+    return ['code' => 0, 'stdout' => "Olá\f   \f", 'stderr' => ''];
+});
+ok($spacePdf['readable'] === true, 'a whitespace page stays readable');
+ok($spacePdf['linear'] === false, 'a whitespace pdf page is not linear');
+
+$leadBlank = extract_file($pdfPath, 'pdf', function (array $argv): array {
+    if (($argv[0] ?? '') === 'pdfinfo') {
+        return ['code' => 0, 'stdout' => "Pages: 2\n", 'stderr' => ''];
+    }
+    return ['code' => 0, 'stdout' => "\fOlá\f", 'stderr' => ''];
+});
+ok($leadBlank['readable'] === true, 'text after a blank page stays readable');
+ok($leadBlank['linear'] === false, 'a leading blank pdf page is not linear');
+
+$threePages = extract_file($pdfPath, 'pdf', function (array $argv): array {
+    if (($argv[0] ?? '') === 'pdfinfo') {
+        return ['code' => 0, 'stdout' => "Pages: 3\n", 'stderr' => ''];
+    }
+    return ['code' => 0, 'stdout' => "Olá\fSegundo\f", 'stderr' => ''];
+});
+ok($threePages['readable'] === true, 'two text segments stay readable');
+ok($threePages['linear'] === false, 'two text segments on three pages is not linear');
 
 $noPages = extract_file($pdfPath, 'pdf', function (array $argv): array {
     if (($argv[0] ?? '') === 'pdfinfo') {
@@ -518,7 +620,7 @@ if (!command_on_path('pdftotext')) {
     ok($infoRun['code'] > 0 && $infoRun['code'] < 127, 'pdfinfo runs and rejects a non-pdf');
     ok($infoRun['stdout'] === '', 'pdfinfo keeps errors off stdout');
     ok($infoRun['stderr'] !== '', 'pdfinfo stderr is captured');
-    $textRun = extract_command(['pdftotext', '-layout', $pdfPath, '-']);
+    $textRun = extract_command(['pdftotext', '-layout', '-enc', 'UTF-8', $pdfPath, '-']);
     ok($textRun['code'] > 0 && $textRun['code'] < 127, 'pdftotext runs and rejects a non-pdf');
     ok($textRun['stdout'] === '', 'pdftotext keeps errors off stdout');
     ok($textRun['stderr'] !== '', 'pdftotext stderr is captured');
@@ -723,6 +825,15 @@ $postingFirst = validate_submission(submit_post(['posting' => '']), submit_file(
 ok($postingFirst['error'] === 'empty_posting', 'posting is checked before the file');
 $sizeFirst = validate_submission(submit_post(), submit_file('curriculo.txt', 5242881, '/tmp/avaliar-does-not-exist'));
 ok($sizeFirst['error'] === 'too_large', 'size is checked before the extension');
+$iniFile = submit_file('curriculo.pdf', 0, '/tmp/avaliar-does-not-exist');
+$iniFile['error'] = UPLOAD_ERR_INI_SIZE;
+ok(validate_submission(submit_post(), $iniFile)['error'] === 'too_large', 'UPLOAD_ERR_INI_SIZE returns too_large');
+$formFile = submit_file('curriculo.pdf', 0, '/tmp/avaliar-does-not-exist');
+$formFile['error'] = UPLOAD_ERR_FORM_SIZE;
+ok(validate_submission(submit_post(), $formFile)['error'] === 'too_large', 'UPLOAD_ERR_FORM_SIZE returns too_large');
+$iniTxt = submit_file('curriculo.txt', 0, '/tmp/avaliar-does-not-exist');
+$iniTxt['error'] = UPLOAD_ERR_INI_SIZE;
+ok(validate_submission(submit_post(), $iniTxt)['error'] === 'too_large', 'upload limit is checked before the extension');
 
 $submitConsent = 'Andrey Costa guarda o e-mail para responder esta avaliação e apaga a mensagem quando a pessoa responde para andreynacosta46@gmail.com pedindo o apagamento.';
 $postingLine = 'Power métricas produto experimentos pipelines';
@@ -998,6 +1109,193 @@ ok(file_get_contents($throwUpload) === $uploadBytes, 'a thrown extractor does no
 unlink($throwUpload);
 submit_remove($throwStore);
 
+$longUpload = submit_upload($uploadBytes);
+$longStore = submit_store();
+$longMail = null;
+$longResult = handle_submission(
+    submit_post(['posting' => $longPosting]),
+    submit_file('curriculo.docx', strlen($uploadBytes), $longUpload),
+    [
+        'ip' => '198.51.100.40',
+        'now' => 1700005100,
+        'store' => $longStore,
+        'mailer' => function (string $to, string $subject, string $body) use (&$longMail): bool {
+            $longMail = $body;
+            return true;
+        },
+        'extractor' => function (string $path, string $extension) use ($longTitle): array {
+            $resume = "Ana Souza\nana@email.com\nObjetivo\nAnalista de Dados Sênior\nEspecialista com anos de experiência.\n• Liderei o painel e reduzi o tempo em 30%.\nTrabalhei com power, métricas, produto e experimentos no corpo.\n";
+            return [
+                'text' => str_replace('Analista de Dados Sênior', $longTitle, $resume),
+                'pages' => 1,
+                'linear' => true,
+                'readable' => true,
+                'valid_docx' => true,
+            ];
+        },
+    ]
+);
+ok($longResult['ok'] === true, 'a long title still scores');
+ok(is_array($longResult['score']) && $longResult['score']['title'] === $longTitle, 'the mailed score keeps the long title');
+ok(is_array($longResult['score']) && $longResult['score']['points'] === 10.0, 'the long title still scores 10.0');
+ok(is_string($longMail) && preg_match('/^Cargo: (.*)$/m', $longMail, $longCargo) === 1, 'the lead has a cargo line');
+ok(isset($longCargo[1]) && $longCargo[1] === str_repeat('á', 200), 'the lead title is 200 characters');
+ok(is_string($longMail) && !str_contains($longMail, 'FIM'), 'the lead title drops characters past 200');
+unlink($longUpload);
+submit_remove($longStore);
+
+$limitEarlyStore = submit_store();
+$limitEarlyUpload = $missingUpload;
+$limitEarlyCalls = 0;
+$limitEarlyMail = 0;
+$limitEarlyDeps = [
+    'ip' => '198.51.100.50',
+    'now' => 1700008000,
+    'store' => $limitEarlyStore,
+    'mailer' => function (string $to, string $subject, string $body) use (&$limitEarlyMail): bool {
+        $limitEarlyMail++;
+        return true;
+    },
+    'extractor' => function (string $path, string $extension) use (&$limitEarlyCalls): array {
+        $limitEarlyCalls++;
+        return ['text' => '', 'pages' => 0, 'linear' => false, 'readable' => false, 'valid_docx' => false];
+    },
+];
+[$emptyWarnings, $emptyForm] = submit_capture(function () use ($limitEarlyUpload, $limitEarlyDeps): array {
+    return handle_submission([], submit_file('', 0, $limitEarlyUpload), $limitEarlyDeps + ['content_length' => 120]);
+});
+ok($emptyForm['error'] === 'unchecked', 'a normal empty form is not too_large');
+ok($emptyWarnings === [], 'a normal empty form does not read the upload');
+ok(submit_count($limitEarlyStore) === 0, 'a normal empty form does not record a rate limit');
+ok($limitEarlyCalls === 0 && $limitEarlyMail === 0, 'a normal empty form does not score or mail');
+$exactLength = handle_submission([], submit_file('', 0, $limitEarlyUpload), $limitEarlyDeps + ['content_length' => 5242880]);
+ok($exactLength['error'] === 'unchecked', 'CONTENT_LENGTH 5242880 on an empty form is not too_large');
+[$hugeWarnings, $hugePost] = submit_capture(function () use ($limitEarlyUpload, $limitEarlyDeps): array {
+    return handle_submission([], submit_file('curriculo.pdf', 12, $limitEarlyUpload), $limitEarlyDeps + ['content_length' => '5242881']);
+});
+ok($hugePost['error'] === 'too_large', 'CONTENT_LENGTH above 5242880 on an empty POST returns too_large');
+ok($hugePost['score'] === null && $hugePost['mail_failed'] === false, 'an oversized POST does not score or fail mail');
+ok($hugeWarnings === [], 'an oversized POST does not read the upload');
+ok(submit_count($limitEarlyStore) === 0, 'an oversized POST does not record a rate limit');
+$filledHuge = handle_submission(
+    submit_post(['email' => 'não-é-email']),
+    submit_file('curriculo.pdf', 12, $limitEarlyUpload),
+    $limitEarlyDeps + ['content_length' => 9000000]
+);
+ok($filledHuge['error'] === 'bad_email', 'a filled form is not too_large just because CONTENT_LENGTH is high');
+foreach ([UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE] as $uploadError) {
+    $uploadFile = submit_file('curriculo.pdf', 0, $limitEarlyUpload);
+    $uploadFile['error'] = $uploadError;
+    [$uploadWarnings, $uploadResult] = submit_capture(function () use ($uploadFile, $limitEarlyDeps): array {
+        return handle_submission(submit_post(), $uploadFile, $limitEarlyDeps);
+    });
+    ok($uploadResult['error'] === 'too_large', 'upload error ' . $uploadError . ' returns too_large before the rate ledger');
+    ok($uploadResult['score'] === null, 'upload error ' . $uploadError . ' does not score');
+    ok($uploadWarnings === [], 'upload error ' . $uploadError . ' does not read the upload');
+}
+ok($limitEarlyCalls === 0 && $limitEarlyMail === 0, 'upload limits do not score or mail');
+ok(submit_count($limitEarlyStore) === 0, 'upload limits do not record a rate limit');
+submit_remove($limitEarlyStore);
+
+$savedPath = getenv('PATH');
+$noTools = sys_get_temp_dir() . '/avaliar-nopath-' . bin2hex(random_bytes(4));
+$oneTool = sys_get_temp_dir() . '/avaliar-onepath-' . bin2hex(random_bytes(4));
+mkdir($noTools);
+mkdir($oneTool);
+file_put_contents($oneTool . '/pdfinfo', "#!/bin/sh\n");
+chmod($oneTool . '/pdfinfo', 0755);
+$pdfStore = submit_store();
+$pdfCallsMade = 0;
+$pdfMails = 0;
+$pdfDeps = [
+    'ip' => '198.51.100.60',
+    'now' => 1700009000,
+    'store' => $pdfStore,
+    'mailer' => function (string $to, string $subject, string $body) use (&$pdfMails): bool {
+        $pdfMails++;
+        return true;
+    },
+    'extractor' => function (string $path, string $extension) use (&$pdfCallsMade): array {
+        $pdfCallsMade++;
+        return ['text' => 'Olá', 'pages' => 1, 'linear' => true, 'readable' => true, 'valid_docx' => false];
+    },
+];
+try {
+    putenv('PATH=' . $oneTool);
+    ok(is_executable($oneTool . '/pdfinfo') === true, 'the PATH fixture is executable');
+    ok(is_executable('pdfinfo') === false, 'is_executable on the bare name does not see PATH');
+    ok(extract_command_on_path('pdfinfo') === true, 'extract_command_on_path searches PATH');
+    ok(extract_command_on_path('pdftotext') === false, 'a missing pdftotext is not on PATH');
+    ok(extract_pdf_available() === false, 'pdf tools are unavailable when pdftotext is missing');
+    chmod($oneTool . '/pdfinfo', 0644);
+    ok(extract_command_on_path('pdfinfo') === false, 'a non-executable pdfinfo is not on PATH');
+    chmod($oneTool . '/pdfinfo', 0755);
+    file_put_contents($oneTool . '/pdftotext', "#!/bin/sh\n");
+    chmod($oneTool . '/pdftotext', 0755);
+    ok(extract_pdf_available() === true, 'pdf tools are available when both are on PATH');
+    unlink($oneTool . '/pdftotext');
+    putenv('PATH=' . $noTools);
+    ok(extract_pdf_available() === false, 'an empty PATH directory has no pdf tools');
+    $pdfUpload = submit_upload($uploadBytes);
+    [$pdfWarnings, $pdfMissing] = submit_capture(function () use ($pdfUpload, $pdfDeps, $uploadBytes): array {
+        return handle_submission(submit_post(), submit_file('curriculo.pdf', strlen($uploadBytes), $pdfUpload), $pdfDeps);
+    });
+    ok($pdfMissing['ok'] === false, 'a pdf without tools is not ok');
+    ok($pdfMissing['error'] === 'pdf_unavailable', 'a pdf without tools returns pdf_unavailable');
+    ok($pdfMissing['score'] === null, 'a pdf without tools is not scored');
+    ok($pdfMissing['mail_failed'] === false, 'a pdf without tools does not fail mail');
+    ok($pdfWarnings === [], 'a pdf without tools does not read the upload');
+    ok(is_file($pdfUpload), 'a pdf without tools does not delete tmp_name');
+    unlink($pdfUpload);
+    $onlyInfo = $oneTool;
+    file_put_contents($onlyInfo . '/pdfinfo', "#!/bin/sh\n");
+    chmod($onlyInfo . '/pdfinfo', 0755);
+    putenv('PATH=' . $onlyInfo);
+    $onlyInfoResult = handle_submission(submit_post(), submit_file('Relatorio.PDF', 12, $limitEarlyUpload), $pdfDeps);
+    ok($onlyInfoResult['error'] === 'pdf_unavailable', 'a pdf without pdftotext returns pdf_unavailable');
+    unlink($onlyInfo . '/pdfinfo');
+    file_put_contents($onlyInfo . '/pdftotext', "#!/bin/sh\n");
+    chmod($onlyInfo . '/pdftotext', 0755);
+    $onlyTextResult = handle_submission(submit_post(), submit_file('curriculo.pdf', 12, $limitEarlyUpload), $pdfDeps);
+    ok($onlyTextResult['error'] === 'pdf_unavailable', 'a pdf without pdfinfo returns pdf_unavailable');
+    $docxUpload = submit_upload($uploadBytes);
+    $docxDespite = handle_submission(
+        submit_post(),
+        submit_file('curriculo.docx', strlen($uploadBytes), $docxUpload),
+        $pdfDeps
+    );
+    unlink($docxUpload);
+    ok($docxDespite['ok'] === true, 'a docx still scores when pdf tools are missing');
+    ok($docxDespite['error'] === '', 'a missing pdf tool does not block docx');
+    $badEmailPdf = handle_submission(
+        submit_post(['email' => 'não-é-email']),
+        submit_file('curriculo.pdf', 12, $limitEarlyUpload),
+        $pdfDeps
+    );
+    ok($badEmailPdf['error'] === 'bad_email', 'validation still wins when pdf tools are missing');
+} finally {
+    if (is_string($savedPath)) {
+        putenv('PATH=' . $savedPath);
+    }
+    foreach ([$noTools, $oneTool] as $toolDir) {
+        if (!is_dir($toolDir)) {
+            continue;
+        }
+        foreach (scandir($toolDir) ?: [] as $entry) {
+            if ($entry === '.' || $entry === '..') {
+                continue;
+            }
+            unlink($toolDir . '/' . $entry);
+        }
+        rmdir($toolDir);
+    }
+}
+ok($pdfCallsMade === 1, 'only the docx submission calls the extractor when pdf tools are missing');
+ok($pdfMails === 1, 'only the docx submission mails when pdf tools are missing');
+ok(submit_count($pdfStore) === 1, 'a pdf without tools does not record a rate limit');
+submit_remove($pdfStore);
+ok(extract_pdf_available() === true, 'PATH is restored after the pdf tool tests');
+
 function page_bubble_on(string $html, string $place, string $label): bool
 {
     $pattern = '/data-place="' . preg_quote($place, '/') . '"(.*?)<\/div>/s';
@@ -1114,10 +1412,12 @@ ok(!str_contains($escaped, '</textarea><script>'), 'the posting cannot break out
 ok(str_contains($escaped, '&lt;/textarea&gt;&lt;script&gt;'), 'the posting text stays visible as text');
 
 require_once __DIR__ . '/copy.php';
-$copyIds = ['unchecked', 'bad_email', 'empty_posting', 'missing_file', 'too_large', 'bad_type', 'rate_limited', 'unreadable'];
+$copyIds = ['unchecked', 'bad_email', 'empty_posting', 'missing_file', 'too_large', 'bad_type', 'rate_limited', 'unreadable', 'pdf_unavailable'];
 $copy = page_copy();
 $copySrc = file_get_contents(__DIR__ . '/copy.php');
 ok(is_string($copySrc), 'copy.php can be read');
+ok(($copy['pdf_unavailable']['pt'] ?? '') === 'Não foi possível ler o PDF neste servidor. Envie o currículo em .docx.', 'pdf_unavailable has the Portuguese sentence');
+ok(($copy['pdf_unavailable']['en'] ?? '') === 'This server could not read the PDF. Send the resume as a .docx file.', 'pdf_unavailable has the English sentence');
 foreach ($copyIds as $copyId) {
     $pt = $copy[$copyId]['pt'] ?? '';
     $en = $copy[$copyId]['en'] ?? '';
@@ -1153,6 +1453,7 @@ ok(page_empty_state()['score'] === null && page_empty_state()['error'] === '', '
 
 $indexSrc = file_get_contents(__DIR__ . '/index.php');
 ok(is_string($indexSrc) && str_contains($indexSrc, '$_FILES[\'resume\']'), 'index passes $_FILES resume');
+ok(is_string($indexSrc) && str_contains($indexSrc, 'CONTENT_LENGTH'), 'index passes CONTENT_LENGTH');
 ok(is_string($indexSrc) && str_contains($indexSrc, 'handle_submission'), 'index calls handle_submission');
 ok(is_string($indexSrc) && str_contains($indexSrc, 'extract_file(...)'), 'index uses the real extract_file');
 require_once __DIR__ . '/index.php';

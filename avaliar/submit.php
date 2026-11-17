@@ -25,6 +25,10 @@ function validate_submission(array $post, array $file): array
     if (!is_string($name) || $name === '') {
         return ['ok' => false, 'error' => 'missing_file'];
     }
+    $error = $file['error'] ?? null;
+    if ($error === UPLOAD_ERR_INI_SIZE || $error === UPLOAD_ERR_FORM_SIZE) {
+        return ['ok' => false, 'error' => 'too_large'];
+    }
     $size = $file['size'] ?? null;
     if (!is_int($size) || $size > 5242880) {
         return ['ok' => false, 'error' => 'too_large'];
@@ -41,9 +45,19 @@ function validate_submission(array $post, array $file): array
  */
 function handle_submission(array $post, array $file, array $deps): array
 {
+    if (submission_body_too_large($post, $deps)) {
+        return submission_result(false, 'too_large', null, false);
+    }
+
     $validation = validate_submission($post, $file);
     if ($validation['ok'] !== true) {
         return submission_result(false, $validation['error'], null, false);
+    }
+
+    $name = (string) $file['name'];
+    $extension = submission_extension($name);
+    if ($extension === 'pdf' && !extract_pdf_available()) {
+        return submission_result(false, 'pdf_unavailable', null, false);
     }
 
     $store = $deps['store'] ?? '';
@@ -53,14 +67,12 @@ function handle_submission(array $post, array $file, array $deps): array
         return submission_result(false, 'rate_limited', null, false);
     }
 
-    $name = (string) $file['name'];
     $copy = submission_copy((string) ($file['tmp_name'] ?? ''));
     if ($copy === null) {
         return submission_result(false, 'unreadable', null, false);
     }
 
     try {
-        $extension = submission_extension($name);
         $extracted = ($deps['extractor'])($copy, $extension);
         if (!is_array($extracted) || ($extracted['readable'] ?? false) !== true) {
             return submission_result(false, 'unreadable', null, false);
@@ -74,7 +86,7 @@ function handle_submission(array $post, array $file, array $deps): array
             $email,
             (float) $score['points'],
             submission_failed_ids($score),
-            (string) $score['title'],
+            submission_lead_title((string) $score['title']),
             submission_consent(),
             date('Y-m-d H:i:s', $now)
         );
@@ -89,6 +101,39 @@ function handle_submission(array $post, array $file, array $deps): array
             unlink($copy);
         }
     }
+}
+
+function submission_body_too_large(array $post, array $deps): bool
+{
+    if ($post !== []) {
+        return false;
+    }
+    $length = submission_content_length($deps);
+    return $length !== null && $length > 5242880;
+}
+
+function submission_content_length(array $deps): ?int
+{
+    if (array_key_exists('content_length', $deps)) {
+        $raw = $deps['content_length'];
+    } else {
+        $raw = $_SERVER['CONTENT_LENGTH'] ?? null;
+    }
+    if (is_int($raw)) {
+        return $raw;
+    }
+    if (is_string($raw) && preg_match('/\A[0-9]{1,18}\z/', $raw) === 1) {
+        return (int) $raw;
+    }
+    return null;
+}
+
+function submission_lead_title(string $title): string
+{
+    if (mb_strlen($title, 'UTF-8') <= 200) {
+        return $title;
+    }
+    return mb_substr($title, 0, 200, 'UTF-8');
 }
 
 function submission_extension(string $name): string

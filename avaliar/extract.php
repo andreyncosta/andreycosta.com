@@ -56,6 +56,12 @@ function extract_docx(string $path): array
     if ($opened !== true) {
         return extract_unreadable();
     }
+    $stat = $zip->statName('word/document.xml');
+    // 8 MiB uncompressed. A larger document.xml is not loaded into memory.
+    if (!is_array($stat) || !is_int($stat['size'] ?? null) || $stat['size'] > 8388608) {
+        $zip->close();
+        return extract_unreadable();
+    }
     $xml = $zip->getFromName('word/document.xml');
     $zip->close();
     if (!is_string($xml)) {
@@ -87,9 +93,40 @@ function docx_plain_text(string $documentXml): string
     $ns = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
     $lines = [];
     foreach ($dom->getElementsByTagNameNS($ns, 'p') as $paragraph) {
-        $lines[] = docx_node_text($paragraph, $ns, true);
+        $line = docx_node_text($paragraph, $ns, true);
+        if ($paragraph instanceof DOMElement && docx_paragraph_numbered($paragraph, $ns)) {
+            $line = docx_list_line($line);
+        }
+        $lines[] = $line;
     }
     return implode("\n", $lines);
+}
+
+function docx_paragraph_numbered(DOMElement $paragraph, string $ns): bool
+{
+    foreach ($paragraph->childNodes as $child) {
+        if (!$child instanceof DOMElement || $child->namespaceURI !== $ns || $child->localName !== 'pPr') {
+            continue;
+        }
+        if ($child->getElementsByTagNameNS($ns, 'numPr')->length > 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function docx_list_line(string $text): string
+{
+    $raw = ltrim($text);
+    foreach (['•', '-', '*', 'N.'] as $marker) {
+        if (str_starts_with($raw, $marker)) {
+            return $text;
+        }
+    }
+    if (preg_match('/^\d+\./u', $raw) === 1) {
+        return $text;
+    }
+    return '• ' . $text;
 }
 
 function docx_node_text(DOMNode $node, string $ns, bool $root = false): string
@@ -132,18 +169,19 @@ function docx_strip_tags(string $documentXml): string
 function extract_pdf(string $path, callable $runner): array
 {
     $info = $runner(['pdfinfo', $path]);
-    $layout = $runner(['pdftotext', '-layout', $path, '-']);
+    $layout = $runner(['pdftotext', '-layout', '-enc', 'UTF-8', $path, '-']);
     $infoCode = is_array($info) && is_int($info['code'] ?? null) ? $info['code'] : 1;
     $layoutCode = is_array($layout) && is_int($layout['code'] ?? null) ? $layout['code'] : 1;
     $infoOut = is_array($info) && is_string($info['stdout'] ?? null) ? $info['stdout'] : '';
     $layoutOut = is_array($layout) && is_string($layout['stdout'] ?? null) ? $layout['stdout'] : '';
     $text = $layoutCode === 0 ? $layoutOut : '';
+    $pages = $infoCode === 0 ? pdfinfo_pages($infoOut) : 0;
     // A blank page is a form feed, which trim() does not strip.
     $readable = $infoCode === 0 && $layoutCode === 0 && trim($text, " \n\r\t\v\0\f") !== '';
     return [
         'text' => $text,
-        'pages' => $infoCode === 0 ? pdfinfo_pages($infoOut) : 0,
-        'linear' => $readable && !layout_has_column($text),
+        'pages' => $pages,
+        'linear' => $readable && !layout_has_column($text) && !layout_has_blank_page($text, $pages),
         'readable' => $readable,
         'valid_docx' => false,
     ];
@@ -155,6 +193,24 @@ function pdfinfo_pages(string $info): int
         return 0;
     }
     return (int) $match[1];
+}
+
+function layout_has_blank_page(string $layout, int $pages): bool
+{
+    $segments = explode("\f", $layout);
+    $last = array_key_last($segments);
+    // pdftotext ends with a form feed. That empty tail is not another page.
+    if ($last !== null && trim($segments[$last]) === '') {
+        array_pop($segments);
+    }
+    $filled = 0;
+    foreach ($segments as $segment) {
+        if (trim($segment) === '') {
+            return true;
+        }
+        $filled++;
+    }
+    return $pages > 0 && $filled < $pages;
 }
 
 function layout_has_column(string $layout): bool
@@ -223,6 +279,28 @@ function layout_utf8_width(string $text, int $i): int
     return $width < $remain ? $width : $remain;
 }
 
+function extract_command_on_path(string $name): bool
+{
+    $path = getenv('PATH');
+    if (!is_string($path) || $path === '') {
+        return false;
+    }
+    foreach (explode(PATH_SEPARATOR, $path) as $dir) {
+        if ($dir === '') {
+            continue;
+        }
+        if (is_executable(rtrim($dir, '/\\') . DIRECTORY_SEPARATOR . $name)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function extract_pdf_available(): bool
+{
+    return extract_command_on_path('pdfinfo') && extract_command_on_path('pdftotext');
+}
+
 /** @return array{code:int, stdout:string, stderr:string} */
 function extract_command(array $argv): array
 {
@@ -235,9 +313,9 @@ function extract_command(array $argv): array
     if (!is_array($env)) {
         $env = [];
     }
-    // pdfinfo translates Pages: unless messages are C. UTF-8 keeps the text.
-    $env['LC_ALL'] = 'C.UTF-8';
-    $env['LANG'] = 'C.UTF-8';
+    // LANG=C keeps pdfinfo's Pages: label in English. pdftotext gets -enc UTF-8.
+    $env['LC_ALL'] = 'C';
+    $env['LANG'] = 'C';
     $env['LANGUAGE'] = 'C';
     $proc = proc_open($argv, [
         0 => ['pipe', 'r'],
@@ -251,16 +329,87 @@ function extract_command(array $argv): array
         return $failed;
     }
     fclose($pipes[0]);
-    $stdout = stream_get_contents($pipes[1]);
+    stream_set_blocking($pipes[1], false);
+    $stdout = '';
+    $finished = null;
+    $deadline = microtime(true) + 15;
+    while (true) {
+        $chunk = fread($pipes[1], 65536);
+        if (is_string($chunk) && $chunk !== '') {
+            $stdout .= $chunk;
+        }
+        $status = proc_get_status($proc);
+        if (!is_array($status) || ($status['running'] ?? false) !== true) {
+            $finished = is_array($status) ? $status : null;
+            break;
+        }
+        if (microtime(true) >= $deadline) {
+            $finished = extract_command_stop($proc);
+            break;
+        }
+        if (!is_string($chunk) || $chunk === '') {
+            usleep(20000);
+        }
+    }
+    $rest = stream_get_contents($pipes[1]);
+    if (is_string($rest)) {
+        $stdout .= $rest;
+    }
     fclose($pipes[1]);
-    $code = proc_close($proc);
+    $closed = proc_close($proc);
     $stderr = file_get_contents($errPath);
     if (is_file($errPath)) {
         unlink($errPath);
     }
     return [
-        'code' => $code,
-        'stdout' => is_string($stdout) ? $stdout : '',
+        'code' => extract_command_code($finished, $closed),
+        'stdout' => $stdout,
         'stderr' => is_string($stderr) ? $stderr : '',
     ];
+}
+
+/** @param resource $proc */
+function extract_command_stop($proc): ?array
+{
+    $status = proc_get_status($proc);
+    if (!is_array($status)) {
+        return null;
+    }
+    if (($status['running'] ?? false) !== true) {
+        return $status;
+    }
+    // 9 is SIGKILL. SIGTERM can be ignored and would leave the child running.
+    proc_terminate($proc, 9);
+    $pid = is_int($status['pid'] ?? null) ? $status['pid'] : 0;
+    usleep(50000);
+    $after = proc_get_status($proc);
+    if (is_array($after) && ($after['running'] ?? false) === true && $pid > 0 && function_exists('posix_kill')) {
+        posix_kill($pid, 9);
+        usleep(50000);
+        $again = proc_get_status($proc);
+        if (is_array($again)) {
+            return $again;
+        }
+    }
+    return is_array($after) ? $after : $status;
+}
+
+function extract_command_code(?array $status, int $closed): int
+{
+    if (is_array($status) && ($status['running'] ?? false) !== true) {
+        $exit = $status['exitcode'] ?? null;
+        if (is_int($exit) && $exit >= 0) {
+            return $exit;
+        }
+        if (($status['signaled'] ?? false) === true) {
+            $sig = $status['termsig'] ?? 0;
+            if (is_int($sig) && $sig > 0) {
+                return 128 + $sig;
+            }
+        }
+    }
+    if ($closed >= 0) {
+        return $closed;
+    }
+    return 1;
 }
