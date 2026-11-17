@@ -117,7 +117,7 @@ function score_keywords(string $text, string $posting): bool
     $terms = score_terms($posting);
     $total = count($terms);
     if ($total === 0) {
-        return false;
+        return true;
     }
     $present = array_flip(score_words(score_keyword_body($text)));
     $matched = 0;

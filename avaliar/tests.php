@@ -202,6 +202,12 @@ ok($invalidScore['points'] === 9.5, 'invalid docx scores 9.5');
 ok(passed($invalidScore, 'docx') === false, 'docx fails when the file is invalid');
 ok(check_map($invalidScore)['docx']['points'] === 0.5, 'docx check keeps its weight');
 
+$titleOnly = $base;
+$titleOnly['posting'] = "Analista de Dados Sênior\n";
+$titleOnlyScore = score_resume($titleOnly);
+ok(passed($titleOnlyScore, 'keywords') === true, 'a title-only posting passes keywords');
+ok($titleOnlyScore['points'] === 10.0, 'a title-only posting still scores 10.0');
+
 $again = score_resume($base);
 ok($again['points'] === $perfect['points'], 'same input returns the same points');
 
