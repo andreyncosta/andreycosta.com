@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-lang="pt" data-pt-title="Emendas Parlamentares — Painel Analítico" data-en-title="Parliamentary Amendments — Analytical Dashboard">
+<html lang="en" data-lang="en" data-pt-title="Emendas Parlamentares — Painel Analítico" data-en-title="Parliamentary Amendments — Analytical Dashboard">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Emendas Parlamentares — Painel Analítico</title>
+<title>Parliamentary Amendments — Analytical Dashboard</title>
 <link rel="icon" href="/assets/favicon.svg">
 <link rel="stylesheet" href="/assets/site.css">
 <script src="/assets/i18n.js"></script>
@@ -317,7 +317,7 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);
   </nav>
   <div class="side-foot">
     <span lang="pt">Fonte: Portal da Transparência.<br>Partidos: dados abertos da Câmara e do Senado.</span><span lang="en">Source: Portal da Transparência.<br>Parties: Chamber and Senate open data.</span>
-    <div class="side-lang"><div class="lang-switch" role="group" aria-label="Idioma / Language"><button type="button" data-set-lang="pt" aria-pressed="true">PT</button><button type="button" data-set-lang="en" aria-pressed="false">EN</button></div></div>
+    <div class="side-lang"><div class="lang-switch" role="group" aria-label="Language" data-i18n-attr="aria-label" data-pt-aria-label="Idioma" data-en-aria-label="Language"><button type="button" data-set-lang="pt" aria-pressed="false">PT</button><button type="button" data-set-lang="en" aria-pressed="true">EN</button></div></div>
   </div>
 </aside>
 
@@ -333,23 +333,23 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);
       <div class="filter-panel-inner">
         <div class="filter-group">
           <label for="f-ano"><span lang="pt">Ano</span><span lang="en">Year</span></label>
-          <select id="f-ano"><option value="" data-i18n-attr="text" data-pt-text="Todos" data-en-text="All">Todos</option></select>
+          <select id="f-ano"><option value="" data-i18n-attr="text" data-pt-text="Todos" data-en-text="All">All</option></select>
         </div>
         <div class="filter-group">
           <label for="f-uf"><span lang="pt">UF</span><span lang="en">State</span></label>
-          <select id="f-uf"><option value="" data-i18n-attr="text" data-pt-text="Todas" data-en-text="All">Todas</option></select>
+          <select id="f-uf"><option value="" data-i18n-attr="text" data-pt-text="Todas" data-en-text="All">All</option></select>
         </div>
         <div class="filter-group">
           <label for="f-tipo"><span lang="pt">Tipo</span><span lang="en">Type</span></label>
-          <select id="f-tipo"><option value="" data-i18n-attr="text" data-pt-text="Todos" data-en-text="All">Todos</option></select>
+          <select id="f-tipo"><option value="" data-i18n-attr="text" data-pt-text="Todos" data-en-text="All">All</option></select>
         </div>
         <div class="filter-group">
           <label for="f-cat"><span lang="pt">Categoria</span><span lang="en">Category</span></label>
-          <select id="f-cat"><option value="" data-i18n-attr="text" data-pt-text="Todas" data-en-text="All">Todas</option></select>
+          <select id="f-cat"><option value="" data-i18n-attr="text" data-pt-text="Todas" data-en-text="All">All</option></select>
         </div>
         <div class="filter-group">
           <label for="f-partido"><span lang="pt">Partido</span><span lang="en">Party</span></label>
-          <select id="f-partido"><option value="" data-i18n-attr="text" data-pt-text="Todos" data-en-text="All">Todos</option></select>
+          <select id="f-partido"><option value="" data-i18n-attr="text" data-pt-text="Todos" data-en-text="All">All</option></select>
         </div>
         <div class="filter-group">
           <button class="btn btn-danger" id="btn-clear-filters" style="width:100%"><span lang="pt">Limpar todos</span><span lang="en">Clear all</span></button>
@@ -468,9 +468,9 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);
             <span style="font-weight:500;color:var(--text-3);font-size:.72rem">— <span lang="pt">base de favorecidos, não filtrada</span><span lang="en">recipients base, unfiltered</span></span></h3>
           <div class="yoy-controls">
             <label for="yoy-a"><span lang="pt">Ano A</span><span lang="en">Year A</span></label>
-            <select id="yoy-a"><option value="" data-i18n-attr="text" data-pt-text="Selecione" data-en-text="Select">Selecione</option></select>
+            <select id="yoy-a"><option value="" data-i18n-attr="text" data-pt-text="Selecione" data-en-text="Select">Select</option></select>
             <label for="yoy-b"><span lang="pt">Ano B</span><span lang="en">Year B</span></label>
-            <select id="yoy-b"><option value="" data-i18n-attr="text" data-pt-text="Selecione" data-en-text="Select">Selecione</option></select>
+            <select id="yoy-b"><option value="" data-i18n-attr="text" data-pt-text="Selecione" data-en-text="Select">Select</option></select>
           </div>
           <canvas id="tendencia-chart"></canvas>
         </div>
@@ -610,7 +610,7 @@ footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);
       </div>
       <div class="table-controls">
         <input class="search-input" id="search-input" type="search"
-          placeholder="Buscar por autor, município, função…" data-i18n-attr="placeholder" data-pt-placeholder="Buscar por autor, município, função…" data-en-placeholder="Search by author, municipality, function…">
+          placeholder="Search by author, municipality, function…" data-i18n-attr="placeholder" data-pt-placeholder="Buscar por autor, município, função…" data-en-placeholder="Search by author, municipality, function…">
         <span class="table-info" id="table-info"></span>
       </div>
       <div class="card tbl-wrap" style="padding:0 6px">
@@ -643,8 +643,8 @@ const DATA = JSON.parse(document.getElementById('data-json').textContent);
 const DS = DATA.dataset;
 
 /* ── Language (site-wide switch in assets/i18n.js) ── */
-const T = (pt,en) => window.siteLang ? window.siteLang.t(pt,en) : pt;
-const isEN = () => !!window.siteLang && window.siteLang.get()==='en';
+const T = (pt,en) => window.siteLang ? window.siteLang.t(pt,en) : en;
+const isEN = () => !window.siteLang || window.siteLang.get()==='en';
 const comma = () => isEN() ? '.' : ',';
 // Display names for Portuguese labels that come from the data (budget categories, functions, sectors, types).
 const EN_LABELS = {

@@ -418,8 +418,8 @@ const LBL_EN = {
   postProcessLbl:{A:'Natural & Clean', B:'High-Fashion Editorial', C:'Cinematic', D:'Documentary', E:'Artistic / Stylized'},
   platformLbl:   {A:'LinkedIn & Professional Networks', B:'Instagram & Social Media', C:'Company Website', D:'Speaker Bureau', E:'Press Kit / Publication'},
 };
-function T(pt, en) { return window.siteLang ? window.siteLang.t(pt, en) : pt; }
-function isEN() { return !!window.siteLang && window.siteLang.get() === 'en'; }
+function T(pt, en) { return window.siteLang ? window.siteLang.t(pt, en) : en; }
+function isEN() { return !window.siteLang || window.siteLang.get() === 'en'; }
 
 /* ──────────────────────────────────────────
    STATE

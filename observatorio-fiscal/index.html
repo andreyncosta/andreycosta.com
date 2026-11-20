@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-lang="pt" data-pt-title="Observatório Fiscal Brasileiro — Andrey Costa" data-en-title="Brazilian Fiscal Observatory — Andrey Costa">
+<html lang="en" data-lang="en" data-pt-title="Observatório Fiscal Brasileiro — Andrey Costa" data-en-title="Brazilian Fiscal Observatory — Andrey Costa">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Receitas, despesas e resultado primário do Governo Central. Dados oficiais do Tesouro, de 1997 a 2026, com valores nominais e reais.">
-  <title>Observatório Fiscal Brasileiro — Andrey Costa</title>
+  <meta name="description" content="Brazilian Central Government revenue, expenditure, and primary balance. Official Treasury data in nominal and real terms.">
+  <title>Brazilian Fiscal Observatory — Andrey Costa</title>
   <link rel="canonical" href="https://andreycosta.com/observatorio-fiscal/">
   <link rel="stylesheet" href="style.css">
   <script src="app.js" defer></script>
@@ -13,23 +13,23 @@
   <link rel="icon" href="/assets/favicon.svg">
 </head>
 <body>
-  <header><a class="site-brand" href="/"><span class="site-mark" aria-hidden="true">ac</span>Andrey Costa <span>&nbsp;/ <span lang="pt">projetos</span><span lang="en">projects</span></span></a><div class="site-tools"><a href="#metodologia"><span lang="pt">Metodologia</span><span lang="en">Methodology</span> ↗</a><div class="lang-switch" role="group" aria-label="Idioma / Language"><button type="button" data-set-lang="pt" aria-pressed="true">PT</button><button type="button" data-set-lang="en" aria-pressed="false">EN</button></div></div></header>
+  <header><a class="site-brand" href="/"><span class="site-mark" aria-hidden="true">ac</span>Andrey Costa <span>&nbsp;/ <span lang="pt">projetos</span><span lang="en">projects</span></span></a><div class="site-tools"><a href="#metodologia"><span lang="pt">Metodologia</span><span lang="en">Methodology</span> ↗</a><div class="lang-switch" role="group" aria-label="Language" data-i18n-attr="aria-label" data-pt-aria-label="Idioma" data-en-aria-label="Language"><button type="button" data-set-lang="pt" aria-pressed="false">PT</button><button type="button" data-set-lang="en" aria-pressed="true">EN</button></div></div></header>
   <main>
     <section class="intro"><p class="eyebrow"><span lang="pt">ECONOMIA PÚBLICA · DADOS ABERTOS</span><span lang="en">PUBLIC FINANCE · OPEN DATA</span></p>
       <h1><span lang="pt">Observatório <em>Fiscal Brasileiro</em></span><span lang="en">Brazilian <em>Fiscal Observatory</em></span></h1>
       <p class="lead"><span lang="pt">Como evoluem as receitas, as despesas e o resultado primário do Governo Central?</span><span lang="en">How are the Central Government&#39;s revenue, expenditure and primary balance evolving?</span></p>
       <p id="provenance" class="muted" role="status"><span lang="pt">Carregando dados oficiais do Tesouro Nacional…</span><span lang="en">Loading official National Treasury data…</span></p>
     </section>
-    <section class="controls" aria-label="Filtros">
+    <section class="controls" aria-label="Filters" data-i18n-attr="aria-label" data-pt-aria-label="Filtros" data-en-aria-label="Filters">
       <label><span lang="pt">Início</span><span lang="en">From</span><input id="start" type="month"></label>
       <label><span lang="pt">Fim</span><span lang="en">To</span><input id="end" type="month"></label>
-      <label><span lang="pt">Valores</span><span lang="en">Values</span><select id="basis"><option value="nominal" data-i18n-attr="text" data-pt-text="Nominais" data-en-text="Nominal">Nominais</option><option value="real" data-i18n-attr="text" data-pt-text="Reais · IPCA" data-en-text="Real · IPCA">Reais · IPCA</option></select></label>
-      <label><span lang="pt">Visualização</span><span lang="en">View</span><select id="view"><option value="flows" data-i18n-attr="text" data-pt-text="Receita líquida e despesa" data-en-text="Net revenue and expenditure">Receita líquida e despesa</option><option value="balance" data-i18n-attr="text" data-pt-text="Resultado primário mensal" data-en-text="Monthly primary balance">Resultado primário mensal</option><option value="rolling" data-i18n-attr="text" data-pt-text="Resultado em 12 meses" data-en-text="12-month balance">Resultado em 12 meses</option></select></label>
+      <label><span lang="pt">Valores</span><span lang="en">Values</span><select id="basis"><option value="nominal" data-i18n-attr="text" data-pt-text="Nominais" data-en-text="Nominal">Nominal</option><option value="real" data-i18n-attr="text" data-pt-text="Reais · IPCA" data-en-text="Real · IPCA">Real · IPCA</option></select></label>
+      <label><span lang="pt">Visualização</span><span lang="en">View</span><select id="view"><option value="flows" data-i18n-attr="text" data-pt-text="Receita líquida e despesa" data-en-text="Net revenue and expenditure">Net revenue and expenditure</option><option value="balance" data-i18n-attr="text" data-pt-text="Resultado primário mensal" data-en-text="Monthly primary balance">Monthly primary balance</option><option value="rolling" data-i18n-attr="text" data-pt-text="Resultado em 12 meses" data-en-text="12-month balance">12-month balance</option></select></label>
       <button id="download" type="button"><span lang="pt">Baixar CSV</span><span lang="en">Download CSV</span> ↓</button>
     </section>
     <p id="filter-error" role="alert" hidden><span lang="pt">Selecione um período válido, com início anterior ou igual ao fim.</span><span lang="en">Select a valid period, with the start on or before the end.</span></p>
     <div id="dashboard" hidden>
-      <section class="kpis" aria-label="Indicadores do último mês selecionado" data-i18n-attr="aria-label" data-pt-aria-label="Indicadores do último mês selecionado" data-en-aria-label="Indicators for the last selected month">
+      <section class="kpis" aria-label="Indicators for the last selected month" data-i18n-attr="aria-label" data-pt-aria-label="Indicadores do último mês selecionado" data-en-aria-label="Indicators for the last selected month">
         <article><p><span lang="pt">Receita líquida</span><span lang="en">Net revenue</span></p><strong id="revenue">—</strong><span><span lang="pt">Após transferências por repartição</span><span lang="en">After revenue-sharing transfers</span></span></article>
         <article><p><span lang="pt">Despesa primária</span><span lang="en">Primary expenditure</span></p><strong id="expense">—</strong><span><span lang="pt">Total do Governo Central</span><span lang="en">Central Government total</span></span></article>
         <article><p><span lang="pt">Resultado primário</span><span lang="en">Primary balance</span></p><strong id="balance">—</strong><span id="balance-label">Acima da linha</span></article>

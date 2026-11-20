@@ -30,16 +30,16 @@ function page_copy(): array
             'en' => 'Send a PDF or DOCX file.',
         ],
         'rate_limited' => [
-            'pt' => 'Nesta hora já houve envios demais. Tente de novo mais tarde.',
-            'en' => 'Too many submissions were sent this hour. Try again later.',
+            'pt' => 'O limite de envios desta hora foi atingido. Tente de novo mais tarde.',
+            'en' => 'The hourly submission limit has been reached. Try again later.',
         ],
         'unreadable' => [
             'pt' => 'Não foi possível ler o arquivo.',
             'en' => 'The file could not be read.',
         ],
         'pdf_unavailable' => [
-            'pt' => 'Não foi possível ler o PDF neste servidor. Envie o currículo em .docx.',
-            'en' => 'This server could not read the PDF. Send the resume as a .docx file.',
+            'pt' => 'Não foi possível ler o PDF neste servidor. Envie o currículo em formato DOCX.',
+            'en' => 'This server could not read the PDF. Upload your résumé as a DOCX file.',
         ],
     ];
 }
@@ -78,8 +78,8 @@ function page_text(): array
             'en' => 'Copy the posting and paste it here.',
         ],
         'first_line' => [
-            'pt' => 'A primeira linha é o cargo.',
-            'en' => 'The first line is the job title.',
+            'pt' => 'Informe o cargo na primeira linha.',
+            'en' => 'Enter the job title on the first line.',
         ],
         'button' => ['pt' => 'Avaliar', 'en' => 'Evaluate'],
         'consent_en' => 'Andrey Costa keeps the email to reply to this evaluation and deletes the message when the person replies to andreynacosta46@gmail.com asking for deletion.',
@@ -93,7 +93,7 @@ function page_text(): array
         ],
         'legend' => [
             'pt' => 'A marca vermelha é uma checagem que não passou.',
-            'en' => 'A red mark is a check that did not pass.',
+            'en' => 'A red mark indicates that a check failed.',
         ],
         'mail_failed' => [
             'pt' => 'O contato não foi enviado.',
@@ -110,11 +110,11 @@ function page_text(): array
             ],
             'linear' => [
                 'pt' => 'O texto segue em uma coluna, sem tabela e sem desenho.',
-                'en' => 'The text runs in one column, with no table and no drawing.',
+                'en' => 'The text uses a single column without tables or illustrations.',
             ],
             'objective' => [
                 'pt' => 'O cargo da primeira linha do anúncio aparece no Objetivo, no começo do currículo.',
-                'en' => 'The job from the first line of the posting appears in the Objective, near the start of the résumé.',
+                'en' => 'The job title from the first line of the posting appears in the Objective, near the start of the résumé.',
             ],
             'keywords' => [
                 'pt' => 'Os termos do anúncio aparecem no corpo, fora do Objetivo.',
@@ -130,7 +130,7 @@ function page_text(): array
             ],
             'docx' => [
                 'pt' => 'O arquivo é um .docx válido.',
-                'en' => 'The file is a valid .docx.',
+                'en' => 'The file is a valid DOCX document.',
             ],
         ],
         'about' => [
