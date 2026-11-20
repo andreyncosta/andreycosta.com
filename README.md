@@ -30,7 +30,8 @@ Auto-deployed to Hostinger on every push to `main`.
 
 Bilingual pages serve both languages on the same URL. `assets/i18n.js` loads in
 `<head>` and uses `?lang=pt|en` first, followed by the visitor’s saved preference.
-English is the default. `assets/site.css` hides the inactive copy.
+English is the default. The rental agreement generator keeps its browser-based
+default. `assets/site.css` hides the inactive copy.
 
 - Static text: write both copies, `<span lang="pt">…</span><span lang="en">…</span>` (or whole blocks with `lang`).
 - Attributes and `<option>`/`<title>` text: `data-i18n-attr="placeholder"` + `data-pt-placeholder` / `data-en-placeholder` (`text` swaps textContent).

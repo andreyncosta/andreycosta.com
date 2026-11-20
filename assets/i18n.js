@@ -6,7 +6,10 @@
   function valid(l) { return l === 'pt' || l === 'en' ? l : null; }
   function saved() { try { return valid(localStorage.getItem(KEY)); } catch (e) { return null; } }
   function fromQuery() { try { return valid(new URLSearchParams(location.search).get('lang')); } catch (e) { return null; } }
-  var lang = fromQuery() || saved() || 'en';
+  // The rental agreement generator keeps its original browser-based default.
+  var isRentalGenerator = /^\/contrato(?:\/|$)/.test(location.pathname);
+  var defaultLang = isRentalGenerator && /^pt\b/i.test(navigator.language || 'pt') ? 'pt' : 'en';
+  var lang = fromQuery() || saved() || defaultLang;
 
   function swapAttrs() {
     var els = document.querySelectorAll('[data-i18n-attr]');
