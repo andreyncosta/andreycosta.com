@@ -1,6 +1,6 @@
 "use strict";
 const el = id => document.getElementById(id);
-const t = (pt, en) => window.siteLang ? window.siteLang.t(pt, en) : pt;
+const t = (pt, en) => window.siteLang ? window.siteLang.t(pt, en) : en;
 const locale = () => t("pt-BR", "en-US");
 // Official Treasury line items, shown in English when the site is in English.
 const CATEGORY_EN = {"1.1": "Revenue administered by the Federal Revenue Service", "1.2": "Tax incentives", "1.3": "Net social security (RGPS) collections", "1.4": "Revenue not administered by the Federal Revenue Service", "4.1": "Social security benefits", "4.2": "Personnel and payroll charges", "4.3": "Other mandatory spending", "4.4": "Executive spending subject to financial programming"};

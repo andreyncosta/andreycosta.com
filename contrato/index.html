@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-lang="pt" data-pt-title="Gerador de Contrato de Aluguel — Andrey Costa" data-en-title="Rental Agreement Generator — Andrey Costa">
+<html lang="en" data-lang="en" data-pt-title="Gerador de Contrato de Aluguel — Andrey Costa" data-en-title="Rental Agreement Generator — Andrey Costa">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gerador de Contrato de Aluguel</title>
+  <title>Rental Agreement Generator — Andrey Costa</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -105,9 +105,9 @@
       <a href="/"><span lang="pt">Início</span><span lang="en">Home</span></a>
       <a href="/#projects"><span lang="pt">Projetos</span><span lang="en">Projects</span></a>
       <a href="/textos/"><span lang="pt">Textos</span><span lang="en">Essays</span></a>
-      <a href="/curriculum"><span lang="pt">Currículo</span><span lang="en">Curriculum</span></a>
+      <a href="/curriculum"><span lang="pt">Currículo</span><span lang="en">CV</span></a>
     </nav>
-    <div class="lang-switch" role="group" aria-label="Idioma / Language"><button type="button" data-set-lang="pt" aria-pressed="true">PT</button><button type="button" data-set-lang="en" aria-pressed="false">EN</button></div>
+    <div class="lang-switch" role="group" aria-label="Language" data-i18n-attr="aria-label" data-pt-aria-label="Idioma" data-en-aria-label="Language"><button type="button" data-set-lang="pt" aria-pressed="false">PT</button><button type="button" data-set-lang="en" aria-pressed="true">EN</button></div>
   </div>
 </header>
 <div class="banner-rule"><hr><span><span lang="pt">Gerador de Contrato de Aluguel</span><span lang="en">Rental Agreement Generator</span></span><hr></div>
@@ -148,12 +148,12 @@
     <div class="field"><label><span lang="pt">Endereço residencial completo</span><span lang="en">Full home address</span></label><input type="text" id="lat_end" placeholder="Rua X, nº 10, Bairro Y, Cidade, UF, CEP"></div>
 
     <div class="form-section-title"><span lang="pt">03 — Testemunha (opcional)</span><span lang="en">03 — Witness (optional)</span></div>
-    <div class="field"><label><span lang="pt">Nome completo</span><span lang="en">Full name</span></label><input type="text" id="test_nome" placeholder="Deixe em branco para omitir" data-i18n-attr="placeholder" data-pt-placeholder="Deixe em branco para omitir" data-en-placeholder="Leave blank to omit"></div>
+    <div class="field"><label><span lang="pt">Nome completo</span><span lang="en">Full name</span></label><input type="text" id="test_nome" placeholder="Leave blank to omit" data-i18n-attr="placeholder" data-pt-placeholder="Deixe em branco para omitir" data-en-placeholder="Leave blank to omit"></div>
     <div class="field"><label><span lang="pt">CPF nº</span><span lang="en">CPF (taxpayer ID) no.</span></label><input type="text" id="test_cpf" placeholder="000.000.000-00"></div>
 
     <div class="form-section-title"><span lang="pt">04 — Imóvel</span><span lang="en">04 — Property</span></div>
     <div class="field"><label><span lang="pt">Endereço completo do imóvel</span><span lang="en">Full property address</span></label><input type="text" id="im_end" placeholder="Praça X, nº 26-A, Bairro Y, Cidade, UF, CEP"></div>
-    <div class="field"><label><span lang="pt">Descrição do imóvel</span><span lang="en">Property description</span></label><textarea id="im_desc" placeholder="Ex: casa de rua com quintal, dois quartos, sala, cozinha e banheiro, sem pintura recente" data-i18n-attr="placeholder" data-pt-placeholder="Ex: casa de rua com quintal, dois quartos, sala, cozinha e banheiro, sem pintura recente" data-en-placeholder="e.g. casa de rua com quintal, dois quartos… (in Portuguese)"></textarea></div>
+    <div class="field"><label><span lang="pt">Descrição do imóvel</span><span lang="en">Property description</span></label><textarea id="im_desc" placeholder="e.g. casa de rua com quintal, dois quartos… (in Portuguese)" data-i18n-attr="placeholder" data-pt-placeholder="Ex: casa de rua com quintal, dois quartos, sala, cozinha e banheiro, sem pintura recente" data-en-placeholder="e.g. casa de rua com quintal, dois quartos… (in Portuguese)"></textarea></div>
     <div class="field"><label><span lang="pt">Finalidade</span><span lang="en">Purpose</span></label>
       <select id="im_fin">
         <option value="residencial">Residencial</option>
@@ -194,16 +194,16 @@
     <div class="form-section-title"><span lang="pt">07 — Cláusulas opcionais</span><span lang="en">07 — Optional clauses</span></div>
     <div class="clauses-list">
       <label class="clause-item"><input type="checkbox" id="cl_sub" checked><div class="clause-item-text"><strong><span lang="pt">Vedação à sublocação</span><span lang="en">No subletting</span></strong><span><span lang="pt">Proíbe sublocar, ceder ou emprestar sem autorização.</span><span lang="en">Forbids subletting, assigning or lending without permission.</span></span></div></label>
-      <label class="clause-item"><input type="checkbox" id="cl_benf" checked><div class="clause-item-text"><strong><span lang="pt">Benfeitorias sem indenização</span><span lang="en">Improvements without compensation</span></strong><span><span lang="pt">Melhorias não geram direito a retenção ou ressarcimento.</span><span lang="en">Improvements give no right to retention or reimbursement.</span></span></div></label>
-      <label class="clause-item"><input type="checkbox" id="cl_pref" checked><div class="clause-item-text"><strong><span lang="pt">Direito de preferência na venda</span><span lang="en">Right of first refusal on sale</span></strong><span><span lang="pt">Locatário tem 30 dias para exercer direito de compra.</span><span lang="en">Tenant has 30 days to exercise the right to buy.</span></span></div></label>
+      <label class="clause-item"><input type="checkbox" id="cl_benf" checked><div class="clause-item-text"><strong><span lang="pt">Benfeitorias sem indenização</span><span lang="en">Improvements without compensation</span></strong><span><span lang="pt">As benfeitorias não geram direito à retenção ou ao ressarcimento.</span><span lang="en">Improvements do not entitle the tenant to retain possession or receive reimbursement.</span></span></div></label>
+      <label class="clause-item"><input type="checkbox" id="cl_pref" checked><div class="clause-item-text"><strong><span lang="pt">Direito de preferência na venda</span><span lang="en">Right of first refusal on sale</span></strong><span><span lang="pt">O locatário tem 30 dias para exercer o direito de compra.</span><span lang="en">Tenant has 30 days to exercise the right to buy.</span></span></div></label>
       <label class="clause-item"><input type="checkbox" id="cl_vis"><div class="clause-item-text"><strong><span lang="pt">Laudo de vistoria inicial</span><span lang="en">Initial inspection report</span></strong><span><span lang="pt">Vistoria formal obrigatória na entrega das chaves.</span><span lang="en">Formal inspection required at key handover.</span></span></div></label>
       <label class="clause-item"><input type="checkbox" id="cl_fiad"><div class="clause-item-text"><strong><span lang="pt">Exigência de fiador solidário</span><span lang="en">Joint guarantor required</span></strong><span><span lang="pt">Garantia por fiador com responsabilidade solidária.</span><span lang="en">Guarantee by a jointly liable guarantor.</span></span></div></label>
-      <label class="clause-item"><input type="checkbox" id="cl_anim"><div class="clause-item-text"><strong><span lang="pt">Vedação a animais de estimação</span><span lang="en">No pets</span></strong><span><span lang="pt">Proibido sem autorização expressa e escrita.</span><span lang="en">Forbidden without express written permission.</span></span></div></label>
+      <label class="clause-item"><input type="checkbox" id="cl_anim"><div class="clause-item-text"><strong><span lang="pt">Vedação a animais de estimação</span><span lang="en">No pets</span></strong><span><span lang="pt">Animais de estimação só são permitidos com autorização expressa por escrito.</span><span lang="en">Pets require express written permission.</span></span></div></label>
       <label class="clause-item"><input type="checkbox" id="cl_pint"><div class="clause-item-text"><strong><span lang="pt">Pintura ao final do contrato</span><span lang="en">Repainting at the end</span></strong><span><span lang="pt">Locatário devolve o imóvel pintado nas cores originais.</span><span lang="en">Tenant returns the property painted in the original colors.</span></span></div></label>
     </div>
 
     <div class="form-section-title"><span lang="pt">08 — Condições especiais</span><span lang="en">08 — Special conditions</span></div>
-    <div class="field"><label><span lang="pt">Cláusulas adicionais livres (opcional)</span><span lang="en">Additional free-text clauses (optional)</span></label><textarea id="obs" placeholder="Ex: o imóvel será entregue com portão eletrônico instalado e em funcionamento." data-i18n-attr="placeholder" data-pt-placeholder="Ex: o imóvel será entregue com portão eletrônico instalado e em funcionamento." data-en-placeholder="e.g. o imóvel será entregue com portão eletrônico… (in Portuguese)" style="min-height:80px;"></textarea></div>
+    <div class="field"><label><span lang="pt">Cláusulas adicionais livres (opcional)</span><span lang="en">Additional free-text clauses (optional)</span></label><textarea id="obs" placeholder="e.g. o imóvel será entregue com portão eletrônico… (in Portuguese)" data-i18n-attr="placeholder" data-pt-placeholder="Ex: o imóvel será entregue com portão eletrônico instalado e em funcionamento." data-en-placeholder="e.g. o imóvel será entregue com portão eletrônico… (in Portuguese)" style="min-height:80px;"></textarea></div>
 
     <button class="btn-generate" onclick="gerar()">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 6H9V2M9 2L13 6M9 2H4a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V6"/></svg>
@@ -298,7 +298,7 @@ function gerar() {
   const aluguel = v('v_aluguel');
 
   if (!locNome || !latNome || !imEnd || !aluguel) {
-    alert(window.siteLang ? siteLang.t('Preencha ao menos: nome da locadora, nome do locatário, endereço do imóvel e valor do aluguel.', 'Please fill in at least: landlord name, tenant name, property address and rent amount.') : 'Preencha ao menos: nome da locadora, nome do locatário, endereço do imóvel e valor do aluguel.');
+    alert(window.siteLang ? siteLang.t('Preencha ao menos: nome da locadora, nome do locatário, endereço do imóvel e valor do aluguel.', 'Enter the landlord’s name, the tenant’s name, the property address, and the rent amount.') : 'Enter the landlord’s name, the tenant’s name, the property address, and the rent amount.');
     return;
   }
 

@@ -6,8 +6,7 @@
   function valid(l) { return l === 'pt' || l === 'en' ? l : null; }
   function saved() { try { return valid(localStorage.getItem(KEY)); } catch (e) { return null; } }
   function fromQuery() { try { return valid(new URLSearchParams(location.search).get('lang')); } catch (e) { return null; } }
-  function fromBrowser() { return /^pt\b/i.test(navigator.language || 'pt') ? 'pt' : 'en'; }
-  var lang = fromQuery() || saved() || fromBrowser();
+  var lang = fromQuery() || saved() || 'en';
 
   function swapAttrs() {
     var els = document.querySelectorAll('[data-i18n-attr]');
@@ -36,9 +35,10 @@
   window.siteLang = {
     get: function () { return lang; },
     set: function (l) {
-      if (!valid(l) || l === lang) return;
-      lang = l;
+      if (!valid(l)) return;
       try { localStorage.setItem(KEY, l); } catch (e) {}
+      if (l === lang) return;
+      lang = l;
       apply(true);
     },
     on: function (fn) { listeners.push(fn); },
