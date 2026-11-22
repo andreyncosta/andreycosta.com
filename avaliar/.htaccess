@@ -1,3 +1,8 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^(?:index\.php)?$ https://fukuroconsultoria.com.br/avaliar/ [R=303,L]
+</IfModule>
+
 DirectoryIndex index.php
 Options -Indexes
 <FilesMatch "^(tests|score|extract|lead|submit|copy|page)\.php$">
