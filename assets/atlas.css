@@ -1,10 +1,6 @@
+@import url("/assets/atlas-tokens.css");
+
 :root {
-  color-scheme: light;
-  --paper: #e9e4d5;
-  --ink: #132d36;
-  --accent: #b9442d;
-  --link: #923523;
-  --rule: #a59f90;
   font: 100%/1.55 system-ui, sans-serif;
 }
 

@@ -22,7 +22,7 @@ function drawChart(rows) {
   el("chart").replaceChildren();
   svgNode("desc", {id: "chart-description"}, t("Dados mensais em bilhões de reais. Consulte a tabela para acessar todos os valores.", "Monthly data in billions of reais. See the table for every value."));
   const view = el("view").value;
-  const series = view === "flows" ? [{key: "net_revenue", label: t("Receita líquida", "Net revenue"), color: "#72d2b1"}, {key: "expense", label: t("Despesa", "Expenditure"), color: "#efac75"}] : [{key: view === "rolling" ? "primary_balance_12m" : "primary_balance", label: view === "rolling" ? t("Resultado em 12 meses", "12-month balance") : t("Resultado mensal", "Monthly balance"), color: "#72d2b1"}];
+  const series = view === "flows" ? [{key: "net_revenue", label: t("Receita líquida", "Net revenue"), color: "#bbd8df"}, {key: "expense", label: t("Despesa", "Expenditure"), color: "#f0a98e"}] : [{key: view === "rolling" ? "primary_balance_12m" : "primary_balance", label: view === "rolling" ? t("Resultado em 12 meses", "12-month balance") : t("Resultado mensal", "Monthly balance"), color: "#bbd8df"}];
   el("chart-title").textContent = view === "flows" ? t("Receita líquida e despesa", "Net revenue and expenditure") : series[0].label;
   el("legend").replaceChildren();
   series.forEach(s => {const item = document.createElement("span"); const mark = document.createElement("i"); mark.style.background = s.color; item.append(mark, document.createTextNode(s.label)); el("legend").append(item);});
@@ -33,10 +33,10 @@ function drawChart(rows) {
   const y = value => 270 - (value / 1000 - min) / (max - min) * 240;
   for (let i = 0; i <= 4; i++) {
     const v = min + (max - min) * i / 4, yy = y(v * 1000);
-    svgNode("line", {x1: 74, x2: 974, y1: yy, y2: yy, stroke: "#3d494d", "stroke-width": 1});
+    svgNode("line", {x1: 74, x2: 974, y1: yy, y2: yy, stroke: "#41616d", "stroke-width": 1});
     svgNode("text", {x: 64, y: yy + 4, "text-anchor": "end"}, v.toLocaleString(locale(), {maximumFractionDigits: 0}));
   }
-  svgNode("line", {x1: 74, x2: 974, y1: y(0), y2: y(0), stroke: "#819097", "stroke-dasharray": "4 5"});
+  svgNode("line", {x1: 74, x2: 974, y1: y(0), y2: y(0), stroke: "#a5b8bc", "stroke-dasharray": "4 5"});
   const ticks = [...new Set([0, Math.floor((rows.length - 1) / 2), rows.length - 1])];
   ticks.forEach(i => svgNode("text", {x: x(i), y: 300, "text-anchor": "middle"}, monthLabel(rows[i].month)));
   series.forEach(s => {

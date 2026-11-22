@@ -1,18 +1,45 @@
-/* Shared brand layer for every page: tokens plus the "ac" site bar. Prefixed to avoid clashing with page styles. */
-:root{--brand-ink:#273e35;--brand-paper:#f3f3ed;--brand-card:#fffefa;--brand-muted:#627267;--brand-accent:#2d5546;--brand-accent-soft:#456c57;--brand-rule:#dce2d7;--brand-focus:#b4773d;--brand-serif:Georgia,"Times New Roman",serif;--brand-sans:"Segoe UI",system-ui,sans-serif}
-.site-bar{display:flex;justify-content:space-between;align-items:center;gap:16px 20px;flex-wrap:wrap;padding:20px clamp(20px,4vw,64px);border-bottom:1px solid var(--brand-rule);background:var(--brand-paper);color:var(--brand-ink);font:13px/1.5 var(--brand-sans)}
-.site-brand{display:flex;align-items:center;gap:10px;color:var(--brand-ink);font-weight:600;font-size:15px;text-decoration:none}
-.site-mark{display:grid;place-items:center;flex:none;width:35px;height:35px;border-radius:10px;background:var(--brand-accent);color:#fff;font:21px/1 var(--brand-serif)}
-.site-nav{display:flex;flex-wrap:wrap;gap:8px 22px}
-.site-nav a{color:var(--brand-ink);text-underline-offset:4px}
-.site-nav a:hover{color:var(--brand-accent)}
-.site-bar a:focus-visible{outline:3px solid var(--brand-focus);outline-offset:4px}
-@media print{.site-bar{display:none}}
+@import url("/assets/atlas-tokens.css");
+
 /* Bilingual content: both copies live in the page, only the active one shows. */
 html[data-lang="en"] [lang="pt"]:not(html),html[data-lang="pt"] [lang="en"]:not(html){display:none!important}
-.lang-switch{display:inline-flex;flex:none;border:1px solid var(--brand-rule);border-radius:999px;overflow:hidden;background:var(--brand-card)}
-.lang-switch button{font:600 11px/1 var(--brand-sans);letter-spacing:.08em;padding:7px 11px;border:0;background:transparent;color:var(--brand-muted);cursor:pointer}
-.lang-switch button[aria-pressed="true"]{background:var(--brand-accent);color:#fff}
-.lang-switch button:focus-visible{outline:3px solid var(--brand-focus);outline-offset:-3px}
+.lang-switch{display:inline-flex;flex:none;border:1px solid var(--rule);border-radius:0;overflow:hidden;background:transparent}
+.lang-switch button{font:600 11px/1 var(--body);letter-spacing:.08em;padding:7px 11px;border:0;background:transparent;color:inherit;cursor:pointer}
+.lang-switch button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.lang-switch button:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
 .site-tools{display:flex;align-items:center;flex-wrap:wrap;gap:12px 22px}
 @media print{.lang-switch{display:none}}
+
+/* The same Atlas navigation on read and operate surfaces. */
+.tool-masthead {
+  display: flex;
+  width: min(100% - 4rem, 1200px);
+  max-width: none;
+  margin-inline: auto;
+  align-items: center;
+  min-height: 75px;
+  padding: .7rem 0;
+  gap: 1.35rem;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--ink);
+  color: var(--ink);
+  font: 1rem/1.55 var(--body);
+}
+.tool-masthead .name { color: inherit; font: 1.65rem var(--display); text-decoration: none; }
+.tool-masthead nav { display: flex; flex-wrap: wrap; gap: .5rem 1.3rem; margin-inline-start: auto; }
+.tool-masthead nav a, .tool-masthead nav span { color: inherit; font-weight: inherit; }
+.tool-masthead a { text-decoration: underline; text-underline-offset: .24em; }
+.tool-masthead .languages { display: flex; gap: .25rem; }
+.tool-masthead .languages button { min-width: 2.6rem; min-height: 2.75rem; margin: 0; padding: .25rem; border: 1px solid transparent; border-radius: 0; background: transparent; color: inherit; cursor: pointer; font: 600 .85rem var(--body); }
+.tool-masthead .languages button[aria-pressed="true"] { border-color: var(--ink); }
+.tool-masthead .languages button:hover { text-decoration: underline; }
+:where(a, button, input, select, textarea, summary):focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+@media (max-width: 700px) {
+  .tool-masthead { width: calc(100% - 2rem); gap: .6rem; }
+  .tool-masthead nav { order: 1; width: 100%; margin: 0; }
+  .tool-masthead .languages { margin-inline-start: auto; }
+}
+@media print { .tool-masthead { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
