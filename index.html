@@ -1,459 +1,113 @@
-<!DOCTYPE html>
-<html lang="en" data-lang="en" data-pt-title="Andrey Costa — Economista e Cientista de Dados" data-en-title="Andrey Costa — Economist &amp; Data Scientist">
+<!doctype html>
+<html lang="en" data-lang="en" data-en-title="Andrey Costa | Economist and Data Scientist" data-pt-title="Andrey Costa | Economista e cientista de dados">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Andrey Costa — Economist &amp; Data Scientist</title>
-  <meta name="description" content="Andrey Costa — Data Scientist at BRB Bank, Master's candidate at FGV. Research at the intersection of macroeconomics, data engineering, and emerging financial systems.">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Andrey Costa’s portfolio of applied economics and data science projects." data-i18n-attr="content" data-en-content="Andrey Costa’s portfolio of applied economics and data science projects." data-pt-content="Portfólio de Andrey Costa em economia aplicada e ciência de dados.">
+  <title>Andrey Costa | Economist and Data Scientist</title>
   <link rel="icon" href="/assets/favicon.svg">
-  <link rel="stylesheet" href="/assets/site.css">
+  <link rel="stylesheet" href="/assets/atlas.css">
   <script src="/assets/i18n.js"></script>
-  <style>
-    /* Same visual system as /textos/ and /candidatos/: sage paper, deep green ink, Georgia headings. */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --ink:    #273e35;
-      --paper:  #f3f3ed;
-      --card:   #fffefa;
-      --muted:  #627267;
-      --accent: #2d5546;
-      --accent-soft: #456c57;
-      --rule:   #dce2d7;
-      --rule-strong: #cbd4c7;
-      --focus:  #b4773d;
-      --serif:  Georgia, "Times New Roman", serif;
-      --sans:   "Segoe UI", system-ui, sans-serif;
-      --gutter: clamp(20px, 4vw, 64px);
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      background: var(--paper);
-      color: var(--ink);
-      font: 15px/1.65 var(--sans);
-      min-height: 100vh;
-    }
-
-    a { color: var(--accent); text-underline-offset: 4px; }
-    a:hover { color: #101f18; }
-    a:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
-
-    /* ─── masthead ─── */
-    .masthead {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 20px;
-      padding: 24px var(--gutter);
-      border-bottom: 1px solid var(--rule);
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--ink);
-      font-weight: 600;
-      text-decoration: none;
-    }
-
-    .mark {
-      display: grid;
-      place-items: center;
-      width: 35px;
-      height: 35px;
-      border-radius: 10px;
-      background: var(--accent);
-      color: #fff;
-      font: 21px var(--serif);
-    }
-
-    .nav-strip { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 13px; }
-    .nav-strip a { color: var(--ink); }
-    .nav-strip a:hover { color: var(--accent); }
-
-    /* ─── shared labels ─── */
-    .eyebrow, .stat-label, .section-tag, .research-meta-label {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: .15em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    /* ─── hero ─── */
-    .hero {
-      display: grid;
-      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-      gap: 64px;
-      padding: 72px var(--gutter) 64px;
-      align-items: center;
-    }
-
-    .hero-headline {
-      font: 400 clamp(42px, 5.6vw, 76px)/1.07 var(--serif);
-      letter-spacing: -.045em;
-      margin: 22px 0 28px;
-    }
-
-    .hero-headline em { color: var(--accent-soft); }
-
-    .hero-byline { max-width: 600px; font-size: 18px; color: var(--muted); }
-
-    .hero-right {
-      background: var(--card);
-      border: 1px solid var(--rule);
-      border-radius: 14px;
-      padding: 8px 28px;
-    }
-
-    .stat-block { padding: 20px 0; border-bottom: 1px solid var(--rule); }
-    .stat-block:last-child { border-bottom: none; }
-    .stat-label { margin-bottom: 6px; }
-    .stat-value { font: 400 23px/1.2 var(--serif); letter-spacing: -.02em; }
-    .stat-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
-
-    /* ─── section headers ─── */
-    .section-header {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 20px;
-      padding: 56px var(--gutter) 20px;
-      border-top: 1px solid var(--rule-strong);
-    }
-
-    .section-header > div { display: flex; align-items: baseline; gap: 18px; }
-
-    .section-header h2 {
-      font: 400 clamp(30px, 3.4vw, 42px)/1.1 var(--serif);
-      letter-spacing: -.035em;
-    }
-
-    .section-link { font-size: 13px; white-space: nowrap; }
-
-    /* ─── projects grid ─── */
-    .projects {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 22px;
-      padding: 8px var(--gutter) 64px;
-    }
-
-    .project-card {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      padding: 26px;
-      background: var(--card);
-      border: 1px solid var(--rule);
-      border-radius: 14px;
-      color: inherit;
-      text-decoration: none;
-      transition: border-color .2s, transform .2s;
-    }
-
-    .project-card:hover { color: inherit; border-color: #bccdb6; transform: translateY(-2px); }
-    .project-card:hover .project-arrow { transform: translateX(3px); }
-
-    .project-tag {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      color: var(--accent-soft);
-    }
-
-    .project-title { font: 400 27px/1.15 var(--serif); letter-spacing: -.03em; }
-    .project-title em { color: var(--accent-soft); }
-    .project-desc { flex: 1; font-size: 13.5px; line-height: 1.7; color: var(--muted); }
-
-    .project-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding-top: 14px;
-      border-top: 1px solid var(--rule);
-    }
-
-    .project-stack { font-size: 11px; color: var(--muted); }
-    .project-arrow { color: var(--accent); font-weight: 600; transition: transform .15s; }
-
-    /* ─── research section ─── */
-    .research {
-      display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-      gap: 64px;
-      padding: 16px var(--gutter) 72px;
-    }
-
-    .research-kicker { color: var(--accent-soft); margin-bottom: 14px; }
-
-    .research-title {
-      font: 400 clamp(32px, 3.6vw, 48px)/1.12 var(--serif);
-      letter-spacing: -.04em;
-      margin-bottom: 22px;
-    }
-
-    .research-title em { color: var(--accent-soft); }
-    .research-body { max-width: 62ch; font-size: 16px; line-height: 1.75; color: var(--muted); }
-    .research-link { display: inline-block; margin-top: 24px; font-size: 13px; font-weight: 600; }
-
-    .research-sidebar {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      align-self: start;
-      padding: 26px;
-      background: var(--card);
-      border: 1px solid var(--rule);
-      border-radius: 14px;
-    }
-
-    .research-meta-label { margin-bottom: 4px; }
-    .research-meta-value { font-size: 14px; line-height: 1.55; }
-
-    /* ─── footer strip ─── */
-    .footer {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px 32px;
-      padding: 30px var(--gutter);
-      border-top: 1px solid var(--rule);
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .footer-links { display: flex; flex-wrap: wrap; gap: 20px; }
-
-    /* ─── animations ─── */
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .hero-left  { animation: fadeUp .6s .05s ease both; }
-    .hero-right { animation: fadeUp .6s .18s ease both; }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation: none !important; transition: none !important; }
-    }
-
-    /* ─── responsive ─── */
-    @media (max-width: 1000px) {
-      .projects { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .hero, .research { grid-template-columns: 1fr; gap: 40px; }
-    }
-
-    @media (max-width: 640px) {
-      .masthead { flex-direction: column; align-items: flex-start; }
-      .nav-strip { gap: 8px 16px; }
-      .hero { padding-top: 44px; }
-      .hero-byline { font-size: 16px; }
-      .projects { grid-template-columns: 1fr; }
-      .section-header { flex-direction: column; gap: 8px; padding-top: 44px; }
-      .footer { flex-direction: column; align-items: flex-start; }
-    }
-  </style>
-  <link rel="stylesheet" href="/assets/writing.css?v=20261014">
 </head>
 <body>
-  <!-- masthead -->
-  <header class="masthead">
-    <a class="brand" href="/"><span class="mark" aria-hidden="true">ac</span>Andrey Costa</a>
-    <div class="site-tools">
-      <nav class="nav-strip" aria-label="Main navigation" data-i18n-attr="aria-label" data-pt-aria-label="Navegação principal" data-en-aria-label="Main navigation">
-        <a href="/curriculum"><span lang="pt">Currículo</span><span lang="en">CV</span></a>
-        <a href="#projects"><span lang="pt">Projetos</span><span lang="en">Projects</span></a>
-        <a href="#research"><span lang="pt">Pesquisa</span><span lang="en">Research</span></a>
-        <a href="/textos/"><span lang="pt">Textos</span><span lang="en">Essays</span></a>
-        <a href="https://github.com/andreyncosta" target="_blank" rel="noopener">GitHub</a>
-        <a href="https://www.linkedin.com/in/andreyac" target="_blank" rel="noopener">LinkedIn</a>
-        <a href="mailto:andreynacosta46@gmail.com"><span lang="pt">Contato</span><span lang="en">Contact</span></a>
-      </nav>
-      <div class="lang-switch" role="group" aria-label="Language" data-i18n-attr="aria-label" data-pt-aria-label="Idioma" data-en-aria-label="Language"><button type="button" data-set-lang="pt" aria-pressed="false">PT</button><button type="button" data-set-lang="en" aria-pressed="true">EN</button></div>
+  <a class="skip" href="#main"><span lang="en">Skip to content</span><span lang="pt">Ir para o conteúdo</span></a>
+  <header class="masthead wrap">
+    <a class="name" href="/">Andrey Costa</a>
+    <nav aria-label="Main navigation" data-i18n-attr="aria-label" data-en-aria-label="Main navigation" data-pt-aria-label="Navegação principal">
+      <a href="#projects"><span lang="en">Projects</span><span lang="pt">Projetos</span></a>
+      <a href="/curriculum/"><span lang="en">CV</span><span lang="pt">Currículo</span></a>
+      <a href="mailto:andreynacosta46@gmail.com"><span lang="en">Contact</span><span lang="pt">Contato</span></a>
+    </nav>
+    <div class="languages" role="group" aria-label="Language" data-i18n-attr="aria-label" data-en-aria-label="Language" data-pt-aria-label="Idioma">
+      <button type="button" data-set-lang="en" aria-pressed="true" aria-label="English">EN</button>
+      <button type="button" data-set-lang="pt" aria-pressed="false" aria-label="Português">PT</button>
     </div>
   </header>
-
-  <!-- hero -->
-  <section class="hero">
-    <div class="hero-left">
-      <div>
-        <div class="eyebrow"><span lang="pt">Arquivo pessoal — projetos e ideias em andamento</span><span lang="en">Personal archive — projects &amp; ideas in progress</span></div>
-        <h1 class="hero-headline">
-          <span lang="pt">Pensando na<br>interseção entre <em>economia,</em><br>dados e o futuro<br>do dinheiro.</span>
-          <span lang="en">Thinking at the<br>intersection of <em>economics,</em><br>data &amp; the future<br>of money.</span>
-        </h1>
-        <p class="hero-byline"><span lang="pt">Cientista de dados construindo sistemas em produção no Banco BRB, pesquisando a adoção do bitdólar na FGV e tocando projetos paralelos entre a teoria econômica, a engenharia e a economia política. Nada aqui está pronto. Vale a pena pensar em tudo o que está aqui.</span><span lang="en">Data scientist building production systems at BRB Bank, researching bitdollar adoption at FGV, and shipping side projects that sit between economic theory, engineering, and political economy. Nothing here is finished. Everything here is worth thinking about.</span></p>
+  <main id="main" class="wrap">
+    <section class="intro">
+      <h1><span lang="en">Economist and<br>data scientist</span><span lang="pt">Economista e<br>cientista de dados</span></h1>
+      <p><span lang="en">At BRB, I analyze data to support decisions about the bank’s service network and channel strategy.</span><span lang="pt">No BRB, analiso dados para apoiar decisões sobre a rede de atendimento e a estratégia de canais.</span></p>
+    </section>
+    <section class="feature" id="projects" aria-labelledby="fiscal-title">
+      <h2 id="fiscal-title"><span lang="en">What explains the change in the primary balance?</span><span lang="pt">O que explica a mudança no resultado primário?</span></h2>
+      <div class="spread">
+        <figure>
+          <figcaption id="chart-title"><span lang="en">Brazil’s 12-month primary balance</span><span lang="pt">Resultado primário do Brasil em 12 meses</span><small><span lang="en">Central government · R$ billions, inflation-adjusted</span><span lang="pt">Governo Central · R$ bilhões, em valores reais</span></small></figcaption>
+          <div class="chart" role="img" aria-labelledby="chart-title" aria-describedby="chart-summary">
+            <div class="ticks" aria-hidden="true"><span>0</span><span>−100</span><span>−200</span><span>−300</span></div>
+            <div class="plot" aria-hidden="true">
+              <i style="--top:9.090909%;--height:79.459159%"></i>
+              <i style="--top:9.090909%;--height:84.850988%"></i>
+              <i style="--top:9.090909%;--height:82.864078%"></i>
+              <i style="--top:9.090909%;--height:84.469593%"></i>
+              <i style="--top:9.090909%;--height:89.146196%"></i>
+              <i style="--top:9.090909%;--height:86.430821%"></i>
+              <i style="--top:9.090909%;--height:76.931701%"></i>
+              <i style="--top:9.090909%;--height:75.074435%"></i>
+              <i style="--top:9.090909%;--height:80.842829%"></i>
+              <i style="--top:9.090909%;--height:73.615840%"></i>
+              <i style="--top:9.090909%;--height:61.979051%"></i>
+              <i style="--top:9.090909%;--height:14.347795%"></i>
+              <i style="--top:9.090909%;--height:13.702303%"></i>
+              <i style="--top:9.090909%;--height:4.163919%"></i>
+              <i style="--top:9.090909%;--height:3.328711%"></i>
+              <i style="--top:9.090909%;--height:1.424928%"></i>
+              <i style="--top:3.081479%;--height:6.009430%"></i>
+              <i style="--top:4.167909%;--height:4.923000%"></i>
+              <i style="--top:9.090909%;--height:10.819209%"></i>
+              <i style="--top:9.090909%;--height:8.360907%"></i>
+              <i style="--top:9.090909%;--height:11.180404%"></i>
+              <i style="--top:9.090909%;--height:13.181304%"></i>
+              <i style="--top:9.090909%;--height:18.038067%"></i>
+              <i style="--top:9.090909%;--height:18.987775%"></i>
+              <i style="--top:9.090909%;--height:19.564292%"></i>
+              <i style="--top:9.090909%;--height:18.678070%"></i>
+              <i style="--top:9.090909%;--height:41.740030%"></i>
+              <i style="--top:9.090909%;--height:39.776436%"></i>
+              <i style="--top:9.090909%;--height:43.147674%"></i>
+              <i style="--top:9.090909%;--height:43.645909%"></i>
+              <i style="--top:9.090909%;--height:21.682798%"></i>
+            </div>
+            <div class="dates" aria-hidden="true"><span><span lang="en">Jan 2024</span><span lang="pt">Jan 2024</span></span><span><span lang="en">Jan 2025</span><span lang="pt">Jan 2025</span></span><span><span lang="en">Jul 2026</span><span lang="pt">Jul 2026</span></span></div>
+          </div>
+          <p id="chart-summary" class="visually-hidden"><span lang="en">The 12-month deficit narrowed from R$262 billion in January 2024 to R$72 billion in July 2026. The balance briefly turned positive in May and June 2025.</span><span lang="pt">O déficit acumulado em 12 meses caiu de R$ 262 bilhões em janeiro de 2024 para R$ 72 bilhões em julho de 2026. Houve superávit em maio e junho de 2025.</span></p>
+          <small><span lang="en">Source: Brazil’s National Treasury</span><span lang="pt">Fonte: Tesouro Nacional</span></small>
+        </figure>
+        <aside class="chart-note">
+          <h3><span lang="en">Brazilian Fiscal Observatory</span><span lang="pt">Observatório Fiscal Brasileiro</span></h3>
+          <p><span lang="en">Follow net revenue and primary spending to see how each contributed to changes in the balance.</span><span lang="pt">Acompanhe a receita líquida e a despesa primária para ver quanto cada uma contribuiu para a variação do saldo.</span></p>
+          <a href="/projetos/observatorio-fiscal/"><span lang="en">Read the fiscal case study</span><span lang="pt">Ler o estudo do Observatório</span></a>
+        </aside>
       </div>
+    </section>
+    <section class="secondary" aria-labelledby="amendments-title">
+      <h2 id="amendments-title"><span lang="en">Parliamentary Amendments Dashboard</span><span lang="pt">Painel das Emendas</span></h2>
+      <div><p><span lang="en">How do allocations per person and budget execution vary across Brazil?</span><span lang="pt">Como a alocação por habitante e a execução das emendas variam pelo Brasil?</span></p>
+      <a href="/projetos/emendas-parlamentares/"><span lang="en">Read the amendments case study</span><span lang="pt">Ler o estudo sobre as emendas</span></a></div>
+    </section>
+    <section class="archive" aria-labelledby="other-title">
+      <h2 id="other-title"><span lang="en">More projects</span><span lang="pt">Outros projetos</span></h2>
+      <ul>
+        <li><a href="https://github.com/andreyncosta/job-market-lens"><span lang="en">Job Market Lens</span><span lang="pt">Job Market Lens</span></a><p><span lang="en">Salary, skills and remote work in data science job listings.</span><span lang="pt">Salários, habilidades e trabalho remoto em vagas de ciência de dados.</span></p></li>
+        <li><a href="https://github.com/andreyncosta/copom-credit-transmission"><span lang="en">Copom Credit Transmission</span><span lang="pt">Transmissão do Copom ao crédito</span></a><p><span lang="en">How unexpected Selic changes pass through to household and business credit.</span><span lang="pt">Como surpresas na Selic afetam o crédito de famílias e empresas.</span></p></li>
+        <li><a href="https://github.com/andreyncosta/kaldor-growth-diagnostics"><span lang="en">Kaldor Growth Diagnostics</span><span lang="pt">Diagnóstico de crescimento kaldoriano</span></a><p><span lang="en">Brazil’s productivity and capital accumulation in international perspective.</span><span lang="pt">Produtividade e acumulação de capital do Brasil em perspectiva internacional.</span></p></li>
+        <li><a href="https://github.com/andreyncosta/yt-minimal"><span lang="en">Curing YouTube</span><span lang="pt">Curando o YouTube</span></a><p><span lang="en">A minimalist YouTube client with a text feed and audio mode.</span><span lang="pt">Cliente minimalista do YouTube com feed de texto e modo de áudio.</span></p></li>
+        <li><a href="/foto-quiz/"><span lang="en">Photo Profile Quiz</span><span lang="pt">Quiz de Perfil Fotográfico</span></a><p><span lang="en">A questionnaire that turns visual preferences into prompts for image generation.</span><span lang="pt">Questionário que transforma preferências visuais em prompts para gerar imagens.</span></p></li>
+      </ul>
+    </section>
+    <div class="closing">
+      <section id="research">
+        <h2><span lang="en">Research</span><span lang="pt">Pesquisa</span></h2>
+        <p><span lang="en">My master’s research at FGV examines what might happen if Bitcoin and the US dollar coexist as sovereign reserve assets.</span><span lang="pt">Minha pesquisa de mestrado na FGV investiga o que pode acontecer se o Bitcoin e o dólar americano coexistirem como ativos de reserva soberanos.</span></p>
+        <a href="https://github.com/andreyncosta/bitcoin-sovereign-reserve"><span lang="en">Read the research</span><span lang="pt">Conhecer a pesquisa</span></a>
+      </section>
+      <section id="writing">
+        <h2><span lang="en">Essays</span><span lang="pt">Ensaios</span></h2>
+        <p><span lang="en">Omnibus Fortitudinem collects my essays on economics, politics and culture.</span><span lang="pt">Omnibus Fortitudinem reúne meus ensaios sobre economia, política e cultura.</span></p>
+        <a href="/textos/"><span lang="en">Browse the archive</span><span lang="pt">Explorar o acervo</span></a>
+      </section>
     </div>
-    <div class="hero-right">
-      <div class="stat-block">
-        <div class="stat-label"><span lang="pt">Cargo atual</span><span lang="en">Current position</span></div>
-        <div class="stat-value"><span lang="pt">Analista, Banco BRB</span><span lang="en">Analyst, BRB Bank</span></div>
-        <div class="stat-sub"><span lang="pt">Ciência de Dados e Estratégia de Canais · Brasília · 4 anos em produção</span><span lang="en">Data Science &amp; Channel Strategy · Brasília · 4 years working on production systems</span></div>
-      </div>
-      <div class="stat-block">
-        <div class="stat-label"><span lang="pt">Pesquisa de pós-graduação</span><span lang="en">Graduate research</span></div>
-        <div class="stat-value"><span lang="pt">Mestrado em Economia</span><span lang="en">Master's in Economics</span></div>
-        <div class="stat-sub"><span lang="pt">FGV EPPG · Bitcoin e o dólar como reservas de valor cossoberanas</span><span lang="en">FGV EPPG · Bitcoin &amp; the dollar as co-sovereign stores of value</span></div>
-      </div>
-      <div class="stat-block">
-        <div class="stat-label">Stack</div>
-        <div class="stat-value">Python · SQL · Spark · R</div>
-        <div class="stat-sub">Hive · Impala · Power BI · FastAPI · React</div>
-      </div>
-      <div class="stat-block">
-        <div class="stat-label"><span lang="pt">Currículo</span><span lang="en">Curriculum vitae</span></div>
-        <div class="stat-value"><a href="/curriculum">andreycosta.com/curriculum →</a></div>
-        <div class="stat-sub"><span lang="pt">Disponível em PT e EN · download em PDF</span><span lang="en">Available in PT &amp; EN · PDF download</span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- projects section header -->
-  <div class="section-header" id="projects">
-    <div><h2><span lang="pt">Projetos</span><span lang="en">Projects</span></h2></div>
-    <a class="section-link" href="https://github.com/andreyncosta" target="_blank" rel="noopener">github.com/andreyncosta →</a>
-  </div>
-
-  <!-- projects grid -->
-  <section class="projects">
-    <a class="project-card" href="/observatorio-fiscal/">
-      <div class="project-tag"><span lang="pt">07 —— Análise fiscal</span><span lang="en">07 —— Fiscal Analytics</span></div>
-      <div class="project-title"><span lang="pt">Observatório<br><em>Fiscal Brasileiro</em></span><span lang="en">Brazilian Fiscal<br><em>Observatory</em></span></div>
-      <p class="project-desc"><span lang="pt">Receita, despesa e resultado primário do Governo Central a partir de dados oficiais do Tesouro. Indicadores mensais e acumulados em 12 meses, valores nominais e corrigidos pela inflação e composição fiscal — com ingestão versionada e testes de conciliação.</span><span lang="en">Brazilian Central Government revenue, expenditure and primary balance from official Treasury data. Explore monthly and rolling 12-month indicators, nominal and inflation-adjusted values, and fiscal composition — backed by versioned ingestion and reconciliation tests.</span></p>
-      <div class="project-footer">
-        <span class="project-stack">Python · DuckDB · dbt · Tesouro Nacional</span>
-        <span class="project-arrow">→</span>
-      </div>
-    </a>
-    <a class="project-card" href="https://github.com/andreyncosta/job-market-lens" target="_blank" rel="noopener">
-      <div class="project-tag"><span lang="pt">01 —— Pipeline de dados</span><span lang="en">01 —— Data Pipeline</span></div>
-      <div class="project-title">Job Market<br><em>Lens</em></div>
-      <p class="project-desc"><span lang="pt">Pipeline em DuckDB que coleta e analisa vagas de cientista de dados pelas APIs Adzuna e Jobicy. Acompanha tendências salariais, habilidades exigidas e oferta de trabalho remoto — com enriquecimento por LLM e painel em Streamlit no roadmap.</span><span lang="en">DuckDB-backed pipeline collecting and analyzing data scientist job listings from the Adzuna and Jobicy APIs. It tracks salary trends, required skills, and the availability of remote jobs — with LLM enrichment and a Streamlit dashboard on the roadmap.</span></p>
-      <div class="project-footer">
-        <span class="project-stack">Python · DuckDB · GitHub Actions</span>
-        <span class="project-arrow">→</span>
-      </div>
-    </a>
-    <a class="project-card" href="https://github.com/andreyncosta/yt-minimal" target="_blank" rel="noopener">
-      <div class="project-tag">02 —— App</div>
-      <div class="project-title"><span lang="pt">Curando o<br><em>YouTube</em></span><span lang="en">Curing<br><em>YouTube</em></span></div>
-      <p class="project-desc"><span lang="pt">Cliente minimalista do YouTube sem Shorts, com feed só de texto e modo só áudio. Feito para recuperar a atenção da decadência algorítmica. Backend em FastAPI com OAuth 2.0 e frontend em React Native/Expo.</span><span lang="en">Minimalist YouTube client with no Shorts, text-only feed, and audio-only toggle. Built to reclaim attention from algorithmic decay. FastAPI backend with OAuth 2.0 + React Native/Expo frontend.</span></p>
-      <div class="project-footer">
-        <span class="project-stack">FastAPI · React Native · OAuth 2.0</span>
-        <span class="project-arrow">→</span>
-      </div>
-    </a>
-    <a class="project-card" href="/emendas-parlamentares">
-      <div class="project-tag"><span lang="pt">03 —— Políticas públicas</span><span lang="en">03 —— Public Policy</span></div>
-      <div class="project-title"><span lang="pt">Emendas<br><em>Parlamentares</em></span><span lang="en">Parliamentary<br><em>Amendments</em></span></div>
-      <p class="project-desc"><span lang="pt">Relatório interativo sobre as emendas parlamentares ao orçamento (individuais, de bancada e de relator). Mapas de alocação per capita por estado, taxas de execução por partido e autor, concentração de favorecidos e classificação temática — gerado a partir dos dados abertos do Portal da Transparência por um pipeline em Python puro.</span><span lang="en">Interactive report on Brazilian parliamentary budget amendments (individual, state-caucus and rapporteur). Per-capita allocation maps by state, party &amp; author execution rates, beneficiary concentration, and thematic classification — generated from Portal da Transparência open data by a pure-Python pipeline.</span></p>
-      <div class="project-footer">
-        <span class="project-stack">Python · SVG Maps · Portal da Transparência</span>
-        <span class="project-arrow">→</span>
-      </div>
-    </a>
-    <a class="project-card" href="https://github.com/andreyncosta/copom-credit-transmission" target="_blank" rel="noopener">
-      <div class="project-tag"><span lang="pt">04 —— Econometria</span><span lang="en">04 —— Econometrics</span></div>
-      <div class="project-title"><span lang="pt">Transmissão do<br><em>Copom ao crédito</em></span><span lang="en">COPOM Credit<br><em>Transmission</em></span></div>
-      <p class="project-desc"><span lang="pt">Estima o repasse diferenciado dos choques da Selic ao crédito das famílias e das empresas com estratégia IV/2SLS — o componente-surpresa de cada decisão do Copom isola a variação exógena da política. Testes de endogeneidade de Wu-Hausman validam o instrumento. Resultados servidos por um endpoint FastAPI.</span><span lang="en">Estimates the differential pass-through of SELIC rate shocks to household vs. corporate credit using an IV/2SLS strategy — the surprise component of each COPOM decision isolates the exogenous policy variation. Wu-Hausman endogeneity tests validate the IV. Results served via a FastAPI endpoint.</span></p>
-      <div class="project-footer">
-        <span class="project-stack">Python · IV/2SLS · FastAPI · dbt · BCB/SGS</span>
-        <span class="project-arrow">→</span>
-      </div>
-    </a>
-    <a class="project-card" href="https://github.com/andreyncosta/kaldor-growth-diagnostics" target="_blank" rel="noopener">
-      <div class="project-tag">05 —— Macro</div>
-      <div class="project-title"><span lang="pt">Diagnóstico de<br><em>crescimento kaldoriano</em></span><span lang="en">Kaldor Growth<br><em>Diagnostics</em></span></div>
-      <p class="project-desc"><span lang="pt">Replicação empírica dos fatos estilizados de Kaldor para o Brasil, comparado ao Leste Asiático (Japão, Coreia do Sul, China) e a pares latino-americanos (México, Chile). Acompanha PIB por trabalhador, PTF, aprofundamento de capital e relação capital-produto na Penn World Table 10.0, de 1950 a 2019.</span><span lang="en">Empirical replication of Kaldor's stylized growth facts for Brazil against East Asian comparators (Japan, South Korea, China) and Latin American peers (Mexico, Chile). Tracks GDP per worker, TFP, capital deepening, and capital-output ratio across the Penn World Tables 10.0 from 1950 to 2019.</span></p>
-      <div class="project-footer">
-        <span class="project-stack">Python · pandas · PWT 10.0 · Growth Theory</span>
-        <span class="project-arrow">→</span>
-      </div>
-    </a>
-    <a class="project-card" href="/foto-quiz">
-      <div class="project-tag"><span lang="pt">06 —— Ferramenta criativa</span><span lang="en">06 —— Creative Tool</span></div>
-      <div class="project-title"><span lang="pt">Quiz de<br><em>Perfil Fotográfico</em></span><span lang="en">Photo Profile<br><em>Quiz</em></span></div>
-      <p class="project-desc"><span lang="pt">Quiz de 20 perguntas que monta um perfil fotográfico completo e gera três prompts profissionais para IA — principal, editorial e espontâneo/lifestyle — como se um fotógrafo comercial dirigisse a sessão. Inclui nota de direção do fotógrafo e ferramentas recomendadas em ordem.</span><span lang="en">20-question quiz that builds a complete photographic profile and generates three professional AI image prompts — primary, editorial, and candid/lifestyle — as if engineered by a commercial photographer directing an AI model session. Includes a photographer's direction note and ranked tool recommendations.</span></p>
-      <div class="project-footer">
-        <span class="project-stack">HTML · CSS · JS · AI Prompts</span>
-        <span class="project-arrow">→</span>
-      </div>
-    </a>
-  </section>
-
-  <!-- research -->
-  <div class="section-header" id="research">
-    <div><h2><span lang="pt">Pesquisa</span><span lang="en">Research</span></h2></div>
-  </div>
-
-  <section class="research">
-    <div class="research-main">
-      <div class="eyebrow research-kicker"><span lang="pt">FGV EPPG · Dissertação de mestrado em andamento</span><span lang="en">FGV EPPG · Master’s thesis in progress</span></div>
-      <h2 class="research-title">
-        <span lang="pt">A Hipótese do <em>Bitdólar</em>:<br>Bitcoin e o dólar como<br>reservas de valor cossoberanas</span>
-        <span lang="en">The <em>Bitdollar</em> Hypothesis:<br>Bitcoin &amp; the Dollar as<br>Co-Sovereign Stores of Value</span>
-      </h2>
-      <p class="research-body"><span lang="pt">O que acontece com o sistema monetário internacional se o Bitcoin se tornar um ativo de reserva soberano ao lado — e não no lugar — do dólar americano? A pesquisa examina as implicações macroeconômicas e institucionais de um cenário de adoção do “bitdólar”: a coexistência de BTC e USD como reservas de valor paralelas no nível dos Estados, e as tensões estruturais que isso cria para a política fiscal, a senhoriagem e a soberania monetária das economias emergentes.</span><span lang="en">What happens to the international monetary system if Bitcoin becomes a sovereign reserve asset alongside — not instead of — the US dollar? This research examines the macroeconomic and institutional implications of a “bitdollar” adoption scenario: the coexistence of BTC and USD as parallel stores of value at the state level, and the structural tensions this creates for fiscal policy, seigniorage, and monetary sovereignty in emerging economies.</span></p>
-      <a class="research-link" href="https://github.com/andreyncosta/bitcoin-sovereign-reserve" target="_blank" rel="noopener"><span lang="pt">Ver o repositório da pesquisa no GitHub →</span><span lang="en">View the research repository on GitHub →</span></a>
-    </div>
-    <div class="research-sidebar">
-      <div class="research-meta-item">
-        <div class="research-meta-label"><span lang="pt">Instituição</span><span lang="en">Institution</span></div>
-        <div class="research-meta-value"><span lang="pt">FGV EPPG — Escola de Políticas Públicas e Governo</span><span lang="en">FGV EPPG — School of Public Policy and Government</span></div>
-      </div>
-      <div class="research-meta-item">
-        <div class="research-meta-label"><span lang="pt">Curso</span><span lang="en">Degree</span></div>
-        <div class="research-meta-value"><span lang="pt">Mestrado Profissional em Economia</span><span lang="en">Professional Master's in Economics</span></div>
-      </div>
-      <div class="research-meta-item">
-        <div class="research-meta-label"><span lang="pt">Situação</span><span lang="en">Status</span></div>
-        <div class="research-meta-value"><span lang="pt">Em andamento · 2024–2026</span><span lang="en">In progress · 2024–2026</span></div>
-      </div>
-      <div class="research-meta-item">
-        <div class="research-meta-label"><span lang="pt">Métodos</span><span lang="en">Methods</span></div>
-        <div class="research-meta-value"><span lang="pt">Teoria monetária · Economia institucional · Macro empírica</span><span lang="en">Monetary theory · Institutional economics · Empirical macroeconomics</span></div>
-      </div>
-      <div class="research-meta-item">
-        <div class="research-meta-label"><span lang="pt">Palavras-chave</span><span lang="en">Keywords</span></div>
-        <div class="research-meta-value"><span lang="pt">Bitcoin · Dolarização · Senhoriagem · Moeda de reserva · Política cripto-fiscal</span><span lang="en">Bitcoin · Dollarization · Seigniorage · Reserve currency · Crypto-fiscal policy</span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- writing -->
-  <div class="section-header" id="writing">
-    <div><h2><span lang="pt">Textos e ensaios</span><span lang="en">Essays</span></h2></div>
-  </div>
-  <section class="writing-journal" aria-labelledby="wj-title">
-    <header class="wj-intro">
-      <div><p class="wj-eyebrow">OMNIBUS FORTITUDINEM</p><h2 id="wj-title"><span lang="pt">Uma casa para<br><em>as ideias.</em></span><span lang="en">A home for<br><em>ideas.</em></span></h2><p><span lang="pt">Economia, política, cultura e as ideias que atravessam a vida em sociedade. Ensaios reunidos aqui, com tempo para ler e espaço para pensar.</span><span lang="en">Economics, politics, culture, and the ideas that run through life in society. A collection of essays with time to read and room to think.</span></p></div>
-      <div class="wj-actions"><a href="/textos/" class="wj-button"><span lang="pt">Explorar o acervo</span><span lang="en">Explore the archive</span> <span aria-hidden="true">↗</span></a><a href="/textos/feed.xml"><span lang="pt">Acompanhar via RSS</span><span lang="en">Follow via RSS</span></a></div>
-    </header>
-    <div class="wj-label"><span><span lang="pt">Leitura em destaque</span><span lang="en">Featured essay</span></span><span><span lang="pt">6 textos no acervo</span><span lang="en">6 essays in the archive</span></span></div>
-    <div class="wj-feature"><article class="wj-post"><a href="/textos/a-farsa-do-pleno-emprego-ou-a-farsa/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-a-farsa-do-pleno-emprego-ou-a-farsa.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta"><span lang="pt">29 de abril de 2026 · 11 min de leitura</span><span lang="en">April 29, 2026 · 11 min read</span></p><h3><a href="/textos/a-farsa-do-pleno-emprego-ou-a-farsa/"><span lang="pt">A farsa do pleno emprego ou a farsa do fim da escala 6x1</span><span lang="en">The Full-Employment Sham, or the Sham of Ending the 6x1 Workweek</span></a></h3><p class="wj-description"><span lang="pt">Divagações acerca do mercado de trabalho, suas distorções e o fim da escala 6x1</span><span lang="en">Musings on the labor market, its distortions, and the end of the six-day workweek</span></p><a href="/textos/a-farsa-do-pleno-emprego-ou-a-farsa/" class="wj-read"><span lang="pt">Ler o texto</span><span lang="en">Read the essay</span> <span aria-hidden="true">↗</span></a></div></article></div>
-    <div class="wj-label"><span><span lang="pt">Mais do acervo</span><span lang="en">More from the archive</span></span><a href="/textos/"><span lang="pt">Ver todos os textos →</span><span lang="en">See all essays →</span></a></div>
-    <div class="wj-grid"><article class="wj-post"><a href="/textos/um-apelo-a-intolerancia/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-um-apelo-a-intolerancia.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta"><span lang="pt">13 de setembro de 2025 · 19 min de leitura</span><span lang="en">September 13, 2025 · Translation note</span></p><h3><a href="/textos/um-apelo-a-intolerancia/"><span lang="pt">Um Apelo à Intolerância</span><span lang="en">A Plea for Intolerance</span></a></h3><p class="wj-description"><span lang="pt">Publicado em 1931 pelo Arcebispo Fulton Sheen</span><span lang="en">Archbishop Fulton Sheen, 1931 — on the Portuguese translation</span></p><a href="/textos/um-apelo-a-intolerancia/" class="wj-read"><span lang="pt">Ler o texto</span><span lang="en">Read the essay</span> <span aria-hidden="true">↗</span></a></div></article><article class="wj-post"><a href="/textos/a-economia-da-paz/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-a-economia-da-paz.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta"><span lang="pt">15 de agosto de 2025 · Registro no Substack · 10 min de leitura</span><span lang="en">August 15, 2025 · From Substack · 10 min read</span></p><h3><a href="/textos/a-economia-da-paz/"><span lang="pt">A Economia da Paz</span><span lang="en">The Economics of Peace</span></a></h3><p class="wj-description"><span lang="pt">E os danos da guerra</span><span lang="en">And the damage of war</span></p><a href="/textos/a-economia-da-paz/" class="wj-read"><span lang="pt">Ler o texto</span><span lang="en">Read the essay</span> <span aria-hidden="true">↗</span></a></div></article><article class="wj-post"><a href="/textos/do-fim-da-historia-e-da-decadencia/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-do-fim-da-historia-e-da-decadencia.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta"><span lang="pt">7 de julho de 2025 · 12 min de leitura</span><span lang="en">July 7, 2025 · 12 min read</span></p><h3><a href="/textos/do-fim-da-historia-e-da-decadencia/"><span lang="pt">Do fim da história e da decadência do ser</span><span lang="en">On the End of History and the Decay of Being</span></a></h3><p class="wj-description"><span lang="pt">Considerações acerca do que disseram caros conterrâneos</span><span lang="en">Reflections on what some dear fellow countrymen have said</span></p><a href="/textos/do-fim-da-historia-e-da-decadencia/" class="wj-read"><span lang="pt">Ler o texto</span><span lang="en">Read the essay</span> <span aria-hidden="true">↗</span></a></div></article><article class="wj-post"><a href="/textos/as-tribos-politicas-do-brasil-parte/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-as-tribos-politicas-do-brasil-parte.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta"><span lang="pt">2 de julho de 2025 · 6 min de leitura</span><span lang="en">July 2, 2025 · 6 min read</span></p><h3><a href="/textos/as-tribos-politicas-do-brasil-parte/"><span lang="pt">As Tribos Políticas do Brasil — Parte 1</span><span lang="en">Brazil's Political Tribes — Part 1</span></a></h3><p class="wj-description"><span lang="pt">Do cartesianismo à contemplação maravilhada</span><span lang="en">From Cartesianism to awestruck contemplation</span></p><a href="/textos/as-tribos-politicas-do-brasil-parte/" class="wj-read"><span lang="pt">Ler o texto</span><span lang="en">Read the essay</span> <span aria-hidden="true">↗</span></a></div></article><article class="wj-post"><a href="/textos/a-metastase-da-globalizacao/" class="wj-image" tabindex="-1" aria-hidden="true"><img src="/assets/writing-a-metastase-da-globalizacao.webp" alt="" width="600" height="400" loading="lazy"></a><div class="wj-copy"><p class="wj-meta"><span lang="pt">25 de junho de 2025 · 6 min de leitura</span><span lang="en">June 25, 2025 · 6 min read</span></p><h3><a href="/textos/a-metastase-da-globalizacao/"><span lang="pt">A Metástase da Globalização</span><span lang="en">The Metastasis of Globalization</span></a></h3><p class="wj-description"><span lang="pt">Quando a exceção vira a regra.</span><span lang="en">When the exception becomes the rule.</span></p><a href="/textos/a-metastase-da-globalizacao/" class="wj-read"><span lang="pt">Ler o texto</span><span lang="en">Read the essay</span> <span aria-hidden="true">↗</span></a></div></article></div>
-    <aside class="wj-data"><div><p class="wj-eyebrow"><span lang="pt">TAMBÉM NO SITE · DADOS ABERTOS</span><span lang="en">ALSO ON THE SITE · OPEN DATA</span></p><h3><a href="/emendas-parlamentares"><span lang="pt">O Painel das Emendas</span><span lang="en">The Amendments Dashboard</span></a></h3><p><span lang="pt">Uma leitura interativa das alocações parlamentares, com dados por estado, partido e autor.</span><span lang="en">An interactive look at parliamentary budget allocations, by state, party and author.</span></p></div><a href="/emendas-parlamentares" class="wj-read"><span lang="pt">Explorar a análise ↗</span><span lang="en">Explore the analysis ↗</span></a></aside>
-  </section>
-
-  <!-- footer -->
-  <footer class="footer">
-    <nav class="footer-links">
-      <a href="/curriculum"><span lang="pt">Currículo</span><span lang="en">CV</span></a>
-      <a href="https://github.com/andreyncosta" target="_blank" rel="noopener">GitHub</a>
-      <a href="https://www.linkedin.com/in/andreyac" target="_blank" rel="noopener">LinkedIn</a>
-      <a href="mailto:andreynacosta46@gmail.com"><span lang="pt">Contato</span><span lang="en">Contact</span></a>
-    </nav>
-    <div class="footer-copy">© 2025 · andreycosta.com</div>
-  </footer>
-
+  </main>
+  <footer class="masthead wrap"><span>Andrey Costa</span><nav aria-label="Elsewhere" data-i18n-attr="aria-label" data-en-aria-label="Elsewhere" data-pt-aria-label="Outros links"><a href="https://github.com/andreyncosta">GitHub</a><a href="https://www.linkedin.com/in/andreyac">LinkedIn</a><a href="mailto:andreynacosta46@gmail.com"><span lang="en">Email</span><span lang="pt">E-mail</span></a></nav></footer>
 </body>
 </html>
