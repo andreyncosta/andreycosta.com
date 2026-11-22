@@ -1,0 +1,13 @@
+:root {
+  color-scheme: light;
+  --paper: #e9e4d5;
+  --ink: #132d36;
+  --accent: #b9442d;
+  --link: #923523;
+  --rule: #a59f90;
+  --surface: #f5f0e4;
+  --muted: #42555b;
+  --soft: #ddd6c5;
+  --display: Georgia, serif;
+  --body: system-ui, sans-serif;
+}

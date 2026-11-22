@@ -13,9 +13,22 @@
   <link rel="icon" href="/assets/favicon.svg">
 </head>
 <body>
-  <header><a class="site-brand" href="/"><span class="site-mark" aria-hidden="true">ac</span>Andrey Costa <span>&nbsp;/ <span lang="pt">projetos</span><span lang="en">projects</span></span></a><div class="site-tools"><a href="#metodologia"><span lang="pt">Metodologia</span><span lang="en">Methodology</span> ↗</a><div class="lang-switch" role="group" aria-label="Language" data-i18n-attr="aria-label" data-pt-aria-label="Idioma" data-en-aria-label="Language"><button type="button" data-set-lang="pt" aria-pressed="false">PT</button><button type="button" data-set-lang="en" aria-pressed="true">EN</button></div></div></header>
+    <header class="tool-masthead">
+    <a class="name" href="/">Andrey Costa</a>
+    <nav aria-label="Main navigation" data-i18n-attr="aria-label" data-en-aria-label="Main navigation" data-pt-aria-label="Navegação principal">
+      <a href="/projects/"><span lang="en">Work</span><span lang="pt">Projetos</span></a>
+      <a href="/research/"><span lang="en">Research</span><span lang="pt">Pesquisa</span></a>
+      <a href="/essays/"><span lang="en">Essays</span><span lang="pt">Ensaios</span></a>
+      <a href="/cv/"><span lang="en">CV</span><span lang="pt">Currículo</span></a>
+      <a href="mailto:andreynacosta46@gmail.com"><span lang="en">Contact</span><span lang="pt">Contato</span></a>
+    </nav>
+    <div class="languages" role="group" aria-label="Language" data-i18n-attr="aria-label" data-en-aria-label="Language" data-pt-aria-label="Idioma">
+      <button type="button" data-set-lang="en" aria-pressed="true" aria-label="English">EN</button>
+      <button type="button" data-set-lang="pt" aria-pressed="false" aria-label="Português">PT</button>
+    </div>
+  </header>
   <main>
-    <section class="intro"><p class="eyebrow"><span lang="pt">ECONOMIA PÚBLICA · DADOS ABERTOS</span><span lang="en">PUBLIC FINANCE · OPEN DATA</span></p>
+    <section class="intro">
       <h1><span lang="pt">Observatório <em>Fiscal Brasileiro</em></span><span lang="en">Brazilian <em>Fiscal Observatory</em></span></h1>
       <p class="lead"><span lang="pt">Como evoluem as receitas, as despesas e o resultado primário do Governo Central?</span><span lang="en">How are the Central Government&#39;s revenue, expenditure and primary balance evolving?</span></p>
       <p id="provenance" class="muted" role="status"><span lang="pt">Carregando dados oficiais do Tesouro Nacional…</span><span lang="en">Loading official National Treasury data…</span></p>
@@ -48,6 +61,6 @@
       <div lang="pt"><h3>Preços e comparações</h3><p>Valores nominais e reais vêm das tabelas 1.1 e 1.1-A da planilha oficial. Os valores reais usam a correção pelo IPCA publicada pelo próprio Tesouro; a base de preços aparece no painel. O acumulado em 12 meses exige uma janela completa e inclui meses anteriores ao início do filtro.</p><p>Os dados estão sujeitos a revisões e mudanças metodológicas. A cobertura termina no último mês da planilha coletada, mesmo quando a extração ocorre depois.</p></div><div lang="en"><h3>Prices and comparisons</h3><p>Nominal and real values come from tables 1.1 and 1.1-A of the official spreadsheet. Real values use the IPCA adjustment published by the Treasury itself; the price base is shown in the dashboard. The 12-month sum requires a complete window and includes months before the start of the filter.</p><p>The data are subject to revisions and methodological changes. Coverage ends at the last month of the collected spreadsheet, even when extraction happens later.</p></div>
     </div><p><a href="https://www.tesourotransparente.gov.br/ckan/dataset/resultado-do-tesouro-nacional/resource/527ccdb1-3059-42f3-bf23-b5e3ab4c6dc6" target="_blank" rel="noopener"><span lang="pt">Fonte oficial · Tesouro Nacional</span><span lang="en">Official source · National Treasury</span> ↗</a> · <a href="dataset.json" download><span lang="pt">Dados do painel em JSON</span><span lang="en">Dashboard data as JSON</span> ↓</a></p><p class="muted" lang="pt">Atribuição: Secretaria do Tesouro Nacional. Dados sob licença <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL</a>. Este painel é uma transformação independente dos dados oficiais.</p><p class="muted" lang="en">Attribution: National Treasury Secretariat. Data under the <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL</a> license. This dashboard is an independent transformation of the official data.</p></section>
     <section class="notes"><p class="eyebrow"><span lang="pt">ENGENHARIA</span><span lang="en">ENGINEERING</span></p><h2><span lang="pt">Da fonte ao indicador</span><span lang="en">From source to indicator</span></h2><p class="pipeline"><span lang="pt">Tesouro / XLSX → Python → DuckDB → dbt → testes → JSON → este painel</span><span lang="en">Treasury / XLSX → Python → DuckDB → dbt → tests → JSON → this dashboard</span></p><p lang="pt">A coleta preserva a planilha original e seu hash SHA-256 para identificar revisões. O dbt organiza as transformações e verifica unicidade, continuidade mensal e conciliação contábil. Testes Python comparam os indicadores com a planilha original. Esta publicação é um retrato validado; a atualização automática ainda está em desenvolvimento.</p><p lang="en">Collection keeps the original spreadsheet and its SHA-256 hash to identify revisions. dbt organizes the transformations and checks uniqueness, monthly continuity and accounting reconciliation. Python tests compare the indicators with the original spreadsheet. This release is a validated snapshot; automatic updates are still in development.</p><p id="version" class="muted"></p><p class="muted"><span lang="pt">Código do pipeline:</span><span lang="en">Pipeline code:</span> <code>andreyncosta/brazil-fiscal-data</code> <span lang="pt">(repositório privado).</span><span lang="en">(private repository).</span></p></section>
-  </main><footer><span><span lang="pt">Observatório Fiscal Brasileiro</span><span lang="en">Brazilian Fiscal Observatory</span> · Andrey Costa</span> <a href="/"><span lang="pt">Voltar ao portfólio</span><span lang="en">Back to portfolio</span> ↑</a></footer>
+  </main><footer><span><span lang="pt">Observatório Fiscal Brasileiro</span><span lang="en">Brazilian Fiscal Observatory</span> · Andrey Costa</span> <a href="/projects/fiscal-observatory/"><span lang="pt">Ler o estudo de caso</span><span lang="en">Read the case study</span> ↑</a></footer>
 </body>
 </html>

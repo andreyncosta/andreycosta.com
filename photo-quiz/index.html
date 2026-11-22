@@ -10,19 +10,19 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:        #f3f3ed;
-      --bg2:       #ecede5;
-      --card:      #fffefa;
-      --card2:     #f7f7f1;
-      --border:    #dce2d7;
-      --border2:   #cbd4c7;
-      --gold:      #2d5546;
-      --gold-lt:   #456c57;
-      --gold-dim:  rgba(45,85,70,0.09);
-      --gold-glow: rgba(45,85,70,0.05);
-      --text:      #273e35;
-      --text2:     #4c5f54;
-      --muted:     #627267;
+      --bg:        var(--paper);
+      --bg2:       var(--soft);
+      --card:      var(--surface);
+      --card2:     var(--surface);
+      --border:    var(--rule);
+      --border2:   var(--rule);
+      --gold:      var(--link);
+      --gold-lt:   var(--link);
+      --gold-dim:  rgba(19,45,54,0.09);
+      --gold-glow: rgba(19,45,54,0.05);
+      --text:      var(--ink);
+      --text2:     var(--muted);
+      --muted:     var(--muted);
       --green:     #3f8a5f;
       --radius:    8px;
       --transition: 0.22s ease;
@@ -32,9 +32,6 @@
 
     body {
       background-color: var(--bg);
-      background-image:
-        radial-gradient(ellipse 60% 50% at 15% 10%, rgba(45,85,70,0.04) 0%, transparent 100%),
-        radial-gradient(ellipse 50% 40% at 85% 90%, rgba(45,85,70,0.025) 0%, transparent 100%);
       color: var(--text);
       font-family: "Segoe UI", system-ui, sans-serif;
       font-size: 16px;
@@ -63,7 +60,7 @@
     .btn-gold {
       display: inline-block;
       background: var(--gold);
-      color: #fffefa;
+      color: var(--surface);
       border: none;
       padding: 0.9rem 2.8rem;
       font-family: "Segoe UI", system-ui, sans-serif;
@@ -78,7 +75,7 @@
     .btn-gold:hover {
       background: var(--gold-lt);
       transform: translateY(-2px);
-      box-shadow: 0 8px 28px rgba(45,85,70,0.25);
+      box-shadow: 0 8px 28px rgba(19,45,54,0.25);
     }
     .btn-gold:active { transform: translateY(0); }
 
@@ -112,7 +109,7 @@
       border-radius: var(--radius);
       transition: background var(--transition), color var(--transition);
     }
-    .btn-gold-outline:hover { background: var(--gold); color: #fffefa; }
+    .btn-gold-outline:hover { background: var(--gold); color: var(--surface); }
 
     /* ─── INTRO SCREEN ────────────────────────────────────── */
     #screen-intro { min-height: 100vh; }
@@ -217,7 +214,7 @@
     }
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, #1f3d32, var(--gold), var(--gold-lt));
+      background: linear-gradient(90deg, var(--ink), var(--gold), var(--gold-lt));
       border-radius: 2px;
       transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
     }
@@ -268,7 +265,7 @@
         transform 0.15s ease;
     }
     .opt-card:hover {
-      border-color: rgba(45,85,70,0.5);
+      border-color: rgba(19,45,54,0.5);
       background: var(--gold-glow);
       transform: translateX(2px);
     }
@@ -279,11 +276,11 @@
     .opt-card.selected .opt-badge {
       border-color: var(--gold);
       color: var(--gold);
-      background: rgba(45,85,70,0.12);
+      background: rgba(19,45,54,0.12);
     }
     .opt-card:hover .opt-badge {
-      border-color: rgba(45,85,70,0.6);
-      color: rgba(45,85,70,0.8);
+      border-color: rgba(19,45,54,0.6);
+      color: rgba(19,45,54,0.8);
     }
 
     .opt-badge {
@@ -355,7 +352,7 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(45,85,70,0.07) 0%, transparent 70%);
+      background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(19,45,54,0.07) 0%, transparent 70%);
       pointer-events: none;
     }
     .id-card-label {
@@ -373,7 +370,7 @@
       content: '';
       flex: 1;
       height: 1px;
-      background: linear-gradient(90deg, rgba(45,85,70,0.3), transparent);
+      background: linear-gradient(90deg, rgba(19,45,54,0.3), transparent);
     }
     .id-grid {
       display: grid;
@@ -435,7 +432,7 @@
     }
     .prompt-body {
       font-size: 0.82rem;
-      color: #627267;
+      color: var(--muted);
       line-height: 1.75;
       font-weight: 300;
       word-break: break-word;
@@ -468,7 +465,7 @@
     /* ── Director Note ── */
     .director-note {
       border-left: 2px solid var(--gold);
-      background: rgba(45,85,70,0.04);
+      background: rgba(19,45,54,0.04);
       padding: 1.4rem 1.5rem 1.4rem 1.75rem;
       border-radius: 0 var(--radius) var(--radius) 0;
       font-style: italic;
@@ -491,8 +488,8 @@
       padding: 1.1rem 1.1rem 1rem;
       transition: border-color var(--transition);
     }
-    .tool-card.top { border-color: var(--gold); background: rgba(45,85,70,0.04); }
-    .tool-card.second { border-color: rgba(45,85,70,0.35); }
+    .tool-card.top { border-color: var(--gold); background: rgba(19,45,54,0.04); }
+    .tool-card.second { border-color: rgba(19,45,54,0.35); }
 
     .tool-rec-badge {
       font-size: 0.55rem;
@@ -540,25 +537,26 @@
   <link rel="icon" href="/assets/favicon.svg" />
 </head>
 <body>
-<header class="site-bar">
-  <a class="site-brand" href="/"><span class="site-mark" aria-hidden="true">ac</span>Andrey Costa</a>
-  <div class="site-tools">
-    <nav class="site-nav" aria-label="Site">
-      <a href="/"><span lang="pt">Início</span><span lang="en">Home</span></a>
-      <a href="/#projects"><span lang="pt">Projetos</span><span lang="en">Projects</span></a>
-      <a href="/essays/"><span lang="pt">Textos</span><span lang="en">Essays</span></a>
-      <a href="/cv"><span lang="pt">Currículo</span><span lang="en">CV</span></a>
+  <header class="tool-masthead">
+    <a class="name" href="/">Andrey Costa</a>
+    <nav aria-label="Main navigation" data-i18n-attr="aria-label" data-en-aria-label="Main navigation" data-pt-aria-label="Navegação principal">
+      <a href="/projects/"><span lang="en">Work</span><span lang="pt">Projetos</span></a>
+      <a href="/research/"><span lang="en">Research</span><span lang="pt">Pesquisa</span></a>
+      <a href="/essays/"><span lang="en">Essays</span><span lang="pt">Ensaios</span></a>
+      <a href="/cv/"><span lang="en">CV</span><span lang="pt">Currículo</span></a>
+      <a href="mailto:andreynacosta46@gmail.com"><span lang="en">Contact</span><span lang="pt">Contato</span></a>
     </nav>
-    <div class="lang-switch" role="group" aria-label="Language" data-i18n-attr="aria-label" data-pt-aria-label="Idioma" data-en-aria-label="Language"><button type="button" data-set-lang="pt" aria-pressed="false">PT</button><button type="button" data-set-lang="en" aria-pressed="true">EN</button></div>
-  </div>
-</header>
+    <div class="languages" role="group" aria-label="Language" data-i18n-attr="aria-label" data-en-aria-label="Language" data-pt-aria-label="Idioma">
+      <button type="button" data-set-lang="en" aria-pressed="true" aria-label="English">EN</button>
+      <button type="button" data-set-lang="pt" aria-pressed="false" aria-label="Português">PT</button>
+    </div>
+  </header>
 
 <!-- ════════════════════════════════════════
      INTRO SCREEN
 ════════════════════════════════════════ -->
 <div id="screen-intro" class="screen">
   <div class="intro-inner">
-    <div class="intro-eyebrow"><span lang="pt">Sistema de Identidade Fotográfica</span><span lang="en">Photographic Identity System</span></div>
     <h1 class="intro-title"><span lang="pt">Seu Retrato,<br><em>Construído</em></span><span lang="en">Your Portrait,<br><em>Engineered</em></span></h1>
     <p class="intro-sub">
       <span lang="pt">20 perguntas. Um perfil fotográfico completo. Três prompts para IA prontos para usar, escritos como se um fotógrafo comercial experiente dirigisse a sessão.</span><span lang="en">20 questions. A complete photographic profile. Three ready-to-use AI prompts, written as if a top commercial photographer were directing the session.</span>
