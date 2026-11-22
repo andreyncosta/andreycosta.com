@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en" data-lang="en" data-en-title="Brazil’s 2026 Election Count | Andrey Costa" data-pt-title="Apuração das eleições de 2026 | Andrey Costa">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Brazil’s 2026 Election Count | Andrey Costa</title>
+  <link rel="canonical" href="https://andreycosta.com/projects/brazil-election-data/">
+  <link rel="icon" href="/assets/favicon.svg">
+  <link rel="stylesheet" href="/assets/atlas.css">
+  <script src="/assets/i18n.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main"><span lang="en">Skip to content</span><span lang="pt">Ir para o conteúdo</span></a>
+  <header class="masthead wrap">
+    <a class="name" href="/">Andrey Costa</a>
+    <nav aria-label="Main navigation" data-i18n-attr="aria-label" data-en-aria-label="Main navigation" data-pt-aria-label="Navegação principal">
+      <a href="/projects/"><span lang="en">Work</span><span lang="pt">Projetos</span></a>
+      <a href="/research/"><span lang="en">Research</span><span lang="pt">Pesquisa</span></a>
+      <a href="/essays/"><span lang="en">Essays</span><span lang="pt">Ensaios</span></a>
+      <a href="/cv/"><span lang="en">CV</span><span lang="pt">Currículo</span></a>
+      <a href="mailto:andreynacosta46@gmail.com"><span lang="en">Contact</span><span lang="pt">Contato</span></a>
+    </nav>
+    <div class="languages" role="group" aria-label="Language" data-i18n-attr="aria-label" data-en-aria-label="Language" data-pt-aria-label="Idioma">
+      <button type="button" data-set-lang="en" aria-pressed="true" aria-label="English">EN</button>
+      <button type="button" data-set-lang="pt" aria-pressed="false" aria-label="Português">PT</button>
+    </div>
+  </header>
+  <main class="wrap case-study" id="main">
+    <article>
+      <header class="case-heading">
+        <h1><span lang="en">Brazil’s 2026 election count</span><span lang="pt">A apuração das eleições de 2026</span></h1>
+        <p><span lang="en">Votação is a data pipeline for Brazil’s first-round election count. In a 20-minute collection on election night, I captured 58,896 files from the Superior Electoral Court (TSE) and normalized 12,722,327 candidate-by-territory vote records into SQLite.</span><span lang="pt">O Votação é um fluxo de dados sobre a apuração do primeiro turno das eleições brasileiras de 2026. Em 20 minutos na noite da eleição, coletei 58.896 arquivos do Tribunal Superior Eleitoral (TSE) e normalizei 12.722.327 registros de votação por candidatura e território em SQLite.</span></p>
+      </header>
+      <figure class="case-figure">
+        <figcaption id="figure-title"><span lang="en">Reporting status by candidacy</span><span lang="pt">Situação de divulgação por candidatura</span><small><span lang="en">21,011 candidacies · 4 October 2026, 21:20–21:40 Brasília time</span><span lang="pt">21.011 candidaturas · 4 de outubro de 2026, das 21h20 às 21h40, horário de Brasília</span></small></figcaption>
+        <dl class="case-bars" aria-labelledby="figure-title">
+          <div style="--bar:100.00%"><dt><span lang="en">Provisional count</span><span lang="pt">Apuração parcial</span></dt><dd><span lang="en">15,253</span><span lang="pt">15.253</span></dd></div>
+          <div style="--bar:23.75%"><dt><span lang="en">Final at capture</span><span lang="pt">Totalização final na captura</span></dt><dd><span lang="en">3,622</span><span lang="pt">3.622</span></dd></div>
+          <div style="--bar:7.95%"><dt><span lang="en">Absent from the published results</span><span lang="pt">Ausente na divulgação</span></dt><dd><span lang="en">1,212</span><span lang="pt">1.212</span></dd></div>
+          <div style="--bar:6.06%"><dt><span lang="en">No separate tally for running mates or alternates</span><span lang="pt">Sem votação nominal separada para vices e suplentes</span></dt><dd><span lang="en">924</span><span lang="pt">924</span></dd></div>
+        </dl>
+        <small><span lang="en">Source: Votação snapshot of the TSE’s official EA20 files, joined to its candidate register.</span><span lang="pt">Fonte: captura dos arquivos oficiais EA20 do TSE, cruzada com o cadastro de candidaturas.</span></small>
+      </figure>
+      <div class="case-reading">
+        <section>
+          <h2><span lang="en">Keep the source behind each number</span><span lang="pt">Preservar a fonte de cada número</span></h2>
+          <p><span lang="en">The collector recorded each file in a manifest, kept its publication timestamp and preserved the original with a SHA-256 checksum. It linked each result to a candidacy by election year, election code and candidate identifier. I reconciled the normalized record counts with the manifest and checked the SQLite foreign keys.</span><span lang="pt">O coletor registrou cada arquivo em um manifesto, guardou o horário de geração e preservou o original com um hash SHA-256. Cada resultado foi associado a uma candidatura pelo ano, pelo código da eleição e pelo identificador da candidatura. Conferi as quantidades de registros com o manifesto e verifiquei as chaves estrangeiras do SQLite.</span></p>
+        </section>
+        <section>
+          <h2><span lang="en">Separate a zero from a missing result</span><span lang="pt">Distinguir zero de um resultado ausente</span></h2>
+          <p><span lang="en">A reported zero is a tally. An absent result stays null, as does a vice or alternate’s individual tally. For each office, the pipeline uses the appropriate reporting level. The same vote can appear in state, municipal and electoral-zone files, so adding those levels would double-count votes.</span><span lang="pt">Zero é uma contagem quando consta na fonte. Se o resultado está ausente, o valor fica nulo, assim como a votação nominal de vices e suplentes. O fluxo usa a abrangência adequada para cada cargo. Um mesmo voto pode aparecer nos arquivos da UF, do município e da zona eleitoral, então somar esses recortes duplicaria votos.</span></p>
+        </section>
+        <section>
+          <h2><span lang="en">Read the snapshot in context</span><span lang="pt">Ler a captura no contexto da apuração</span></h2>
+          <p><span lang="en">The files were captured over a window, and each had its own generation time. The chart counts candidacies by reporting status at capture. It does not measure the share of votes tallied or give the final election results. For final counts, consult the TSE’s published results.</span><span lang="pt">Os arquivos foram coletados ao longo de uma janela, e cada um tinha seu próprio horário de geração. O gráfico conta candidaturas por situação na captura. A proporção de votos apurados e os resultados finais estão disponíveis nas fontes oficiais do TSE.</span></p>
+        </section>
+      </div>
+      <footer class="case-actions">
+        <a href="https://www.tse.jus.br/eleicoes/informacoes-tecnicas-sobre-a-divulgacao-de-resultados"><span lang="en">TSE reporting documentation</span><span lang="pt">Documentação do TSE sobre a divulgação</span></a>
+        <a href="https://dadosabertos.tse.jus.br/pt_BR/dataset/resultados-2026"><span lang="en">Official 2026 results</span><span lang="pt">Resultados oficiais de 2026</span></a>
+        <a href="/projects/"><span lang="en">Back to projects</span><span lang="pt">Voltar aos projetos</span></a>
+      </footer>
+    </article>
+  </main>
+</body>
+</html>
