@@ -4,8 +4,48 @@
   # Block WordPress scan attempts
   RewriteRule ^wp-admin(/.*)?$ - [F,L]
 
-  # Fiscal Observatory alias from the original project specification
-  RewriteRule ^projetos/observatorio-fiscal/?$ /observatorio-fiscal/ [R=301,L]
+  # Redirect published Portuguese URLs to the English site structure.
+  RewriteRule ^projetos/observatorio\-fiscal/?$ /fiscal-observatory/ [R=301,L]
+  RewriteRule ^projetos/observatorio\-fiscal\-estudo/?$ /projects/fiscal-observatory/ [R=301,L]
+  RewriteRule ^projetos/observatorio\-fiscal\-estudo/index\.html$ /projects/fiscal-observatory/ [R=301,L]
+  RewriteRule ^projetos/emendas\-parlamentares/?$ /projects/parliamentary-amendments/ [R=301,L]
+  RewriteRule ^projetos/emendas\-parlamentares/index\.html$ /projects/parliamentary-amendments/ [R=301,L]
+  RewriteRule ^textos/a\-economia\-da\-paz/?$ /essays/the-economics-of-peace/ [R=301,L]
+  RewriteRule ^textos/a\-economia\-da\-paz/index\.html$ /essays/the-economics-of-peace/ [R=301,L]
+  RewriteRule ^textos/a\-farsa\-do\-pleno\-emprego\-ou\-a\-farsa/?$ /essays/the-full-employment-sham/ [R=301,L]
+  RewriteRule ^textos/a\-farsa\-do\-pleno\-emprego\-ou\-a\-farsa/index\.html$ /essays/the-full-employment-sham/ [R=301,L]
+  RewriteRule ^textos/a\-metastase\-da\-globalizacao/?$ /essays/the-metastasis-of-globalization/ [R=301,L]
+  RewriteRule ^textos/a\-metastase\-da\-globalizacao/index\.html$ /essays/the-metastasis-of-globalization/ [R=301,L]
+  RewriteRule ^textos/as\-tribos\-politicas\-do\-brasil\-parte/?$ /essays/brazils-political-tribes-part-1/ [R=301,L]
+  RewriteRule ^textos/as\-tribos\-politicas\-do\-brasil\-parte/index\.html$ /essays/brazils-political-tribes-part-1/ [R=301,L]
+  RewriteRule ^textos/do\-fim\-da\-historia\-e\-da\-decadencia/?$ /essays/on-the-end-of-history-and-the-decay-of-being/ [R=301,L]
+  RewriteRule ^textos/do\-fim\-da\-historia\-e\-da\-decadencia/index\.html$ /essays/on-the-end-of-history-and-the-decay-of-being/ [R=301,L]
+  RewriteRule ^textos/um\-apelo\-a\-intolerancia/?$ /essays/a-plea-for-intolerance/ [R=301,L]
+  RewriteRule ^textos/um\-apelo\-a\-intolerancia/index\.html$ /essays/a-plea-for-intolerance/ [R=301,L]
+  RewriteRule ^textos/textos\.css$ /essays/archive.css [R=301,L]
+  RewriteRule ^textos/textos\.js$ /essays/archive.js [R=301,L]
+  RewriteRule ^textos/imagens/(.+)$ /essays/images/$1 [R=301,L]
+  RewriteRule ^projetos/?$ /projects/ [R=301,L]
+  RewriteRule ^projetos/index\.html$ /projects/ [R=301,L]
+  RewriteRule ^projetos/(.+)$ /projects/$1 [R=301,L]
+  RewriteRule ^pesquisa/?$ /research/ [R=301,L]
+  RewriteRule ^pesquisa/index\.html$ /research/ [R=301,L]
+  RewriteRule ^pesquisa/(.+)$ /research/$1 [R=301,L]
+  RewriteRule ^curriculum/?$ /cv/ [R=301,L]
+  RewriteRule ^curriculum/index\.html$ /cv/ [R=301,L]
+  RewriteRule ^curriculum/(.+)$ /cv/$1 [R=301,L]
+  RewriteRule ^textos/?$ /essays/ [R=301,L]
+  RewriteRule ^textos/index\.html$ /essays/ [R=301,L]
+  RewriteRule ^textos/(.+)$ /essays/$1 [R=301,L]
+  RewriteRule ^observatorio-fiscal/?$ /fiscal-observatory/ [R=301,L]
+  RewriteRule ^observatorio-fiscal/index\.html$ /fiscal-observatory/ [R=301,L]
+  RewriteRule ^observatorio-fiscal/(.+)$ /fiscal-observatory/$1 [R=301,L]
+  RewriteRule ^emendas-parlamentares/?$ /parliamentary-amendments/ [R=301,L]
+  RewriteRule ^emendas-parlamentares/index\.html$ /parliamentary-amendments/ [R=301,L]
+  RewriteRule ^emendas-parlamentares/(.+)$ /parliamentary-amendments/$1 [R=301,L]
+  RewriteRule ^foto-quiz/?$ /photo-quiz/ [R=301,L]
+  RewriteRule ^foto-quiz/index\.html$ /photo-quiz/ [R=301,L]
+  RewriteRule ^foto-quiz/(.+)$ /photo-quiz/$1 [R=301,L]
 
   # Retired application. Block deep links and files before serving existing paths.
   RewriteRule ^eixo(/|$) - [G,L]
@@ -15,7 +55,7 @@
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # Clean URLs: /curriculum -> /curriculum/index.html
+  # Clean URLs: /cv -> /cv/index.html
   RewriteRule ^([a-z0-9-]+)/?$ /$1/index.html [L]
 
 </IfModule>
